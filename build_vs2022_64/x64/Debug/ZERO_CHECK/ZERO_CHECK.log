@@ -1,0 +1,18 @@
+﻿  Checking Build System
+  CMake is re-running because D:/mmdbridge/build_vs2022_64/CMakeFiles/generate.stamp is out-of-date.
+    the file 'D:/mmdbridge/CMakeLists.txt'
+    is newer than 'D:/mmdbridge/build_vs2022_64/CMakeFiles/generate.stamp.depend'
+    result='-1'
+  CMake Deprecation Warning at CMakeLists.txt:1 (CMAKE_MINIMUM_REQUIRED):
+    Compatibility with CMake < 2.8.12 will be removed from a future version of
+    CMake.
+  
+    Update the VERSION argument <min> value or use a ...<max> suffix to tell
+    CMake that the project does not need compatibility with older versions.
+  
+  
+  -- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.19043.
+  -- Up-to-date: D:/mmdbridge/MikuMikuDance_x64/python310.lib
+  -- Configuring done
+  -- Generating done
+  -- Build files have been written to: D:/mmdbridge/build_vs2022_64

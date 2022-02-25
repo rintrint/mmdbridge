@@ -10,11 +10,14 @@ SET(CMAKE_CXX_FLAGS_DEBUG
     )
 
 # path settings
+SET(Imath_INCLUDE_DIRS
+	${CMAKE_INSTALL_PREFIX}/include/Imath)
+
 #FIND_PACKAGE(PythonLibs REQUIRED)
 SET(PYTHON_INCLUDE_DIRS
-    ${CMAKE_INSTALL_PREFIX}/include/python3.6)
+    ${CMAKE_INSTALL_PREFIX}/include/python3.10)
 SET(PYTHON_LIBRARIES
-    ${CMAKE_INSTALL_PREFIX}/lib/python36.lib)
+    ${CMAKE_INSTALL_PREFIX}/lib/python310.lib)
 
 #FIND_PACKAGE(pybind11 REQUIRED)
 SET(pybind11_INCLUDE_DIRS
@@ -39,7 +42,7 @@ ADD_SUBDIRECTORY(src)
 
 # additional install files
 INSTALL(FILES 
-    ${CMAKE_INSTALL_PREFIX}/bin/python36.dll
+    ${CMAKE_INSTALL_PREFIX}/bin/python310.dll
     ${CMAKE_INSTALL_PREFIX}/bin/Alembic.dll
     ${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll
     ${CMAKE_INSTALL_PREFIX}/bin/imath-2_2.dll
@@ -55,7 +58,7 @@ INSTALL(FILES ${python_sciprts}
     DESTINATION ${MMD_DIR}
     )
 
-FILE(INSTALL ${CMAKE_INSTALL_PREFIX}/share/python3/Lib DESTINATION ${MMD_DIR})
+FILE(INSTALL ${CMAKE_INSTALL_PREFIX}/lib/python310.lib DESTINATION ${MMD_DIR})
 
 INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts 
     DESTINATION ${MMD_DIR}

@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="D:\mmdbridge\build_vs2022_64\CMakeFiles\c975076390a1939a59032fe8319cc4df\INSTALL_force.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{F041C1F2-36D9-304A-BF65-5BF558A1D92F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

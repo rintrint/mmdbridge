@@ -22,6 +22,7 @@
     <ProjectGuid>{B751DC4C-8DDE-4219-ADC8-D3BEC797732A}</ProjectGuid>
     <RootNamespace>d3d9</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -38,7 +39,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v120_xp</PlatformToolset>
+    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -86,6 +87,12 @@
     <IntDir>$(Platform)\$(Configuration)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <VcpkgInstalledDir>C:\dev\vcpkg\installed</VcpkgInstalledDir>
+  </PropertyGroup>
+  <PropertyGroup Label="Vcpkg" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <VcpkgInstalledDir>C:\dev\vcpkg\installed</VcpkgInstalledDir>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
@@ -97,6 +104,8 @@
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
     </ClCompile>
     <Link>
       <AdditionalDependencies>MMDExport.lib;MikuMikuFormats.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -110,7 +119,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include;$(SolutionDir)/src/d3dx9_32;$(SolutionDir)/src/umbase;C:\Program Files (x86)\Microsoft DirectX SDK (April 2006)\Include;$(SolutionDir)/src/($ProjectName);$(SolutionDir)/libs/python/include;$(SolutionDir)/libs/ilmbase2/include;$(SolutionDir)/libs/ilmbase2/include/config.windows;$(SolutionDir)/libs/ilmbase2/include/Half;$(SolutionDir)/libs/ilmbase2/include/Iex;$(SolutionDir)/libs/ilmbase2/include/IexMath;$(SolutionDir)/libs/ilmbase2/include/IlmThread;$(SolutionDir)/libs/ilmbase2/include/Imath;$(SolutionDir)/libs/alembic/include;$(SolutionDir)/libs/hdf5/include;$(SolutionDir)/libs/avi20/include;$(SolutionDir)/libs/boost/include;$(SolutionDir)/libs/mmd/include;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include;$(SolutionDir)/src/d3dx9_32;$(SolutionDir)/src/umbase;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)/src/($ProjectName);$(SolutionDir)/libs/python/include;$(SolutionDir)/libs/ilmbase2/include;$(SolutionDir)/libs/ilmbase2/include/config.windows;$(SolutionDir)/libs/ilmbase2/include/Half;$(SolutionDir)/libs/ilmbase2/include/Iex;$(SolutionDir)/libs/ilmbase2/include/IexMath;$(SolutionDir)/libs/ilmbase2/include/IlmThread;$(SolutionDir)/libs/ilmbase2/include/Imath;$(SolutionDir)/libs/alembic/include;$(SolutionDir)/libs/hdf5/include;$(SolutionDir)/libs/avi20/include;$(SolutionDir)/libs/boost/include;$(SolutionDir)/libs/mmd/include;$(SolutionDir)/MikuMikuDance_x64/Data;;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;BOOST_PYTHON_STATIC_LIB;_DEBUG;_WINDOWS;_USRDLL;HOOK_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -177,7 +186,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include;$(SolutionDir)/src/d3dx9_32;$(SolutionDir)/src/umbase;C:\Program Files (x86)\Microsoft DirectX SDK (April 2006)\Include;$(SolutionDir)/src/($ProjectName);$(SolutionDir)/libs/python/include;$(SolutionDir)/libs/ilmbase2/include;$(SolutionDir)/libs/ilmbase2/include/config.windows;$(SolutionDir)/libs/ilmbase2/include/Half;$(SolutionDir)/libs/ilmbase2/include/Iex;$(SolutionDir)/libs/ilmbase2/include/IexMath;$(SolutionDir)/libs/ilmbase2/include/IlmThread;$(SolutionDir)/libs/ilmbase2/include/Imath;$(SolutionDir)/libs/alembic/include;$(SolutionDir)/libs/hdf5/include;$(SolutionDir)/libs/avi20/include;$(SolutionDir)/libs/boost/include;$(SolutionDir)/libs/mmd/include;$(SolutionDir)/libs/stb/include;$(SolutionDir)/libs/MikuMikuFormats/include;$(SolutionDir)/libs/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Include;$(SolutionDir)/src/d3dx9_32;$(SolutionDir)/src/umbase;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\Include;$(SolutionDir)/src/($ProjectName);$(SolutionDir)/libs/python/include;$(SolutionDir)/libs/ilmbase2/include;$(SolutionDir)/libs/ilmbase2/include/config.windows;$(SolutionDir)/libs/ilmbase2/include/Half;$(SolutionDir)/libs/ilmbase2/include/Iex;$(SolutionDir)/libs/ilmbase2/include/IexMath;$(SolutionDir)/libs/ilmbase2/include/IlmThread;$(SolutionDir)/libs/ilmbase2/include/Imath;$(SolutionDir)/libs/alembic/include;$(SolutionDir)/libs/hdf5/include;$(SolutionDir)/libs/avi20/include;$(SolutionDir)/libs/boost/include;$(SolutionDir)/libs/mmd/include;$(SolutionDir)/MikuMikuDance_x64/Data;$(SolutionDir)/libs/stb/include;$(SolutionDir)/libs/MikuMikuFormats/include;$(SolutionDir)/libs/;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;WIN32;BOOST_PYTHON_STATIC_LIB;NDEBUG;_WINDOWS;HOOK_EXPORTS;WITH_ALEMBIC;WITH_VMD;WITH_PMX;WITH_AVI;_CRT_SECURE_NO_WARNINGS;PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>

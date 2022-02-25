@@ -21,6 +21,7 @@ INCLUDE_DIRECTORIES(
     ${ilmbase_INCLUDE_DIRS}
     ${Alembic_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
+    ${Imath_INCLUDE_DIRS}
     )
 LINK_DIRECTORIES(
     ${MMD_DIR}/Data
