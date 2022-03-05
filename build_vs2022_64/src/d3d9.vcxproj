@@ -85,9 +85,15 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">true</GenerateManifest>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LibraryPath>$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64)</LibraryPath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows\include;C:\dev\vcpkg\installed\x64-windows\include\python3.10;C:\dev\vcpkg\installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows-static\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows-static\include;C:\dev\vcpkg\installed\x64-windows-static\include\python3.10;C:\dev\vcpkg\installed\x64-windows-static\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
@@ -96,6 +102,9 @@
       <UseFullPaths>false</UseFullPaths>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);NOMINMAX;UNICODE;_UNICODE;WITH_VMD;WITH_PMX;WITH_ALEMBIC;CMAKE_INTDIR="Debug";d3d9_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;NOMINMAX;UNICODE;_UNICODE;WITH_VMD;WITH_PMX;WITH_ALEMBIC;CMAKE_INTDIR=\"Debug\";d3d9_EXPORTS</PreprocessorDefinitions>
@@ -110,7 +119,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>C:\dev\vcpkg\installed\x64-windows\lib\python310.lib;Shlwapi.lib;WinMM.lib;d3dx9_32\Debug\d3dx9_43.lib;MMDExport.lib;MikuMikuFormats\Debug\MikuMikuFormats.lib;C:\dev\vcpkg\installed\x64-windows\lib\Alembic.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\dev\vcpkg\installed\x64-windows-static\debug\lib\python310_d.lib;Shlwapi.lib;WinMM.lib;d3dx9_32\Debug\d3dx9_43.lib;MMDExport.lib;MikuMikuFormats\Debug\MikuMikuFormats.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\Imath-3_1_d.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\libexpatdMD.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\libhdf5_D.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\libhdf5_hl_D.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\libszip_D.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\python_d.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\zlibd.lib;C:\dev\vcpkg\installed\x64-windows-static\debug\lib\Alembic.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:/mmdbridge/MikuMikuDance_x64/Data;D:/mmdbridge/MikuMikuDance_x64/Data/$(Configuration);C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/lib/x64;C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/lib/x64/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -126,19 +135,24 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows\include;C:\dev\vcpkg\installed\x64-windows\include\python3.10;C:\dev\vcpkg\installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows-static\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows-static\include;C:\dev\vcpkg\installed\x64-windows-static\include\python3.10;C:\dev\vcpkg\installed\x64-windows-static\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <Optimization>MaxSpeed</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <UseFullPaths>false</UseFullPaths>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);NDEBUG;NOMINMAX;UNICODE;_UNICODE;WITH_VMD;WITH_PMX;WITH_ALEMBIC;CMAKE_INTDIR="Release";d3d9_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <StringPooling>true</StringPooling>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <WholeProgramOptimization>true</WholeProgramOptimization>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;NDEBUG;NOMINMAX;UNICODE;_UNICODE;WITH_VMD;WITH_PMX;WITH_ALEMBIC;CMAKE_INTDIR=\"Release\";d3d9_EXPORTS</PreprocessorDefinitions>
@@ -153,7 +167,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>C:\dev\vcpkg\installed\x64-windows\lib\python310.lib;Shlwapi.lib;WinMM.lib;d3dx9_32\Release\d3dx9_43.lib;MMDExport.lib;MikuMikuFormats\Release\MikuMikuFormats.lib;C:\dev\vcpkg\installed\x64-windows\lib\Alembic.lib;Shlwapi.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>C:\dev\vcpkg\installed\x64-windows-static\lib\python310.lib;Shlwapi.lib;WinMM.lib;d3dx9_32\Release\d3dx9_43.lib;MMDExport.lib;MikuMikuFormats\Release\MikuMikuFormats.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\Imath-3_1.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\libexpatMD.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\libhdf5.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\libhdf5_hl.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\libszip.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\python.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\zlib.lib;C:\dev\vcpkg\installed\x64-windows-static\lib\Alembic.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>D:/mmdbridge/MikuMikuDance_x64/Data;D:/mmdbridge/MikuMikuDance_x64/Data/$(Configuration);C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/lib/x64;C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)/lib/x64/$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>false</GenerateDebugInformation>
@@ -162,6 +176,9 @@
       <ModuleDefinitionFile>D:/mmdbridge/src/d3d9/hook.def</ModuleDefinitionFile>
       <ProgramDataBaseFile>D:/mmdbridge/build_vs2022_64/src/Release/d3d9.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -169,7 +186,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows\include;C:\dev\vcpkg\installed\x64-windows\include\python3.10;C:\dev\vcpkg\installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows-static\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows-static\include;C:\dev\vcpkg\installed\x64-windows-static\include\python3.10;C:\dev\vcpkg\installed\x64-windows-static\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
@@ -212,7 +229,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows\include;C:\dev\vcpkg\installed\x64-windows\include\python3.10;C:\dev\vcpkg\installed\x64-windows\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\mmdbridge\src\umbase;D:\mmdbridge\src\d3dx9_32;D:\mmdbridge\src\MikuMikuFormats;D:\mmdbridge\MikuMikuDance_x64\Data;C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include;C:\dev\vcpkg\installed\x64-windows-static\include\OpenEXR;C:\dev\vcpkg\installed\x64-windows-static\include;C:\dev\vcpkg\installed\x64-windows-static\include\python3.10;C:\dev\vcpkg\installed\x64-windows-static\include\Imath;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>

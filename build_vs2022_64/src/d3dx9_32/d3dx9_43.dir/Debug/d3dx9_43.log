@@ -1,3 +1,3 @@
 ﻿  d3dx9.cpp
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(349,44): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,D3DXFONT_DESCW *)”: 用于调用的参数太少
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(350,53): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,LPCWSTR,INT)”: 用于调用的参数太少
+    正在创建库 D:/mmdbridge/build_vs2022_64/src/d3dx9_32/Debug/d3dx9_43.lib 和对象 D:/mmdbridge/build_vs2022_64/src/d3dx9_32/Debug/d3dx9_43.exp
+  d3dx9_43.vcxproj -> D:\mmdbridge\build_vs2022_64\src\d3dx9_32\Debug\d3dx9_43.dll

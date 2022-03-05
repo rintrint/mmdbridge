@@ -1,19 +1,5 @@
-﻿  alembic.cpp
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(349,44): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,D3DXFONT_DESCW *)”: 用于调用的参数太少
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(350,53): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,LPCWSTR,INT)”: 用于调用的参数太少
-  bridge_parameter.cpp
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(349,44): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,D3DXFONT_DESCW *)”: 用于调用的参数太少
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(350,53): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,LPCWSTR,INT)”: 用于调用的参数太少
-  d3d9.cpp
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(349,44): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,D3DXFONT_DESCW *)”: 用于调用的参数太少
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(350,53): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,LPCWSTR,INT)”: 用于调用的参数太少
-D:\mmdbridge\MikuMikuDance_x64\Data\MMDExport.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
+﻿  d3d9.cpp
   pmx.cpp
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(349,44): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,D3DXFONT_DESCW *)”: 用于调用的参数太少
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(350,53): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,LPCWSTR,INT)”: 用于调用的参数太少
-D:\mmdbridge\MikuMikuDance_x64\Data\MMDExport.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   vmd.cpp
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(349,44): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,D3DXFONT_DESCW *)”: 用于调用的参数太少
-C:\Program Files (x86)\Microsoft DirectX SDK (June 2010)\include\d3dx9core.h(350,53): error C2198: “HRESULT (__cdecl *)(ID3DXFont *,LPCWSTR,INT)”: 用于调用的参数太少
-D:\mmdbridge\MikuMikuDance_x64\Data\MMDExport.h(1,1): warning C4819: 该文件包含不能在当前代码页(936)中表示的字符。请将该文件保存为 Unicode 格式以防止数据丢失
   正在生成代码...
+  d3d9.vcxproj -> D:\mmdbridge\build_vs2022_64\src\Debug\d3d9.dll

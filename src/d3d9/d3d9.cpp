@@ -1233,12 +1233,12 @@ static void setMyMenu()
 		minfo.cbSize = sizeof(MENUITEMINFO);
 		minfo.fMask = MIIM_ID | MIIM_TYPE | MIIM_SUBMENU;
 		minfo.fType = MFT_STRING;
-		minfo.dwTypeData = TEXT("MMDBridge");
+		minfo.dwTypeData = L"MMDBridge";
 		minfo.hSubMenu = hsubs;
 
 		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
 		minfo.fMask = MIIM_ID | MIIM_TYPE;
-		minfo.dwTypeData = TEXT("プラグイン設定");
+		minfo.dwTypeData = L"プラグイン設定";
 		minfo.wID = 1020;
 		InsertMenuItem(hsubs, 1, TRUE, &minfo);
 
@@ -1298,8 +1298,8 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				{
 					SendMessage(hCombo1 , CB_ADDSTRING , 0 , (LPARAM)parameter.python_script_name_list[i].c_str());
 				}
-				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)_T("実行する"));
-				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)_T("実行しない"));
+				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行する");
+				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行しない");
 				// ウインドウ生成時にはじめに表示するデータを指定
 				UINT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)parameter.python_script_name.c_str());
 				SendMessage(hCombo1, CB_SETCURSEL, index1, 0);

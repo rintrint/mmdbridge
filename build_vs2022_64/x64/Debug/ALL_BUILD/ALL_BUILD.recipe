@@ -5,6 +5,9 @@
       <FullPath>D:\mmdbridge\build_vs2022_64\x64\Debug\ZERO_CHECK</FullPath>
     </ProjectOutput>
     <ProjectOutput>
+      <FullPath>D:\mmdbridge\build_vs2022_64\src\d3dx9_32\Debug\d3dx9_43.dll</FullPath>
+    </ProjectOutput>
+    <ProjectOutput>
       <FullPath>D:\mmdbridge\build_vs2022_64\x64\Debug\ALL_BUILD</FullPath>
     </ProjectOutput>
   </ProjectOutputs>

@@ -1,0 +1,9 @@
+﻿    正在创建库 D:/mmdbridge/build_vs2022_64/src/Release/d3d9.lib 和对象 D:/mmdbridge/build_vs2022_64/src/Release/d3d9.exp
+d3d9.exp : warning LNK4070: .EXP 中的 /OUT:d3d9_.dll 指令与输出文件名“D:\mmdbridge\build_vs2022_64\src\Release\d3d9.dll”不同；忽略指令
+  正在生成代码
+  4 of 22044 functions (<0.1%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    248 functions had inline decision re-evaluated but remain unchanged
+  已完成代码的生成
+d3d9.exp : warning LNK4070: .EXP 中的 /OUT:d3d9_.dll 指令与输出文件名“D:\mmdbridge\build_vs2022_64\src\Release\d3d9.dll”不同；忽略指令
+  d3d9.vcxproj -> D:\mmdbridge\build_vs2022_64\src\Release\d3d9.dll

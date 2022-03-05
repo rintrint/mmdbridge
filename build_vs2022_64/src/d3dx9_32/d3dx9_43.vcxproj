@@ -139,6 +139,10 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <DebugInformationFormat>
       </DebugInformationFormat>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
+      <StringPooling>true</StringPooling>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;NDEBUG;NOMINMAX;UNICODE;_UNICODE;CMAKE_INTDIR=\"Release\";d3dx9_43_EXPORTS</PreprocessorDefinitions>
@@ -162,6 +166,9 @@
       <ModuleDefinitionFile>D:/mmdbridge/src/d3dx9_32/hook64.def</ModuleDefinitionFile>
       <ProgramDataBaseFile>D:/mmdbridge/build_vs2022_64/src/d3dx9_32/Release/d3dx9_43.pdb</ProgramDataBaseFile>
       <SubSystem>Console</SubSystem>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <LinkTimeCodeGeneration>UseFastLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
