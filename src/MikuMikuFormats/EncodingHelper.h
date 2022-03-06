@@ -43,9 +43,9 @@ namespace oguna
 		int Cp932ToUtf16(const char *src, int length, std::wstring *out)
 		{
 			int size;
-			size = ::MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, NULL, NULL);
+			size = ::MultiByteToWideChar(932, MB_PRECOMPOSED, src, length, NULL, NULL);
 			buffer.resize(size * sizeof(wchar_t) * 2);
-			MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, src, length, (LPWSTR) buffer.data(), buffer.size() * 2);
+			MultiByteToWideChar(932, MB_PRECOMPOSED, src, length, (LPWSTR) buffer.data(), buffer.size() * 2);
 			out->assign((wchar_t*) buffer.data(), size);
 			return size;
 		}
@@ -54,9 +54,9 @@ namespace oguna
 		int Utf16ToCp932(const wchar_t *src, int length, std::string *out)
 		{
 			int size;
-			size = WideCharToMultiByte(CP_ACP, NULL, src, length, NULL, NULL, NULL, NULL);
+			size = WideCharToMultiByte(932, NULL, src, length, NULL, NULL, NULL, NULL);
 			buffer.resize(size);
-			WideCharToMultiByte(CP_ACP, NULL, src, length, (LPSTR) buffer.data(), buffer.size(), NULL, NULL);
+			WideCharToMultiByte(932, NULL, src, length, (LPSTR) buffer.data(), buffer.size(), NULL, NULL);
 			out->assign(buffer.data(), size);
 			return size;
 		}

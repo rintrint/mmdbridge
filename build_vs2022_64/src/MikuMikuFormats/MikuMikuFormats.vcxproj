@@ -417,14 +417,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="D:\mmdbridge\src\MikuMikuFormats\Pmx.h" />
     <ClInclude Include="D:\mmdbridge\src\MikuMikuFormats\Vmd.h" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="D:\mmdbridge\build_vs2022_64\ZERO_CHECK.vcxproj">
-      <Project>{7A8C4618-7DA9-3273-A11B-4DB01456E0CD}</Project>
-      <Name>ZERO_CHECK</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
