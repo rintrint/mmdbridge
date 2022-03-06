@@ -105,7 +105,7 @@ typedef struct RenderedMaterial {
     UMVec3f   emissive;       /* Emissive color RGB */
     float        power; 
 	IDirect3DTexture9 *tex;
-	std::string texture;
+	std::wstring texture;
 	std::string memoryTexture;
 	RenderedSurface surface;
 } RenderedMaterial;
@@ -146,7 +146,7 @@ typedef struct RenderedBuffer {
 
 typedef struct RenderedTexture {
 	UMVec2i size;
-	std::string name;
+	std::wstring name;
 	std::vector<UMVec4f> texture;
 } RenderedTexture;
 
@@ -165,7 +165,7 @@ struct TextureParameter
 	bool hasTextureSampler1;
 	bool hasTextureSampler2;
 	bool hasAlphaTexture;
-	std::string textureName;
+	std::wstring textureName;
 	std::string textureMemoryName;
 };
 

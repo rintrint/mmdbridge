@@ -7,3 +7,17 @@
 build_vs2022_64/.vs/mmdbridge/v17/
 
 .vs/
+
+test/
+
+build_vs2022_64/src/Debug/
+
+build_vs2022_64/src/Release/
+
+build_vs2022_64/src/d3dx9_32/Debug/
+
+build_vs2022_64/src/MikuMikuFormats/Debug/
+
+build_vs2022_64/src/MikuMikuFormats/Release/
+
+build_vs2022_64/src/d3d9.dir/

@@ -118,7 +118,7 @@ static bool start_vmd_export(
 	std::string output_path(directory_path);
 	if (output_path.empty())
 	{
-		VMDArchive::instance().output_path = umbase::UMStringUtil::wstring_to_utf8(parameter.base_path) + ("out\\");
+		VMDArchive::instance().output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + ("out/");
 	}
 
 	archive.export_mode = export_mode;
@@ -161,7 +161,6 @@ static bool end_vmd_export()
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
-	oguna::EncodingConverter converter;
 
 	for (int i = 0; i < pmd_num; ++i)
 	{
@@ -170,7 +169,7 @@ static bool end_vmd_export()
 		if (file_data.vmd)
 		{
 			std::string dst;
-			converter.Cp932ToUtf8(filename, strnlen(filename, 4096), &dst);
+			oguna::EncodingConverter::Cp932ToUtf8(filename, strnlen(filename, 4096), &dst);
 			const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(dst);
 			 umstring filename = umbase::UMPath::get_file_name(umstr);
 			const umstring extension = umbase::UMStringUtil::utf8_to_utf16(".vmd");
@@ -253,14 +252,13 @@ static void init_file_data(FileDataForVMD& data)
 	}
 	else if (data.pmx)
 	{
-		oguna::EncodingConverter converter;
 		const int bone_count = data.pmx->bones.size();
 		for (int i = 0; i < bone_count; ++i)
 		{
 			const pmx::PmxBone& bone = data.pmx->bones[i];
 			const int parent_bone = bone.parent_index;
 			data.parent_index_map[i] = parent_bone;
-			converter.Utf16ToCp932(bone.bone_name.c_str(), bone.bone_name.length(), &data.bone_name_map[i]);
+			oguna::EncodingConverter::Utf16ToCp932(bone.bone_name.c_str(), bone.bone_name.length(), &data.bone_name_map[i]);
 			for (int k = 0; k < bone.ik_link_count; ++k)
 			{
 				const pmx::PmxIkLink& link = bone.ik_links[k];
@@ -394,7 +392,6 @@ static bool execute_vmd_export(int currentframe)
 	const BridgeParameter& parameter = BridgeParameter::instance();
 
 	const int pmd_num = ExpGetPmdNum();
-	oguna::EncodingConverter converter;
 
 	if (currentframe == parameter.start_frame)
 	{
@@ -411,7 +408,7 @@ static bool execute_vmd_export(int currentframe)
 			}
 			else if (file_data.pmx) 
 			{
-				converter.Utf16ToCp932(file_data.pmx->model_name.c_str(), file_data.pmx->model_name.length(), &file_data.vmd->model_name);
+				oguna::EncodingConverter::Utf16ToCp932(file_data.pmx->model_name.c_str(), file_data.pmx->model_name.length(), &file_data.vmd->model_name);
 			}
 		}
 	}

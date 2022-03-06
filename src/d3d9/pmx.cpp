@@ -68,7 +68,7 @@ static bool start_pmx_export(const std::string& directory_path, const std::strin
 
 	if (directory_path.empty())
 	{
-		archive.output_path = umbase::UMStringUtil::wstring_to_utf8(parameter.base_path) + ("out\\");
+		archive.output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + "out/";
 	}
 	else
 	{
@@ -81,13 +81,12 @@ static bool end_pmx_export()
 {
 	PMXArchive &archive = PMXArchive::instance();
 	const BridgeParameter& parameter = BridgeParameter::instance();
-	oguna::EncodingConverter converter;
 
 	umstring filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".pmx");
 	auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename);
 
 	PMXPtr pmx = archive.file_data.pmx;
-	converter.Utf8ToUtf16(archive.model_name.c_str(), archive.model_name.size(), &pmx->model_name);
+	oguna::EncodingConverter::Utf8ToUtf16(archive.model_name.c_str(), archive.model_name.size(), &pmx->model_name);
 	pmx->morphs.resize(archive.morph_list.size());
 
 	archive.file_data.vmd = std::make_unique<vmd::VmdMotion>();
@@ -111,7 +110,7 @@ static bool end_pmx_export()
 		// vmd
 		{
 			vmd::VmdFaceFrame frame;
-			converter.Utf16ToCp932(mo->morph_name.c_str(), mo->morph_name.size(), &frame.face_name);
+			oguna::EncodingConverter::Utf16ToCp932(mo->morph_name.c_str(), mo->morph_name.size(), &frame.face_name);
 
 			if (frame_number > 0)
 			{

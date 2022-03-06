@@ -45,9 +45,6 @@ namespace pmx
 	/// 文字列を読み込む
 	utfstring ReadString(std::istream *stream, uint8_t encoding)
 	{
-#ifndef __unix__
-		oguna::EncodingConverter converter = oguna::EncodingConverter();
-#endif
 		int size;
 		stream->read((char*) &size, sizeof(int));
 		std::vector<char> buffer;
@@ -90,7 +87,7 @@ namespace pmx
 			// UTF8
 #ifndef __unix__
 			utfstring result;
-			converter.Utf8ToUtf16(buffer.data(), size, &result);
+			oguna::EncodingConverter::Utf8ToUtf16(buffer.data(), size, &result);
 			return result;
 #else
 			return utfstring((const char*)buffer.data(), size);

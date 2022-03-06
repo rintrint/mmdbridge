@@ -20,7 +20,7 @@ namespace py = pybind11;
 #include <richedit.h>
 
 #include <process.h>
-
+#include  <direct.h> 
 #include "bridge_parameter.h"
 #include "alembic.h"
 #include "vmd.h"
@@ -29,6 +29,7 @@ namespace py = pybind11;
 #include "MMDExport.h"
 #include "UMStringUtil.h"
 #include "UMPath.h"
+#include "EncodingHelper.h"
 
 #ifdef _WIN64
 #define _LONG_PTR LONG_PTR
@@ -44,7 +45,7 @@ template <class T> std::string to_string(T value)
 //ワイド文字列からutf8文字列に変換
 static void to_string(std::string &dest, const std::wstring &src) 
 {
-	dest = umbase::UMStringUtil::wstring_to_utf8(src);
+	dest = oguna::EncodingConverter::wstringTostring(src);
 }
 
 static void messagebox(std::string title, std::string message)
@@ -161,9 +162,6 @@ namespace
 	/// スクリプトパスのリロード.
 	void reload_python_file_paths()
 	{
-		TCHAR app_full_path[1024];	// アプリフルパス
-		
-		GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
 
 		BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 		std::wstring searchPath = mutable_parameter.base_path;
@@ -325,7 +323,7 @@ namespace
 		return power;
 	}
 
-	std::string get_texture(int at, int mpos)
+	std::wstring get_texture(int at, int mpos)
 	{
 		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		return mat->texture;
@@ -368,7 +366,7 @@ namespace
 		return result;
 	}
 
-	std::string get_texture_name(int at)
+	std::wstring get_texture_name(int at)
 	{
 		return renderedTextures[finishTextureBuffers[at].first].name;
 	}
@@ -441,10 +439,9 @@ namespace
 		return false;
 	}
 
-	std::string get_base_path()
-	{
-		std::string path = umbase::UMStringUtil::wstring_to_utf8(BridgeParameter::instance().base_path);
-		return path;
+	std::wstring get_base_path()
+	{	
+		return BridgeParameter::instance().base_path;
 	}
 
 	std::vector<float> get_camera_up()
@@ -1087,7 +1084,7 @@ static bool copyTextureToFiles(const std::u16string &texturePath)
 	return res;
 }
 
-static bool writeTextureToMemory(const std::string &textureName, IDirect3DTexture9 * texture, bool copied)
+static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTexture9 * texture, bool copied)
 {
 	// すでにfinishTexutureBufferにあるかどうか
 	bool found = false;
@@ -1525,8 +1522,7 @@ static void getTextureParameter(TextureParameter &param)
 		param.textureMemoryName = to_string(param.texture);
 		if (name)
 		{
-			std::wstring wname(name);
-			to_string(param.textureName, wname);
+			param.textureName=std::wstring(name);
 		}
 		if (UMIsAlphaTexture(param.texture))
 		{
@@ -2351,20 +2347,22 @@ bool d3d9_initialize()
 {
 	// MMDフルパスの取得.
 	{
-		wchar_t app_full_path[1024];
-		GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(wchar_t));
+		TCHAR app_full_path[MAX_PATH] = { 0 };
+		GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
 		std::wstring path(app_full_path);
-		BridgeParameter::mutable_instance().base_path = path.substr(0, path.rfind(_T("MikuMikuDance.exe")));
+		BridgeParameter::mutable_instance().base_path = path.substr(0, path.rfind(L"MikuMikuDance.exe"));
+		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), '\\', '/');
 	}
 
 	reload_python_file_paths();
 	relaod_python_script();
 
 	// システムパス保存用
-	TCHAR system_path_buffer[1024];
-	GetSystemDirectory(system_path_buffer, MAX_PATH );
+	TCHAR system_path_buffer[MAX_PATH] = { 0 };
+	GetSystemDirectory(system_path_buffer, sizeof(system_path_buffer) / sizeof(TCHAR));
 	std::wstring d3d9_path(system_path_buffer);
-	d3d9_path.append(_T("\\D3D9.DLL"));
+	replace(d3d9_path.begin(), d3d9_path.end(), '\\', '/');
+	d3d9_path.append(L"/D3D9.DLL");
 	// オリジナルのD3D9.DLLのモジュール
 	HMODULE d3d9_module(LoadLibrary(d3d9_path.c_str()));
 

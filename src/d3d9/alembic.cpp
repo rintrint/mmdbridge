@@ -8,6 +8,7 @@
 #include "UMPath.h"
 #include "UMMath.h"
 #include "UMVector.h"
+#include "EncodingHelper.h"
 
 
 #include <pybind11/pybind11.h>
@@ -153,19 +154,20 @@ static bool start_alembic_export(
 	{
 		std::string output_path(filepath);
 		if (output_path.empty()) 
-		{
-			output_path = umbase::UMStringUtil::wstring_to_utf8(parameter.base_path) + ("out\\alembic_file.abc");
+		{			
+			output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + "out/alembic_file.abc";
 		}
 		if (is_use_ogawa) {
 			AlembicArchive::instance().archive =
-				new Alembic::Abc::OArchive(Alembic::AbcCoreOgawa::WriteArchive(),
-				output_path.c_str());
+				new Alembic::Abc::OArchive(Alembic::AbcCoreOgawa::WriteArchive(), 
+					output_path);
 		}
 		else
 		{
+			//Alembic::Abc::CreateArchiveWithInfo(Alembic::AbcCoreHDF5::WriteArchive(), output_path, "", "");
 			AlembicArchive::instance().archive =
 				new Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(),
-				output_path.c_str());
+					output_path);
 		}
 
 		AlembicArchive &archive = AlembicArchive::instance();
