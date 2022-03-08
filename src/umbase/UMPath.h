@@ -25,9 +25,9 @@ class UMPath
 
 public:
 
-	static bool exists(const umstring& absolute_path);
+	static bool exists(const wchar_t* absolute_path);
 	
-	static bool is_folder(const umstring& absolute_path);
+	static bool is_folder(const wchar_t* absolute_path);
 
 	static bool get_child_path_list(
 		std::vector<umstring>& dst_folder_list, 

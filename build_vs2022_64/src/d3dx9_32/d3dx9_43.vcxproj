@@ -96,6 +96,7 @@
       <UseFullPaths>false</UseFullPaths>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);NOMINMAX;UNICODE;_UNICODE;CMAKE_INTDIR="Debug";d3dx9_43_EXPORTS</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_DEBUG;NOMINMAX;UNICODE;_UNICODE;CMAKE_INTDIR=\"Debug\";d3dx9_43_EXPORTS</PreprocessorDefinitions>
@@ -143,6 +144,7 @@
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <StringPooling>true</StringPooling>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;NDEBUG;NOMINMAX;UNICODE;_UNICODE;CMAKE_INTDIR=\"Release\";d3dx9_43_EXPORTS</PreprocessorDefinitions>

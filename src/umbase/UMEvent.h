@@ -48,8 +48,8 @@ public:
 	void clear_listeners();
 	void notify();
 
-	void set_parameter(Parameter& parameter) {
-		parameter_ = parameter;
+	void set_parameter(Parameter&& parameter) {
+		parameter_ = std::move(parameter);
 	}
 
 private:	

@@ -72,25 +72,25 @@ public:
 	AbcA::uint32_t timeindex;
 	AbcA::TimeSamplingPtr timesampling;
 	
-	typedef std::map<int, Alembic::AbcGeom::OXform > XformMap;
+	typedef std::map<int, Alembic::AbcGeom::OXform> XformMap;
 	XformMap xform_map;
 
-	typedef std::map<int, Alembic::AbcGeom::OXformSchema > XformSchemaMap;
+	typedef std::map<int, Alembic::AbcGeom::OXformSchema> XformSchemaMap;
 	XformSchemaMap xform_schema_map;
 
-	typedef std::map<int, Alembic::AbcGeom::OPolyMesh > MeshMap;
+	typedef std::map<int, Alembic::AbcGeom::OPolyMesh> MeshMap;
 	MeshMap mesh_map;
 
-	typedef std::map<int, Alembic::AbcGeom::OPolyMeshSchema > SchemaMap;
+	typedef std::map<int, Alembic::AbcGeom::OPolyMeshSchema> SchemaMap;
 	SchemaMap schema_map;
 	
 	typedef std::map<int, int > SurfaceSizeMap;
 	SurfaceSizeMap surface_size_map;
 	
-	typedef std::map<int, Alembic::AbcGeom::OCamera > CameraMap;
+	typedef std::map<int, Alembic::AbcGeom::OCamera> CameraMap;
 	CameraMap camera_map;
 	
-	typedef std::map<int, Alembic::AbcGeom::OCameraSchema  > CameraSchemaMap;
+	typedef std::map<int, Alembic::AbcGeom::OCameraSchema> CameraSchemaMap;
 	CameraSchemaMap camera_schema_map;
 
 	typedef std::map<int, int> FaceToVertexIndex;
@@ -164,7 +164,6 @@ static bool start_alembic_export(
 		}
 		else
 		{
-			//Alembic::Abc::CreateArchiveWithInfo(Alembic::AbcCoreHDF5::WriteArchive(), output_path, "", "");
 			AlembicArchive::instance().archive =
 				new Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(),
 					output_path);

@@ -23,9 +23,18 @@ public:
 	  content(other.content->clone())
 	{}
 
-	template<typename  T> UMAny(const T& value) :
-	  content(new holder<T>(value)) 
+	template<typename  T>
+	UMAny(const T& value) :
+	  content()
 	{}
+
+	template<typename  T>
+	UMAny& operator=(T&& value)		
+	{
+		content.release();
+		content = std::make_unique<holder<T>>(value);
+		return *this;
+	}
 
 	~UMAny() {}
 	
@@ -54,7 +63,7 @@ public:
 		T content;
 	};
 
-	std::auto_ptr<placeholder> content;
+	std::unique_ptr<placeholder> content;
 };
 
 template<typename T>

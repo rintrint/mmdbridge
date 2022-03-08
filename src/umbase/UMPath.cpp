@@ -22,13 +22,12 @@
 namespace umbase
 {
 	
-bool UMPath::exists(const umstring& absolute_path)
+bool UMPath::exists(const wchar_t* absolute_path)
 {
 #ifdef WITH_EMSCRIPTEN
 	return true;
 #else
-	std::wstring inpath = UMStringUtil::utf16_to_wstring(absolute_path);
-	if (::PathFileExistsW(inpath.c_str()))
+	if (::PathFileExistsW(absolute_path))
 	{
 		return true;
 	}
@@ -36,10 +35,9 @@ bool UMPath::exists(const umstring& absolute_path)
 #endif // WITH_EMSCRIPTEN
 }
 
-bool UMPath::is_folder(const umstring& absolute_path)
+bool UMPath::is_folder(const wchar_t* absolute_path)
 {
-	std::wstring inpath = UMStringUtil::utf16_to_wstring(absolute_path);
-	return !!PathIsDirectory(inpath.c_str());
+	return !!PathIsDirectory(absolute_path);
 }
 
 bool UMPath::get_child_path_list(
@@ -112,7 +110,7 @@ umstring UMPath::get_temp_absolute_path()
 bool UMPath::remove_file(const umstring& file_path)
 {
 	std::wstring path = UMStringUtil::utf16_to_wstring(file_path);
-	if (UMPath::exists(file_path) && !UMPath::is_folder(file_path))
+	if (UMPath::exists(path.c_str()) && !UMPath::is_folder(path.c_str()))
 	{
 		_wremove(path.c_str());
 		return true;

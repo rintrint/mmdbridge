@@ -42,6 +42,11 @@ template <class T> std::string to_string(T value)
 	return umbase::UMStringUtil::number_to_string(value);
 }
 
+template <class T> std::wstring to_wstring(T value)
+{
+	return umbase::UMStringUtil::number_to_wstring(value);
+}
+
 //ワイド文字列からutf8文字列に変換
 static void to_string(std::string &dest, const std::wstring &src) 
 {
@@ -91,13 +96,13 @@ std::map<IDirect3DTexture9*, RenderedTexture> renderedTextures;
 std::map<int, std::map<int , RenderedMaterial*> > renderedMaterials;
 //-----------------------------------------------------------------------------------------------------------------
 
-static bool writeTextureToFile(const std::string &texturePath, IDirect3DTexture9 * texture, D3DXIMAGE_FILEFORMAT fileFormat);
+static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9 * texture, D3DXIMAGE_FILEFORMAT fileFormat);
 
-static bool writeTextureToFiles(const std::string &texturePath, const std::string &textureType, bool uncopied = false);
+static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstring &textureType, bool uncopied = false);
 
-static bool copyTextureToFiles(const std::u16string &texturePath);
+static bool copyTextureToFiles(const std::wstring &texturePath);
 
-static bool writeTextureToMemory(const std::string &textureName, IDirect3DTexture9 * texture, bool copied);
+static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTexture9 * texture, bool copied);
 
 //------------------------------------------Python呼び出し--------------------------------------------------------
 static int pre_frame = 0;
@@ -382,59 +387,53 @@ namespace
 		return result;
 	}
 
-	bool export_texture(int at, int mpos, const std::string& dst)
+	bool export_texture(int at, int mpos, const std::wstring& dst)
 	{
 		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
-		std::string path(dst);
-		std::string textureType = path.substr(path.size() - 3, 3);
-
+		
+		std::wstring_view textureType{ dst.c_str() + dst.size() - 3, 3 };
 		D3DXIMAGE_FILEFORMAT fileFormat;
-		if (textureType == "bmp" || textureType == "BMP") { fileFormat = D3DXIFF_BMP; }
-		else if (textureType == "png" || textureType == "PNG") { fileFormat = D3DXIFF_PNG; }
-		else if (textureType == "jpg" || textureType == "JPG") { fileFormat = D3DXIFF_JPG; }
-		else if (textureType == "tga" || textureType == "TGA") { fileFormat = D3DXIFF_TGA; }
-		else if (textureType == "dds" || textureType == "DDS") { fileFormat = D3DXIFF_DDS; }
-		else if (textureType == "ppm" || textureType == "PPM") { fileFormat = D3DXIFF_PPM; }
-		else if (textureType == "dib" || textureType == "DIB") { fileFormat = D3DXIFF_DIB; }
-		else if (textureType == "hdr" || textureType == "HDR") { fileFormat = D3DXIFF_HDR; }
-		else if (textureType == "pfm" || textureType == "PFM") { fileFormat = D3DXIFF_PFM; }
+		if (textureType == L"bmp" || textureType == L"BMP") { fileFormat = D3DXIFF_BMP; }
+		else if (textureType.compare(L"png") == 0 || textureType.compare(L"PNG") == 0) { fileFormat = D3DXIFF_PNG; }
+		else if (textureType.compare(L"jpg") == 0 || textureType.compare(L"JPG") == 0) { fileFormat = D3DXIFF_JPG; }
+		else if (textureType.compare(L"tga") == 0 || textureType.compare(L"TGA") == 0) { fileFormat = D3DXIFF_TGA; }
+		else if (textureType.compare(L"dds") == 0 || textureType.compare(L"DDS") == 0) { fileFormat = D3DXIFF_DDS; }
+		else if (textureType.compare(L"ppm") == 0 || textureType.compare(L"PPM") == 0) { fileFormat = D3DXIFF_PPM; }
+		else if (textureType.compare(L"dib") == 0 || textureType.compare(L"DIB") == 0) { fileFormat = D3DXIFF_DIB; }
+		else if (textureType.compare(L"hdr") == 0 || textureType.compare(L"HDR") == 0) { fileFormat = D3DXIFF_HDR; }
+		else if (textureType.compare(L"pfm") == 0 || textureType.compare(L"PFM") == 0) { fileFormat = D3DXIFF_PFM; }
 		else { return false; }
 
 		if (mat->tex)
 		{
-			return writeTextureToFile(path, mat->tex, fileFormat);
+			return writeTextureToFile(dst.c_str(), mat->tex, fileFormat);
 		}
 		return false;
 	}
 
-	bool export_textures(const std::string& p, const std::string& t)
+	bool export_textures(const std::wstring& p, const std::wstring& t)
 	{
-		std::u16string path = umbase::UMStringUtil::utf8_to_utf16(p);
-		std::string type(t);
-		if (umbase::UMPath::exists(path))
+		if (umbase::UMPath::exists(p.c_str()))
 		{
 			return writeTextureToFiles(p, t);
 		}
 		return false;
 	}
 
-	bool export_uncopied_textures(const std::string& p, const std::string& t)
+	bool export_uncopied_textures(const std::wstring& p, const std::wstring& t)
 	{
-		std::u16string path = umbase::UMStringUtil::utf8_to_utf16(p);
-		if (umbase::UMPath::exists(path))
+		if (umbase::UMPath::exists(p.c_str()))
 		{
 			return writeTextureToFiles(p, t, true);
 		}
 		return false;
 	}
 
-	bool copy_textures(const std::string& s)
+	bool copy_textures(const std::wstring& s)
 	{
-		std::u16string path = umbase::UMStringUtil::utf8_to_utf16(s);
-		if (umbase::UMPath::exists(path))
+		if (umbase::UMPath::exists(s.c_str()))
 		{
-			std::wstring wpath = umbase::UMStringUtil::utf16_to_wstring(path);
-			return copyTextureToFiles(path);
+			return copyTextureToFiles(s);
 		}
 		return false;
 	}
@@ -1003,14 +1002,13 @@ HRESULT (WINAPI *original_set_texture)(IDirect3DDevice9*, DWORD, IDirect3DBaseTe
 HRESULT (WINAPI *original_create_texture)(IDirect3DDevice9*, UINT, UINT, UINT, DWORD, D3DFORMAT, D3DPOOL, IDirect3DTexture9**, HANDLE*)(NULL);
 //-----------------------------------------------------------------------------------------------------------------------------
 
-static bool writeTextureToFile(const std::string &texturePath, IDirect3DTexture9 * texture, D3DXIMAGE_FILEFORMAT fileFormat)
+static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9 * texture, D3DXIMAGE_FILEFORMAT fileFormat)
 {
 	TextureBuffers::iterator tit = renderData.textureBuffers.find(texture);
 	if(tit != renderData.textureBuffers.end())
 	{
 		if (texture->lpVtbl) {
-			std::wstring wstr = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(texturePath));
-			HRESULT res = D3DXSaveTextureToFileW(wstr.c_str(), fileFormat,(LPDIRECT3DBASETEXTURE9) texture, NULL);
+			HRESULT res = D3DXSaveTextureToFileW(texturePath, fileFormat,(LPDIRECT3DBASETEXTURE9) texture, NULL);
 			if (res == S_OK)
 			{
 				return true;
@@ -1020,25 +1018,25 @@ static bool writeTextureToFile(const std::string &texturePath, IDirect3DTexture9
 	return false;
 }
 
-static bool writeTextureToFiles(const std::string &texturePath, const std::string &textureType, bool uncopied)
+static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstring &textureType, bool uncopied)
 {
 	bool res = true;
 
 	D3DXIMAGE_FILEFORMAT fileFormat;
-	if (textureType == "bmp" || textureType == "BMP") { fileFormat = D3DXIFF_BMP; }
-	else if (textureType == "png" || textureType == "PNG") { fileFormat = D3DXIFF_PNG; }
-	else if (textureType == "jpg" || textureType == "JPG") { fileFormat = D3DXIFF_JPG; }
-	else if (textureType == "tga" || textureType == "TGA") { fileFormat = D3DXIFF_TGA; }
-	else if (textureType == "dds" || textureType == "DDS") { fileFormat = D3DXIFF_DDS; }
-	else if (textureType == "ppm" || textureType == "PPM") { fileFormat = D3DXIFF_PPM; }
-	else if (textureType == "dib" || textureType == "DIB") { fileFormat = D3DXIFF_DIB; }
-	else if (textureType == "hdr" || textureType == "HDR") { fileFormat = D3DXIFF_HDR; }
-	else if (textureType == "pfm" || textureType == "PFM") { fileFormat = D3DXIFF_PFM; }
+	if (textureType == L"bmp" || textureType == L"BMP") { fileFormat = D3DXIFF_BMP; }
+	else if (textureType.compare(L"png") == 0 || textureType.compare(L"PNG") == 0) { fileFormat = D3DXIFF_PNG; }
+	else if (textureType.compare(L"jpg") == 0 || textureType.compare(L"JPG") == 0) { fileFormat = D3DXIFF_JPG; }
+	else if (textureType.compare(L"tga") == 0 || textureType.compare(L"TGA") == 0) { fileFormat = D3DXIFF_TGA; }
+	else if (textureType.compare(L"dds") == 0 || textureType.compare(L"DDS") == 0) { fileFormat = D3DXIFF_DDS; }
+	else if (textureType.compare(L"ppm") == 0 || textureType.compare(L"PPM") == 0) { fileFormat = D3DXIFF_PPM; }
+	else if (textureType.compare(L"dib") == 0 || textureType.compare(L"DIB") == 0) { fileFormat = D3DXIFF_DIB; }
+	else if (textureType.compare(L"hdr") == 0 || textureType.compare(L"HDR") == 0) { fileFormat = D3DXIFF_HDR; }
+	else if (textureType.compare(L"pfm") == 0 || textureType.compare(L"PFM") == 0) { fileFormat = D3DXIFF_PFM; }
 	else { return false; }
 
-	char dir[MAX_PATH];
-	std::strcpy(dir, texturePath.c_str());
-	PathRemoveFileSpecA(dir);
+	wchar_t dir[MAX_PATH];
+	wcscpy(dir, texturePath.c_str());
+	PathRemoveFileSpecW(dir);
 	
 	for (size_t i = 0; i <  finishTextureBuffers.size(); ++i)
 	{
@@ -1049,14 +1047,18 @@ static bool writeTextureToFiles(const std::string &texturePath, const std::strin
 			{
 				if (!copied)
 				{
-					char path[MAX_PATH];
-					PathCombineA(path, dir, to_string(texture).c_str());
-					if (!writeTextureToFile(std::string(path) + "." + textureType, texture, fileFormat)) { res = false; }
+					wchar_t path[MAX_PATH];
+					PathCombineW(path, dir, to_wstring(texture).c_str());
+					std::wstring wpath(path);
+					wpath += L"." + textureType;
+					if (!writeTextureToFile(wpath.c_str(), texture, fileFormat)) { res = false; }
 				}
 			} else {
-				char path[MAX_PATH];
-				PathCombineA(path, dir, to_string(texture).c_str());
-				if (!writeTextureToFile(std::string(path) + "." + textureType, texture, fileFormat)) { res = false; }
+				wchar_t path[MAX_PATH];
+				PathCombineW(path, dir, to_wstring(texture).c_str());
+				std::wstring wpath(path);
+				wpath += L"." + textureType;
+				if (!writeTextureToFile(wpath.c_str(), texture, fileFormat)) { res = false; }
 			}
 		}
 	}
@@ -1064,11 +1066,11 @@ static bool writeTextureToFiles(const std::string &texturePath, const std::strin
 	return res;
 }
 
-static bool copyTextureToFiles(const std::u16string &texturePath)
+static bool copyTextureToFiles(const std::wstring &texturePath)
 {
 	if (texturePath.empty()) return false;
 
-	std::wstring path = umbase::UMStringUtil::utf16_to_wstring(texturePath);
+	std::wstring path = texturePath;
 	PathRemoveFileSpec(&path[0]);
 	PathAddBackslash(&path[0]);
 	if (!PathIsDirectory(path.c_str())) { return false; }

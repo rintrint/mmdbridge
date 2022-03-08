@@ -1,6 +1,0 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\amd64\Microsoft.Common.CurrentVersion.targets(2065,5): warning : The referenced project 'D:\mmdbridge\build_vs2022_64\ZERO_CHECK.vcxproj' does not exist.
-  Building Custom Rule D:/mmdbridge/src/d3dx9_32/CMakeLists.txt
-  d3dx9.cpp
-    正在创建库 D:/mmdbridge/build_vs2022_64/src/d3dx9_32/Release/d3dx9_43.lib 和对象 D:/mmdbridge/build_vs2022_64/src/d3dx9_32/Release/d3dx9_43.exp
-  LINK : 已指定 /LTCG，但不需要生成代码；从链接命令行中移除 /LTCG 以提高链接器性能
-  d3dx9_43.vcxproj -> D:\mmdbridge\build_vs2022_64\src\d3dx9_32\Release\d3dx9_43.dll
