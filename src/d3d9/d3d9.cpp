@@ -1247,6 +1247,11 @@ static void setMyMenu()
 	}
 }
 
+static void setMySize() {
+	if (!g_hWnd) return;
+	SetWindowPos(g_hWnd, HWND_TOP , 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+}
+
 LONG_PTR originalWndProc  =NULL;
 // このコード モジュールに含まれる関数の宣言を転送します:
 INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
@@ -1370,6 +1375,7 @@ static void overrideGLWindow()
 {
 	EnumWindows(enumWindowsProc,0);
 	setMyMenu();
+	setMySize();
 	// サブクラス化
 	if(g_hWnd && !originalWndProc){
 		originalWndProc = GetWindowLongPtr(g_hWnd,GWLP_WNDPROC);
