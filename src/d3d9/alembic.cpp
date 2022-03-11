@@ -9,7 +9,7 @@
 #include "UMMath.h"
 #include "UMVector.h"
 #include "EncodingHelper.h"
-
+#include <fstream>
 
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
@@ -71,6 +71,7 @@ public:
 	Alembic::Abc::OArchive * archive;
 	AbcA::uint32_t timeindex;
 	AbcA::TimeSamplingPtr timesampling;
+	std::shared_ptr<std::ofstream> m_stream;
 	
 	typedef std::map<int, Alembic::AbcGeom::OXform> XformMap;
 	XformMap xform_map;
@@ -131,13 +132,14 @@ public:
 		{
 			delete archive; archive = NULL;
 		}
+		m_stream = {};
 	}
 private:
 	AlembicArchive() : archive(NULL), timeindex(0), export_mode(0), is_use_euler_rotation_camera(false) {}
 };
 
 static bool start_alembic_export(
-	const std::string& filepath,
+	const std::wstring& filepath,
 	int export_mode, 
 	bool isExportNomals,
 	bool is_export_uvs,
@@ -149,34 +151,43 @@ static bool start_alembic_export(
 	{
 		return false;
 	}
-
-	if (!AlembicArchive::instance().archive)
+	auto& alembic_archive = AlembicArchive::instance();
+	if (!alembic_archive.archive)
 	{
-		std::string output_path(filepath);
+		std::wstring output_path(filepath);
 		if (output_path.empty()) 
 		{			
-			output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + "out/alembic_file.abc";
+			output_path = parameter.base_path + L"out/alembic_file.abc";
 		}
 		if (is_use_ogawa) {
-			AlembicArchive::instance().archive =
-				new Alembic::Abc::OArchive(Alembic::AbcCoreOgawa::WriteArchive(), 
-					output_path);
+			// Abc::OArchive doesn't accept wide string path. so create file stream with wide string path and pass it.
+			// (VisualC++'s std::ifstream accepts wide string)
+			alembic_archive.m_stream.reset(new std::ofstream());
+			alembic_archive.m_stream->open(output_path, std::ios::out | std::ios::binary);
+			if (!alembic_archive.m_stream->is_open()) {
+				alembic_archive.end();
+				return false;
+			}
+			Alembic::AbcCoreOgawa::WriteArchive archive_writer;
+			alembic_archive.archive =
+				new Alembic::Abc::OArchive(archive_writer(alembic_archive.m_stream.get(),
+					Alembic::AbcCoreAbstract::MetaData()),
+					Alembic::Abc::kWrapExisting, Alembic::Abc::ErrorHandler::kThrowPolicy);
 		}
 		else
-		{
-			AlembicArchive::instance().archive =
+		{			
+			alembic_archive.archive =
 				new Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(),
-					output_path);
+					oguna::EncodingConverter::wstringTostring(output_path));
 		}
 
-		AlembicArchive &archive = AlembicArchive::instance();
 		const double dt = 1.0 / parameter.export_fps;
-		archive.timesampling = AbcA::TimeSamplingPtr(new AbcA::TimeSampling(dt, 0.0));
-		archive.archive->addTimeSampling(*archive.timesampling);
-		archive.is_export_normals = (isExportNomals != 0);
-		archive.is_export_uvs = (is_export_uvs != 0);
-		archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
-		archive.export_mode = export_mode;
+		alembic_archive.timesampling = AbcA::TimeSamplingPtr(new AbcA::TimeSampling(dt, 0.0));
+		alembic_archive.archive->addTimeSampling(*alembic_archive.timesampling);
+		alembic_archive.is_export_normals = (isExportNomals != 0);
+		alembic_archive.is_export_uvs = (is_export_uvs != 0);
+		alembic_archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
+		alembic_archive.export_mode = export_mode;
 		return true;
 	}
 	return false;
