@@ -1249,7 +1249,10 @@ static void setMyMenu()
 
 static void setMySize() {
 	if (!g_hWnd) return;
-	SetWindowPos(g_hWnd, HWND_TOP , 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+	RECT rc;
+	if (!::GetWindowRect(g_hWnd, &rc))return;
+	if (rc.bottom - rc.top <= 40)
+		SetWindowPos(g_hWnd, HWND_TOP, 0, 0, 1920, 1080, NULL);
 }
 
 LONG_PTR originalWndProc  =NULL;
