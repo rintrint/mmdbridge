@@ -68,7 +68,7 @@ public:
 		return instance; 
 	}
 
-	Alembic::Abc::OArchive * archive;
+	Alembic::Abc::OArchive* archive;
 	AbcA::uint32_t timeindex;
 	AbcA::TimeSamplingPtr timesampling;
 	std::shared_ptr<std::ofstream> m_stream;
@@ -130,12 +130,13 @@ public:
 		temporary_normal_list.clear();
 		temporary_vertex_list.clear();
 		{
-			delete archive; archive = NULL;
+			delete archive;
+			archive = nullptr;
 		}
 		m_stream = {};
 	}
 private:
-	AlembicArchive() : archive(NULL), timeindex(0), export_mode(0), is_use_euler_rotation_camera(false) {}
+	AlembicArchive() : archive(nullptr), timeindex(0), export_mode(0), is_use_euler_rotation_camera(false) {}
 };
 
 static bool start_alembic_export(
@@ -168,7 +169,7 @@ static bool start_alembic_export(
 				alembic_archive.end();
 				return false;
 			}
-			Alembic::AbcCoreOgawa::WriteArchive archive_writer;
+			const Alembic::AbcCoreOgawa::WriteArchive archive_writer;
 			alembic_archive.archive =
 				new Alembic::Abc::OArchive(archive_writer(alembic_archive.m_stream.get(),
 					Alembic::AbcCoreAbstract::MetaData()),
@@ -182,7 +183,7 @@ static bool start_alembic_export(
 		}
 
 		const double dt = 1.0 / parameter.export_fps;
-		alembic_archive.timesampling = AbcA::TimeSamplingPtr(new AbcA::TimeSampling(dt, 0.0));
+		alembic_archive.timesampling = std::make_shared<AbcA::TimeSampling>(dt, 0.0);
 		alembic_archive.archive->addTimeSampling(*alembic_archive.timesampling);
 		alembic_archive.is_export_normals = (isExportNomals != 0);
 		alembic_archive.is_export_uvs = (is_export_uvs != 0);
@@ -238,15 +239,15 @@ static void convertToQuad(
 	};
 	std::vector<Edge> edgeList(3 * faceCountList.size());
 	std::vector<Edge*> edgeHeadList(3 * faceCountList.size());
-	for (int i = 0, size = (3 * faceCountList.size()); i < size; ++i) {
-		edgeHeadList[i] = NULL;
+	for (unsigned long long i = 0, size = 3ULL * faceCountList.size(); i < size; ++i) {
+		edgeHeadList[i] = nullptr;
 		edgeList[i].vertexIndex[0] = -1;
 		edgeList[i].vertexIndex[1] = -1;
 		edgeList[i].triangleIndex[0] = -1;
 		edgeList[i].triangleIndex[1] = -1;
 		edgeList[i].edgeNumber[0] = -1;
 		edgeList[i].edgeNumber[1] = -1;
-		edgeList[i].next = NULL;
+		edgeList[i].next = nullptr;
 	}
 	std::map<std::pair<int, int>, int> edgeHashMap;
 	int count = 0;
@@ -260,13 +261,13 @@ static void convertToQuad(
 				vj = vk;
 				vk = temp;
 			}
-			std::pair<int, int> indexPair(vj, vk);
+			std::pair indexPair(vj, vk);
 			if (edgeHashMap.find(indexPair) == edgeHashMap.end()) {
 				edgeHashMap[indexPair] = edgeHashMap.size();
 			}
 			int hash = edgeHashMap[indexPair];
 			for (Edge *edge = edgeHeadList[hash]; ; edge = edge->next) {
-				if (edge == NULL) {
+				if (edge == nullptr) {
 					edgeList[count].vertexIndex[0] = vj;
 					edgeList[count].vertexIndex[1] = vk;
 					edgeList[count].triangleIndex[0] = i;
@@ -295,8 +296,8 @@ static void convertToQuad(
 		faceNormalList[i] = ((v2 - v1).cross(v3 - v1)).normalized();
 	}
 
-	std::vector<Alembic::Util::int32_t> quadFaceList;
-	std::vector<Alembic::Util::int32_t> quadFaceCountList;
+	std::vector<int32_t> quadFaceList;
+	std::vector<int32_t> quadFaceCountList;
 	std::map<int, int> exportedFaces;
 	for (int i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
 		Edge* edge = edgeHeadList[i];
@@ -737,8 +738,6 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		}
 
 		// re assign par material
-		int lastIndex = 0;
-
 		for (int n = 0; n < materialSurfaceSize; ++n)
 		{
 			UMVec3i face = material->surface.faces[n];
@@ -959,38 +958,37 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 
 }
 
-static void quatToEuler(Imath::V3d &dst, Imath::Quatd quat) {
-	double xy = quat.v.x * quat.v.y;
-	double zw = quat.v.z * quat.r;
+static void quatToEuler(Imath::V3d &dst, const Imath::Quatd quat) {
+	const double xy = quat.v.x * quat.v.y;
+	const double zw = quat.v.z * quat.r;
 
-	double test = xy + zw;
+	const double test = xy + zw;
 	if (test > 0.499) { // singularity at north pole
-		double yaw = 2 * atan2(quat.v.x, quat.r);
-		double pitch = M_PI/2;
-		double roll = 0;
+		const double yaw = 2 * atan2(quat.v.x, quat.r);
+		const double pitch = M_PI/2;
+		const double roll = 0;
 		dst = Imath::V3d(yaw, pitch, roll);
 		return;
 	}
 	if (test < -0.499) { // singularity at south pole
-		double yaw = -2 * atan2(quat.v.x, quat.r);
-		double pitch = - M_PI/2;
-		double roll = 0;
+		const double yaw = -2 * atan2(quat.v.x, quat.r);
+		const double pitch = - M_PI/2;
+		const double roll = 0;
 		dst = Imath::V3d(yaw, pitch, roll);
 		return;
 	}
-	double xx = quat.v.x * quat.v.x;
-	double yy = quat.v.y * quat.v.y;
-	double zz = quat.v.z * quat.v.z;
-		
-	double yz = quat.v.y * quat.v.z;
-	double xz = quat.v.x * quat.v.z;
-	double wx = quat.r * quat.v.x;
-	double wy = quat.r * quat.v.y;
-	double wz = quat.r * quat.v.z;
-		
-	double yaw = atan2( 2*(wy - xz), 1 - 2*(yy + zz));
-	double pitch = atan2( 2*(wx - yz), 1 - 2*(xx +zz));
-	double roll = asin( 2*(test));
+	const double xx = quat.v.x * quat.v.x;
+	const double yy = quat.v.y * quat.v.y;
+	const double zz = quat.v.z * quat.v.z;
+
+	const double yz = quat.v.y * quat.v.z;
+	const double xz = quat.v.x * quat.v.z;
+	const double wx = quat.r * quat.v.x;
+	const double wy = quat.r * quat.v.y;
+
+	const double yaw = atan2( 2*(wy - xz), 1 - 2*(yy + zz));
+	const double pitch = atan2( 2*(wx - yz), 1 - 2*(xx +zz));
+	const double roll = asin( 2*(test));
 	dst = Imath::V3d(yaw, pitch, roll);
 }
 
@@ -1034,12 +1032,12 @@ static py::list get_abc_angle_axis()
 	::D3DXMatrixLookAtLH(&view, &eye, &at, &up);
 
 	Imath::M44d rot(
-		-view.m[0][0], view.m[0][1], view.m[0][2], 0,
-		-view.m[1][0], view.m[1][1], view.m[1][2], 0,
-		view.m[2][0], -view.m[2][1], -view.m[2][2], 0,
-		0, 0, 0, 1);
+		-view.m[0][0], view.m[0][1], view.m[0][2], 0.,
+		-view.m[1][0], view.m[1][1], view.m[1][2], 0.,
+		view.m[2][0], -view.m[2][1], -view.m[2][2], 0.,
+		0., 0., 0., 1.);
 
-	Imath::Quatd quat = Imath::extractQuat(rot);
+	Imath::Quatd quat = extractQuat(rot);
 	quat.normalize();
 
 	py::list result;
@@ -1052,7 +1050,7 @@ static py::list get_abc_angle_axis()
 	
 static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, bool isUseEuler)
 {
-	static const int cameraKey = 0xFFFFFF;
+	static constexpr int cameraKey = 0xFFFFFF;
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
 
 	Alembic::AbcGeom::OXform xform;
@@ -1114,12 +1112,12 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 		::D3DXMatrixLookAtLH(&view, &eye, &at, &up);
 
 		Imath::M44d rot(
-			-view.m[0][0], view.m[0][1], view.m[0][2], 0,
-			-view.m[1][0], view.m[1][1], view.m[1][2], 0,
-			view.m[2][0], -view.m[2][1], -view.m[2][2], 0,
-			0, 0, 0, 1);
+			-view.m[0][0], view.m[0][1], view.m[0][2], 0.,
+			-view.m[1][0], view.m[1][1], view.m[1][2], 0.,
+			view.m[2][0], -view.m[2][1], -view.m[2][2], 0.,
+			0., 0., 0., 1.);
 
-		Imath::Quatd quat = Imath::extractQuat(rot);
+		Imath::Quatd quat = extractQuat(rot);
 		quat.normalize();
 
 		if (isUseEuler)
@@ -1190,7 +1188,6 @@ static bool execute_alembic_export(int currentframe)
 	
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const VertexBufferList& finishBuffers = BridgeParameter::instance().finish_buffer_list;
-	const RenderBufferMap& renderBuffers = BridgeParameter::instance().render_buffer_map;
 
 	bool exportedCamera = false;
 	for (int i = static_cast<int>(finishBuffers.size()) - 1; i >= 0; --i)

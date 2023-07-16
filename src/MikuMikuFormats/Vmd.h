@@ -303,11 +303,8 @@ namespace vmd
 
 		bool SaveToStream(std::ofstream *stream)
 		{
-			std::string magic = "Vocaloid Motion Data 0002\0";
-			magic.resize(30);
-
 			// magic and version
-			stream->write(magic.c_str(), 30);
+			stream->write("Vocaloid Motion Data 0002\0\0\0\0", 30);
 
 			// name
 			stream->write(model_name.c_str(), 20);

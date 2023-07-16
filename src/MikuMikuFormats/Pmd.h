@@ -5,6 +5,7 @@
 #include <memory>
 #include <iostream>
 #include <fstream>
+#include "EncodingHelper.h"
 
 namespace pmd
 {
@@ -439,7 +440,9 @@ namespace pmd
 
 		static std::unique_ptr<PmdModel> LoadFromFile(const char *filename)
 		{
-			std::ifstream stream(filename, std::ios::binary);
+			std::wstring filename_wstring;
+			oguna::EncodingConverter::Cp932ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+			std::ifstream stream(filename_wstring, std::ios::binary);
 			if (stream.fail())
 			{
 				std::cerr << "could not open \"" << filename << "\"" << std::endl;

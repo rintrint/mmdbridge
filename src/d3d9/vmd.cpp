@@ -1,12 +1,10 @@
 ﻿#ifdef WITH_VMD
 
 #include "d3d9.h"
-#include "d3dx9.h"
 
 #include "bridge_parameter.h"
 #include "UMStringUtil.h"
 #include "UMPath.h"
-#include "UMMath.h"
 #include "UMVector.h"
 #include "UMMatrix.h"
 
@@ -17,7 +15,6 @@
 namespace py = pybind11;
 
 #include <ImathMatrix.h>
-#include <ImathQuat.h>
 
 #include <EncodingHelper.h>
 #include <Pmd.h>
@@ -37,8 +34,8 @@ typedef std::shared_ptr<vmd::VmdMotion> VMDPtr;
 
 class FileDataForVMD {
 public:
-	FileDataForVMD() {}
-	~FileDataForVMD() {}
+	FileDataForVMD() = default;
+	~FileDataForVMD() = default;
 
 	VMDPtr vmd;
 	PMDPtr pmd;
@@ -73,13 +70,13 @@ public:
 		return instance; 
 	}
 
-	std::map<std::string, int> file_path_map;
+	std::map<std::string, unsigned long long> file_path_map;
 
 	std::vector<FileDataForVMD> data_list;
 
 	std::string output_path;
 
-	int export_mode;
+	int export_mode = 0;
 
 	void end()
 	{
@@ -88,21 +85,10 @@ public:
 		output_path.clear();
 	}
 
-	~VMDArchive() {
-	}
+	~VMDArchive() = default;
 private:
-	VMDArchive() {}
+	VMDArchive() = default;
 };
-
-static umstring to_umpath(const char* path)
-{
-	const int size = ::MultiByteToWideChar(CP_ACP, 0, (LPCSTR)path, -1, NULL, 0);
-	wchar_t* utf16 = new wchar_t[size];
-	::MultiByteToWideChar(CP_ACP, 0, (LPCSTR)path, -1, (LPWSTR)utf16, size);
-	std::wstring wstr(utf16);
-	delete[] utf16;
-	return umbase::UMStringUtil::wstring_to_utf16(wstr);
-}
 
 static bool start_vmd_export(
 	const std::string& directory_path,
@@ -115,8 +101,7 @@ static bool start_vmd_export(
 	{
 		return false;
 	}
-	std::string output_path(directory_path);
-	if (output_path.empty())
+	if (const std::string& output_path(directory_path); output_path.empty())
 	{
 		VMDArchive::instance().output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + ("out/");
 	}
@@ -128,18 +113,19 @@ static bool start_vmd_export(
 		if (archive.file_path_map.find(filename) != archive.file_path_map.end()) {
 			continue;
 		}
-		PMDPtr pmd = pmd::PmdModel::LoadFromFile(filename);
-		if (pmd)
+		if (const PMDPtr pmd = pmd::PmdModel::LoadFromFile(filename))
 		{
 			FileDataForVMD data;
 			data.pmd = pmd;
 			archive.data_list.push_back(data);
-			archive.file_path_map[filename] = archive.data_list.size() - 1;
+			archive.file_path_map[filename] = archive.data_list.size() - 1ULL;
 		}
 		else
 		{
-			PMXPtr pmx = PMXPtr(new pmx::PmxModel());
-			std::ifstream stream(filename, std::ios_base::binary);
+			const auto pmx = std::make_shared<pmx::PmxModel>();
+			std::wstring filename_wstring;
+			oguna::EncodingConverter::Cp932ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+			std::ifstream stream(filename_wstring, std::ios_base::binary);
 			if (stream.good())
 			{
 				pmx->Init();
@@ -159,7 +145,7 @@ static bool end_vmd_export()
 {
 	VMDArchive &archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
-	const BridgeParameter& parameter = BridgeParameter::instance();
+	BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
 
 	for (int i = 0; i < pmd_num; ++i)
@@ -169,12 +155,12 @@ static bool end_vmd_export()
 		if (file_data.vmd)
 		{
 			std::string dst;
-			oguna::EncodingConverter::Cp932ToUtf8(filename, strnlen(filename, 4096), &dst);
+			oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
 			const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(dst);
-			 umstring filename = umbase::UMPath::get_file_name(umstr);
+			umstring filename_string = umbase::UMPath::get_file_name(umstr);
 			const umstring extension = umbase::UMStringUtil::utf8_to_utf16(".vmd");
-			filename.replace(filename.size() - 4, 4, extension);
-			auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename);
+			filename_string.replace(filename_string.size() - 4, 4, extension);
+			auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename_string);
 			file_data.vmd->SaveToFile(output_filepath);
 		}
 	}
@@ -228,9 +214,8 @@ static void init_file_data(FileDataForVMD& data)
 		// expect for rigid_type == BoneConnected
 		{
 			std::vector<int> parent_physics_bone_list;
-			for (int i = 0, isize = static_cast<int>(rigids.size()); i < isize; ++i)
+			for (const auto& rigid : rigids)
 			{
-				const pmd::PmdRigidBody& rigid = rigids[i];
 				const int target_bone = rigid.related_bone_index;
 				const int parent_bone = data.parent_index_map[target_bone];
 				if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
@@ -241,8 +226,8 @@ static void init_file_data(FileDataForVMD& data)
 					}
 				}
 			}
-			for (int i = 0, size = parent_physics_bone_list.size(); i < size; ++i) {
-				const int parent_bone = parent_physics_bone_list[i];
+			for (int parent_bone : parent_physics_bone_list)
+			{
 				const pmd::PmdRigidBody& parent_rigid = rigids[bone_to_rigid_map[parent_bone]];
 				if (parent_rigid.rigid_type == pmd::RigidBodyType::BoneConnected) {
 					data.physics_bone_map[parent_bone] = 0;
@@ -252,13 +237,13 @@ static void init_file_data(FileDataForVMD& data)
 	}
 	else if (data.pmx)
 	{
-		const int bone_count = data.pmx->bones.size();
+		const int bone_count = static_cast<int>(data.pmx->bones.size());
 		for (int i = 0; i < bone_count; ++i)
 		{
 			const pmx::PmxBone& bone = data.pmx->bones[i];
 			const int parent_bone = bone.parent_index;
 			data.parent_index_map[i] = parent_bone;
-			oguna::EncodingConverter::Utf16ToCp932(bone.bone_name.c_str(), bone.bone_name.length(), &data.bone_name_map[i]);
+			oguna::EncodingConverter::Utf16ToCp932(bone.bone_name.c_str(), static_cast<int>(bone.bone_name.length()), &data.bone_name_map[i]);
 			for (int k = 0; k < bone.ik_link_count; ++k)
 			{
 				const pmx::PmxIkLink& link = bone.ik_links[k];
@@ -271,7 +256,7 @@ static void init_file_data(FileDataForVMD& data)
 			}
 		}
 
-		const int rigid_count = data.pmx->rigid_bodies.size();
+		const int rigid_count = static_cast<int>(data.pmx->rigid_bodies.size());
 		std::map<int, int> bone_to_rigid_map;
 		for (int i = 0; i < rigid_count; ++i)
 		{
@@ -279,7 +264,7 @@ static void init_file_data(FileDataForVMD& data)
 			bone_to_rigid_map[rigid.target_bone] = i;
 			if (rigid.physics_calc_type != 0)
 			{
-				uint16_t bone_index = rigid.target_bone;
+				const auto bone_index = rigid.target_bone;
 				if (data.bone_name_map.find(bone_index) != data.bone_name_map.end())
 				{
 					if (rigid.physics_calc_type == 2) {
@@ -308,8 +293,8 @@ static void init_file_data(FileDataForVMD& data)
 					}
 				}
 			}
-			for (int i = 0, size = parent_physics_bone_list.size(); i < size; ++i) {
-				const int parent_bone = parent_physics_bone_list[i];
+			for (int parent_bone : parent_physics_bone_list)
+			{
 				const pmx::PmxRigidBody& parent_rigid = data.pmx->rigid_bodies[bone_to_rigid_map[parent_bone]];
 				if (parent_rigid.physics_calc_type == 0) {
 					data.physics_bone_map[parent_bone] = 0;
@@ -326,7 +311,7 @@ static UMMat44d to_ummat(const D3DMATRIX& mat)
 	{
 		for (int m = 0; m < 4; ++m)
 		{
-			ummat[n][m] = mat.m[n][m];
+			ummat[n][m] = static_cast<double>(mat.m[n][m]);
 		}
 	}
 	return ummat;
@@ -335,41 +320,36 @@ static UMMat44d to_ummat(const D3DMATRIX& mat)
 // from imath
 static UMVec4d extractQuat(const UMMat44d &mat)
 {
-	UMMat44d rot;
-
-	double tr, s;
-	double q[4];
-	int    i, j, k;
+	double s;
 	UMVec4d   quat;
-
-	int nxt[3] = { 1, 2, 0 };
-	tr = mat[0][0] + mat[1][1] + mat[2][2];
+	constexpr int nxt[3] = { 1, 2, 0 };
 
 	// check the diagonal
-	if (tr > 0.0) {
-		s = sqrt(tr + double(1.0));
-		quat.w = s / double(2.0);
-		s = double(0.5) / s;
+	if (const double tr = mat[0][0] + mat[1][1] + mat[2][2]; tr > 0.0) {
+		s = sqrt(tr + 1.0);
+		quat.w = s / 2.0;
+		s = 0.5 / s;
 
 		quat.x = (mat[1][2] - mat[2][1]) * s;
 		quat.y = (mat[2][0] - mat[0][2]) * s;
 		quat.z = (mat[0][1] - mat[1][0]) * s;
 	}
 	else {
+		double q[4];
 		// diagonal is negative
-		i = 0;
+		int i = 0;
 		if (mat[1][1] > mat[0][0])
 			i = 1;
 		if (mat[2][2] > mat[i][i])
 			i = 2;
 
-		j = nxt[i];
-		k = nxt[j];
-		s = sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + double(1.0));
+		const int j = nxt[i];
+		const int k = nxt[j];
+		s = sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + 1.0);
 
-		q[i] = s * double(0.5);
-		if (s != double(0.0))
-			s = double(0.5) / s;
+		q[i] = s * 0.5;
+		if (s != 0.0)
+			s = 0.5 / s;
 
 		q[3] = (mat[j][k] - mat[k][j]) * s;
 		q[j] = (mat[i][j] + mat[j][i]) * s;
@@ -384,7 +364,7 @@ static UMVec4d extractQuat(const UMMat44d &mat)
 	return quat;
 }
 
-static bool execute_vmd_export(int currentframe)
+static bool execute_vmd_export(const int currentframe)
 {
 	VMDArchive &archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
@@ -408,7 +388,7 @@ static bool execute_vmd_export(int currentframe)
 			}
 			else if (file_data.pmx) 
 			{
-				oguna::EncodingConverter::Utf16ToCp932(file_data.pmx->model_name.c_str(), file_data.pmx->model_name.length(), &file_data.vmd->model_name);
+				oguna::EncodingConverter::Utf16ToCp932(file_data.pmx->model_name.c_str(), static_cast<int>(file_data.pmx->model_name.length()), &file_data.vmd->model_name);
 			}
 		}
 	}
@@ -461,7 +441,7 @@ static bool execute_vmd_export(int currentframe)
 			// get initial world position
 			if (file_data.pmd)
 			{
-				pmd::PmdBone& bone = file_data.pmd->bones[k];
+				const pmd::PmdBone& bone = file_data.pmd->bones[k];
 				if (bone.bone_type == pmd::BoneType::Invisible)
 				{
 					continue;
@@ -472,7 +452,7 @@ static bool execute_vmd_export(int currentframe)
 			}
 			else if (file_data.pmx)
 			{
-				pmx::PmxBone& bone = file_data.pmx->bones[k];
+				const pmx::PmxBone& bone = file_data.pmx->bones[k];
 				initial_trans[0] = bone.position[0];
 				initial_trans[1] = bone.position[1];
 				initial_trans[2] = bone.position[2];
@@ -480,15 +460,14 @@ static bool execute_vmd_export(int currentframe)
 
 			UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(i, k));
 			UMMat44d local = world;
-			UMVec3d parent_offset;
 			int parent_index = file_data.parent_index_map[k];
 			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
 				UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
 				local = world * parent_world.inverted();
 			}
-			local[3][0] = world[3][0] - initial_trans[0];
-			local[3][1] = world[3][1] - initial_trans[1];
-			local[3][2] = world[3][2] - initial_trans[2];
+			local[3][0] = world[3][0] - static_cast<double>(initial_trans[0]);
+			local[3][1] = world[3][1] - static_cast<double>(initial_trans[1]);
+			local[3][2] = world[3][2] - static_cast<double>(initial_trans[2]);
 			
 			vmd::VmdBoneFrame bone_frame;
 			bone_frame.frame = currentframe;
@@ -502,22 +481,23 @@ static bool execute_vmd_export(int currentframe)
 			bone_frame.orientation[1] = static_cast<float>(quat[1]);
 			bone_frame.orientation[2] = static_cast<float>(quat[2]);
 			bone_frame.orientation[3] = static_cast<float>(quat[3]);
-			for (int n = 0; n < 4; ++n) {
+			for (auto& n : bone_frame.interpolation)
+			{
 				for (int m = 0; m < 4; ++m) {
-					bone_frame.interpolation[n][0][m] = 20;
-					bone_frame.interpolation[n][1][m] = 20;
+					n[0][m] = 20;
+					n[1][m] = 20;
 				}
 				for (int m = 0; m < 4; ++m) {
-					bone_frame.interpolation[n][2][m] = 107;
-					bone_frame.interpolation[n][3][m] = 107;
+					n[2][m] = 107;
+					n[3][m] = 107;
 				}
 			}
 
 			// constraints
 			if (file_data.pmd)
 			{
-				pmd::PmdBone& bone = file_data.pmd->bones[k];
-				if (bone.bone_type == pmd::BoneType::Rotation)
+				// The bone is not rotatable.
+				if (const pmd::PmdBone& bone = file_data.pmd->bones[k]; bone.bone_type == pmd::BoneType::Rotation)
 				{
 					bone_frame.position[0] = 0.0f;
 					bone_frame.position[1] = 0.0f;
@@ -526,13 +506,15 @@ static bool execute_vmd_export(int currentframe)
 			}
 			else if (file_data.pmx)
 			{
-				pmx::PmxBone& bone = file_data.pmx->bones[k];
+				const pmx::PmxBone& bone = file_data.pmx->bones[k];
+				// The bone is not translatable.
 				if (!(bone.bone_flag & 0x0004))
 				{
 					bone_frame.position[0] = 0.0f;
 					bone_frame.position[1] = 0.0f;
 					bone_frame.position[2] = 0.0f;
 				}
+				// The bone is not rotatable.
 				if (!(bone.bone_flag & 0x0002))
 				{
 					bone_frame.orientation[0] = 0.0f;
@@ -578,9 +560,7 @@ static bool execute_vmd_export(int currentframe)
 			vmd::VmdIkFrame ik_frame;
 			ik_frame.frame = currentframe;
 			ik_frame.display = true;
-			for (std::map<int, int>::iterator it = file_data.ik_frame_bone_map.begin();
-				it != file_data.ik_frame_bone_map.end();
-				++it)
+			for (auto it = file_data.ik_frame_bone_map.begin(); it != file_data.ik_frame_bone_map.end(); ++it)
 			{
 				if (file_data.bone_name_map.find(it->first) != file_data.bone_name_map.end())
 				{
