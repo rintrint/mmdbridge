@@ -1,4 +1,4 @@
-﻿#include <utility>
+#include <utility>
 #include "Pmx.h"
 #ifndef __unix__
 #include "EncodingHelper.h"

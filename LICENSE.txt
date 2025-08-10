@@ -1,4 +1,4 @@
-﻿MMDBridge
+MMDBridge
 
 Copyright (C) 2012 Kazuma Hatta
 

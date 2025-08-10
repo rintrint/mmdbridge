@@ -1,4 +1,4 @@
-﻿# MMDBridge
+# MMDBridge
 
 ## Requirements
  * VisualStudio2015 or later
