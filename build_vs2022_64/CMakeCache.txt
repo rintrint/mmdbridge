@@ -183,7 +183,7 @@ CMAKE_STATIC_LINKER_FLAGS_RELWITHDEBINFO:STRING=
 CMAKE_VERBOSE_MAKEFILE:BOOL=FALSE
 
 //Dependencies for the target
-d3d9_LIB_DEPENDS:STATIC=general;C:/dev/vcpkg/installed/x64-windows/lib/python310.lib;general;Shlwapi;general;WinMM;general;d3dx9_43;general;MMDExport;general;MikuMikuFormats;general;C:/dev/vcpkg/installed/x64-windows/lib/Alembic.lib;
+d3d9_LIB_DEPENDS:STATIC=general;C:/dev/vcpkg/installed/x64-windows/lib/python312.lib;general;Shlwapi;general;WinMM;general;d3dx9_43;general;MMDExport;general;MikuMikuFormats;general;C:/dev/vcpkg/installed/x64-windows/lib/Alembic.lib;
 
 //Dependencies for the target
 d3dx9_43_LIB_DEPENDS:STATIC=general;Shlwapi;

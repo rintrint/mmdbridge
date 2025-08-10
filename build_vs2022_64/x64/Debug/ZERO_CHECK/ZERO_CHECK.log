@@ -12,7 +12,7 @@
   
   
   -- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.19043.
-  -- Installing: D:/mmdbridge/MikuMikuDance_x64/python310.lib
+  -- Installing: D:/mmdbridge/MikuMikuDance_x64/python312.lib
   -- Configuring done
   -- Generating done
   -- Build files have been written to: D:/mmdbridge/build_vs2022_64

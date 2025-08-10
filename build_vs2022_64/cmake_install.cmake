@@ -34,7 +34,7 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   list(APPEND CMAKE_ABSOLUTE_DESTINATION_FILES
-   "D:/mmdbridge/MikuMikuDance_x64/python310.dll;D:/mmdbridge/MikuMikuDance_x64/Alembic.dll;D:/mmdbridge/MikuMikuDance_x64/hdf5.dll;D:/mmdbridge/MikuMikuDance_x64/imath-2_2.dll;D:/mmdbridge/MikuMikuDance_x64/iex-2_2.dll;D:/mmdbridge/MikuMikuDance_x64/half.dll;D:/mmdbridge/MikuMikuDance_x64/zlib1.dll;D:/mmdbridge/MikuMikuDance_x64/szip.dll")
+   "D:/mmdbridge/MikuMikuDance_x64/python312.dll;D:/mmdbridge/MikuMikuDance_x64/Alembic.dll;D:/mmdbridge/MikuMikuDance_x64/hdf5.dll;D:/mmdbridge/MikuMikuDance_x64/imath-2_2.dll;D:/mmdbridge/MikuMikuDance_x64/iex-2_2.dll;D:/mmdbridge/MikuMikuDance_x64/half.dll;D:/mmdbridge/MikuMikuDance_x64/zlib1.dll;D:/mmdbridge/MikuMikuDance_x64/szip.dll")
   if(CMAKE_WARN_ON_ABSOLUTE_INSTALL_DESTINATION)
     message(WARNING "ABSOLUTE path INSTALL DESTINATION : ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
@@ -42,7 +42,7 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
     message(FATAL_ERROR "ABSOLUTE path INSTALL DESTINATION forbidden (by caller): ${CMAKE_ABSOLUTE_DESTINATION_FILES}")
   endif()
   file(INSTALL DESTINATION "D:/mmdbridge/MikuMikuDance_x64" TYPE FILE FILES
-    "C:/dev/vcpkg/installed/x64-windows/bin/python310.dll"
+    "C:/dev/vcpkg/installed/x64-windows/bin/python312.dll"
     "C:/dev/vcpkg/installed/x64-windows/bin/Alembic.dll"
     "C:/dev/vcpkg/installed/x64-windows/bin/hdf5.dll"
     "C:/dev/vcpkg/installed/x64-windows/bin/imath-2_2.dll"
