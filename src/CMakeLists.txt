@@ -35,6 +35,7 @@ ADD_DEFINITIONS(
     -DWITH_PMX
     -DWITH_ALEMBIC
     )
+add_compile_options(/utf-8)
 ADD_LIBRARY(d3d9 SHARED
     ${d3d9_sources}
     )

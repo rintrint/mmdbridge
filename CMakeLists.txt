@@ -1,6 +1,8 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 PROJECT(mmdbridge) # .sln
 
+add_compile_options(/utf-8)
+
 # shared compiler options
 SET(CMAKE_CXX_FLAGS "/EHsc /wd4267"
     )
