@@ -1,9 +1,0 @@
-D:/mmdbridge/build_vs2022_64/CMakeFiles/INSTALL.dir
-D:/mmdbridge/build_vs2022_64/CMakeFiles/ALL_BUILD.dir
-D:/mmdbridge/build_vs2022_64/CMakeFiles/ZERO_CHECK.dir
-D:/mmdbridge/build_vs2022_64/src/CMakeFiles/d3d9.dir
-D:/mmdbridge/build_vs2022_64/src/CMakeFiles/INSTALL.dir
-D:/mmdbridge/build_vs2022_64/src/MikuMikuFormats/CMakeFiles/MikuMikuFormats.dir
-D:/mmdbridge/build_vs2022_64/src/MikuMikuFormats/CMakeFiles/INSTALL.dir
-D:/mmdbridge/build_vs2022_64/src/d3dx9_32/CMakeFiles/d3dx9_43.dir
-D:/mmdbridge/build_vs2022_64/src/d3dx9_32/CMakeFiles/INSTALL.dir
