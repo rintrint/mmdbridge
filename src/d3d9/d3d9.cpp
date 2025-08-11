@@ -169,6 +169,10 @@ namespace
 	{
 
 		BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
+
+		mutable_parameter.python_script_name_list.clear();
+    	mutable_parameter.python_script_path_list.clear();
+
 		std::wstring searchPath = mutable_parameter.base_path;
 		std::wstring searchStr(searchPath + _T("*.py"));
 
@@ -1365,8 +1369,29 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					EndDialog(hWnd, IDCANCEL);
 					break;
 				case IDC_BUTTON1: // 再検索
-					reload_python_file_paths();
-					SendMessage(hCombo1, CB_SETCURSEL, SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)pythonName.c_str()), 0);
+					{
+						wchar_t current_selection_text[MAX_PATH] = { 0 };
+						int current_selection_index = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+						if (current_selection_index != CB_ERR)
+						{
+							SendMessage(hCombo1, CB_GETLBTEXT, current_selection_index, (LPARAM)current_selection_text);
+						}
+						reload_python_file_paths();
+						SendMessage(hCombo1, CB_RESETCONTENT, 0, 0);
+						for (const auto& name : parameter.python_script_name_list)
+						{
+							SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
+						}
+						UINT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)current_selection_text);
+						if (index_to_select == CB_ERR && parameter.python_script_name_list.size() > 0)
+						{
+							index_to_select = 0;
+						}
+						if (index_to_select != CB_ERR)
+						{
+							SendMessage(hCombo1, CB_SETCURSEL, index_to_select, 0);
+						}
+					}
 					break;
 			}
 			break;
