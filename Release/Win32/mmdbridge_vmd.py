@@ -23,7 +23,7 @@ if (framenumber == start_frame):
 	messagebox("vmd export started")
 	start_vmd_export("", export_mode)
 
-if (framenumber >= start_frame or framenumber <= end_frame):
+if (framenumber >= start_frame and framenumber <= end_frame):
 	execute_vmd_export(framenumber)
 
 if (framenumber == end_frame):
