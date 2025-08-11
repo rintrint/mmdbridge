@@ -1,8 +1,8 @@
 # MMDBridge
 
 ## Requirements
- * VisualStudio2015 or later
- * MikuMikuDance Ver.9.26
+ * VisualStudio2022
+ * MikuMikuDance Ver.9.32
 
 ## Building and Installation
 [ビルド方法](how_to_build.md)
