@@ -64,10 +64,10 @@ public:
 
 class VMDArchive {
 public:
-	
+
 	static VMDArchive& instance() {
 		static VMDArchive instance;
-		return instance; 
+		return instance;
 	}
 
 	std::map<std::string, unsigned long long> file_path_map;
@@ -382,11 +382,11 @@ static bool execute_vmd_export(const int currentframe)
 			init_file_data(file_data);
 
 			file_data.vmd = std::make_unique<vmd::VmdMotion>();
-			if (file_data.pmd) 
+			if (file_data.pmd)
 			{
 				file_data.vmd->model_name = file_data.pmd->header.name;
 			}
-			else if (file_data.pmx) 
+			else if (file_data.pmx)
 			{
 				oguna::EncodingConverter::Utf16ToCp932(file_data.pmx->model_name.c_str(), static_cast<int>(file_data.pmx->model_name.length()), &file_data.vmd->model_name);
 			}
@@ -465,7 +465,7 @@ static bool execute_vmd_export(const int currentframe)
 				UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
 				local = world * parent_world.inverted();
 			}
-			
+
 			vmd::VmdBoneFrame bone_frame;
 			bone_frame.frame = currentframe;
 			bone_frame.name = ExpGetPmdBoneName(i, k);
@@ -616,7 +616,7 @@ void InitVMD()
 	{
 		PyImport_AppendInittab("mmdbridge_vmd", PyInit_mmdbridge_vmd);
 	}
-	void DisposeVMD() 
+	void DisposeVMD()
 	{
 		VMDArchive::instance().end();
 	}
