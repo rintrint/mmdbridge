@@ -8,7 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 add_compile_options(/utf-8)
 
 # shared compiler options
-SET(CMAKE_CXX_FLAGS "/EHsc /wd4267"
+SET(CMAKE_CXX_FLAGS "/EHsc"
     )
 # embeded pdb 
 SET(CMAKE_CXX_FLAGS_DEBUG
