@@ -1328,10 +1328,12 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						UINT num1 = (UINT)SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
 						if (num1 < parameter.python_script_name_list.size())
 						{
-							if (pythonName != parameter.python_script_name_list[num1])
+							const std::wstring& selected_name = parameter.python_script_name_list[num1];
+							mutable_parameter.python_script_name = selected_name;
+							mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
+							if (pythonName != selected_name)
 							{
-								pythonName = parameter.python_script_name_list[num1];
-								mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
+								pythonName = selected_name;
 								relaod_python_script();
 							}
 						}
