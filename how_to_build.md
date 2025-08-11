@@ -15,7 +15,7 @@ mmdbridgeのビルドが依存しているalembic, pybind11のセットアップ
 
 ```powershell
 VCPKG_DIR> chcp 65001
-VCPKG_DIR> .\vcpkg.exe install alembic[hdf5]:x64-windows-static pybind11:x64-windows-static
+VCPKG_DIR> .\vcpkg.exe install alembic[hdf5]:x64-windows pybind11:x64-windows
 The following packages will be built and installed:
     alembic:x64-windows
   * hdf5:x64-windows

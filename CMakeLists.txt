@@ -51,9 +51,7 @@ INSTALL(FILES
     ${CMAKE_INSTALL_PREFIX}/bin/python312.dll
     ${CMAKE_INSTALL_PREFIX}/bin/Alembic.dll
     ${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/imath-2_2.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/iex-2_2.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/half.dll
+    ${CMAKE_INSTALL_PREFIX}/bin/imath-3_1.dll
     ${CMAKE_INSTALL_PREFIX}/bin/zlib1.dll
     ${CMAKE_INSTALL_PREFIX}/bin/szip.dll
     DESTINATION ${MMD_DIR}
