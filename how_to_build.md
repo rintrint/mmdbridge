@@ -46,7 +46,7 @@ VCPKG_DIR
         x64-windows
             bin
                 alembic.dll
-                python36.dll
+                python312.dll
             include
                 pybind11
             lib
