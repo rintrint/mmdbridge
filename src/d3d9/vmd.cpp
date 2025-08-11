@@ -465,16 +465,38 @@ static bool execute_vmd_export(const int currentframe)
 				UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
 				local = world * parent_world.inverted();
 			}
-			local[3][0] = world[3][0] - static_cast<double>(initial_trans[0]);
-			local[3][1] = world[3][1] - static_cast<double>(initial_trans[1]);
-			local[3][2] = world[3][2] - static_cast<double>(initial_trans[2]);
 			
 			vmd::VmdBoneFrame bone_frame;
 			bone_frame.frame = currentframe;
 			bone_frame.name = ExpGetPmdBoneName(i, k);
-			bone_frame.position[0] = static_cast<float>(local[3][0]);
-			bone_frame.position[1] = static_cast<float>(local[3][1]);
-			bone_frame.position[2] = static_cast<float>(local[3][2]);
+
+            // Calculate VMD position
+            // Step 1: Calculate basic displacement offset (current local position - own initial position)
+            bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans[0];
+            bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
+            bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
+            // Step 2: Add parent bone's initial position
+			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
+                UMVec3f parent_initial_trans;
+                if (file_data.pmd)
+                {
+                    const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
+                    parent_initial_trans[0] = parent_bone.bone_head_pos[0];
+                    parent_initial_trans[1] = parent_bone.bone_head_pos[1];
+                    parent_initial_trans[2] = parent_bone.bone_head_pos[2];
+                }
+                else if (file_data.pmx)
+                {
+                    const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
+                    parent_initial_trans[0] = parent_bone.position[0];
+                    parent_initial_trans[1] = parent_bone.position[1];
+                    parent_initial_trans[2] = parent_bone.position[2];
+                }
+                bone_frame.position[0] += parent_initial_trans[0];
+                bone_frame.position[1] += parent_initial_trans[1];
+                bone_frame.position[2] += parent_initial_trans[2];
+            }
+
 			local[3][0] = local[3][1] = local[3][2] = 0.0;
 			UMVec4d quat = extractQuat(local);
 			bone_frame.orientation[0] = static_cast<float>(quat[0]);
