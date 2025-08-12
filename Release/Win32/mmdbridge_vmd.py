@@ -8,10 +8,10 @@ from math import *
 import time
 
 # export mode
-# 0 = physics + ik
+# 0 = physics + ik + fuyo
 # 1 = physics only
-# 2 = all (buggy)
-export_mode = 0
+# 2 = all
+export_mode = 2
 
 outpath = get_base_path().replace("\\", "/") + "out/"
 texture_export_dir = outpath

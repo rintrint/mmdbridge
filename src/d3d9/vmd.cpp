@@ -411,31 +411,37 @@ static bool execute_vmd_export(const int currentframe)
 			}
 
 			// export mode
-			if (file_data.physics_bone_map.find(k) == file_data.physics_bone_map.end()) {
-				if (archive.export_mode == 0)
-				{
-					// physics + ik + fuyo
-					if (file_data.ik_bone_map.find(k) == file_data.ik_bone_map.end()) {
-						if (file_data.fuyo_bone_map.find(k) == file_data.fuyo_bone_map.end()) {
-							continue;
-						}
-					}
-				}
-				else if (archive.export_mode == 1)
-				{
-					// physics only
-					continue;
-				}
-				else
-				{
-					// all (buggy)
+			const bool is_ik_effector_bone = file_data.ik_frame_bone_map.count(k) > 0;
+			const bool is_affected_by_ik = file_data.ik_bone_map.count(k) > 0;
+			const bool is_affected_by_fuyo = file_data.fuyo_bone_map.count(k) > 0;
+			const bool is_physics_bone = file_data.physics_bone_map.count(k) > 0;
+			bool is_simulated_physics_bone = false;
+			bool is_non_simulated_physics_bone = false;
+			if (is_physics_bone) {
+				if (file_data.physics_bone_map.at(k) == 0) {
+					is_non_simulated_physics_bone = true;
+				} else {
+					is_simulated_physics_bone = true;
 				}
 			}
-
-			if (file_data.physics_bone_map.find(k) != file_data.physics_bone_map.end()) {
-				if (file_data.physics_bone_map[k] == 0) {
+			// Since IK is baked to FK, skip exporting IK bone motion keyframes
+			if (is_ik_effector_bone) {
+				continue;
+			}
+			if (archive.export_mode == 0) {
+				// physics + ik + fuyo
+				if (!is_simulated_physics_bone && !is_affected_by_ik && !is_affected_by_fuyo) {
 					continue;
 				}
+			}
+			else if (archive.export_mode == 1) {
+				// physics only
+				if (!is_simulated_physics_bone) {
+					continue;
+				}
+			}
+			else {
+				// all
 			}
 
 			// get initial world position
