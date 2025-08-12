@@ -164,39 +164,50 @@ namespace
 		return true;
 	}
 
-	/// スクリプトパスのリロード.
+	/// Reloads the python script paths.
 	void reload_python_file_paths()
 	{
-
 		BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
 		mutable_parameter.python_script_name_list.clear();
-    	mutable_parameter.python_script_path_list.clear();
+		mutable_parameter.python_script_path_list.clear();
 
 		std::wstring searchPath = mutable_parameter.base_path;
 		std::wstring searchStr(searchPath + _T("*.py"));
 
-		// pythonファイル検索
+		std::vector<std::pair<std::wstring, std::wstring>> found_scripts;
+
+		// Find python files.
 		WIN32_FIND_DATA find;
 		HANDLE hFind = FindFirstFile(searchStr.c_str(), &find);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
 			do
 			{
-				if(! (find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+				if (!(find.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
 				{
-					std::wstring name( find.cFileName);
+					std::wstring name(find.cFileName);
 					std::wstring path(searchPath + find.cFileName);
-					// ファイルだった
-					if (mutable_parameter.python_script_name.empty()) { 
-						mutable_parameter.python_script_name = name;
-						mutable_parameter.python_script_path = path;
-					}
-					mutable_parameter.python_script_name_list.push_back(name);
-					mutable_parameter.python_script_path_list.push_back(path);
+					found_scripts.emplace_back(name, path);
 				}
-			} while(FindNextFile(hFind, &find));
+			} while (FindNextFile(hFind, &find));
 			FindClose(hFind);
+		}
+
+		// Sort scripts using a natural sort order to handle numbers in filenames correctly.
+		std::sort(found_scripts.begin(), found_scripts.end(), [](const auto& a, const auto& b) {
+			return StrCmpLogicalW(a.first.c_str(), b.first.c_str()) < 0;
+		});
+
+		// Repopulate the main lists from the sorted temporary list.
+		for (const auto& script : found_scripts)
+		{
+			if (mutable_parameter.python_script_name.empty()) {
+				mutable_parameter.python_script_name = script.first;
+				mutable_parameter.python_script_path = script.second;
+			}
+			mutable_parameter.python_script_name_list.push_back(script.first);
+			mutable_parameter.python_script_path_list.push_back(script.second);
 		}
 	}
 
