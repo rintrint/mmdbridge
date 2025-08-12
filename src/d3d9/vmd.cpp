@@ -47,6 +47,7 @@ public:
 	std::map<int, int> ik_frame_bone_map;
 	std::map<int, int> fuyo_bone_map;
 	std::map<int, int> fuyo_target_map;
+	std::map<int, UMMat44d> initial_world_matrices;
 
 	FileDataForVMD(const FileDataForVMD& data) {
 		this->vmd = data.vmd;
@@ -59,6 +60,7 @@ public:
 		this->ik_frame_bone_map = data.ik_frame_bone_map;
 		this->fuyo_bone_map = data.fuyo_bone_map;
 		this->fuyo_target_map = data.fuyo_target_map;
+		this->initial_world_matrices = data.initial_world_matrices;
 	}
 };
 
@@ -373,6 +375,8 @@ static bool execute_vmd_export(const int currentframe)
 
 	const int pmd_num = ExpGetPmdNum();
 
+	// 初始化日誌文件
+	static std::ofstream log_file;
 	if (currentframe == parameter.start_frame)
 	{
 		for (int i = 0; i < pmd_num; ++i)
@@ -390,7 +394,17 @@ static bool execute_vmd_export(const int currentframe)
 			{
 				oguna::EncodingConverter::Utf16ToCp932(file_data.pmx->model_name.c_str(), static_cast<int>(file_data.pmx->model_name.length()), &file_data.vmd->model_name);
 			}
+
+			const int bone_num = ExpGetPmdBoneNum(i);
+			for (int k = 0; k < bone_num; ++k)
+			{
+                // 取得並儲存第 k 個骨骼的初始世界矩陣
+				file_data.initial_world_matrices[k] = to_ummat(ExpGetPmdBoneWorldMat(i, k));
+			}
 		}
+		// 開啟原始數據日誌文件
+		std::string log_path = archive.output_path + "raw_data.txt";
+		log_file.open(log_path, std::ios::out);
 	}
 
 	for (int i = 0; i < pmd_num; ++i)
@@ -402,6 +416,32 @@ static bool execute_vmd_export(const int currentframe)
 		{
 			UMVec3f initial_trans;
 			const char* bone_name = ExpGetPmdBoneName(i, k);
+			
+			
+            // =================================================================
+            // START: 建議的除錯程式碼
+            // =================================================================
+			if (log_file.is_open()) {
+				log_file << "====== DEBUGGING '" << bone_name << "' (BONE " << k << ") at FRAME " << currentframe << " ======\n";
+				
+				bool is_in_map = file_data.bone_name_map.count(k) > 0;
+				log_file << "DEBUG: Is in bone_name_map? " << (is_in_map ? "Yes" : "No") << "\n";
+				if (is_in_map) {
+						log_file << "DEBUG: Name in map: '" << file_data.bone_name_map[k] << "', Name from Exp: '" << bone_name << "'\n";
+						log_file << "DEBUG: Map name matches Exp name? " << (file_data.bone_name_map[k] == bone_name ? "Yes" : "No") << "\n";
+				}
+
+				log_file << "DEBUG: Is IK effector (ik_frame_bone_map)? " << (file_data.ik_frame_bone_map.count(k) > 0 ? "Yes, will be skipped." : "No") << "\n";
+				log_file << "DEBUG: Is physics bone (physics_bone_map)? " << (file_data.physics_bone_map.count(k) > 0 ? ("Yes, type " + to_string(file_data.physics_bone_map[k])) : "No") << "\n";
+				log_file << "DEBUG: Is IK bone (ik_bone_map)? " << (file_data.ik_bone_map.count(k) > 0 ? "Yes" : "No") << "\n";
+				log_file << "DEBUG: Is Fuyo bone (fuyo_bone_map)? " << (file_data.fuyo_bone_map.count(k) > 0 ? "Yes" : "No") << "\n";
+				log_file << "DEBUG: Current export_mode: " << archive.export_mode << "\n";
+			}
+            // =================================================================
+            // END: 建議的除錯程式碼
+            // =================================================================
+
+			
 			if (file_data.bone_name_map.find(k) == file_data.bone_name_map.end()) {
 				continue;
 			}
@@ -468,12 +508,53 @@ static bool execute_vmd_export(const int currentframe)
 				initial_trans[2] = bone.position[2];
 			}
 
+			// 獲取原始數據
 			UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(i, k));
+			UMMat44d parent_world;
+			parent_world.identity(); // 預設為單位矩陣
+
 			UMMat44d local = world;
 			int parent_index = file_data.parent_index_map[k];
 			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
-				UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
+				parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
 				local = world * parent_world.inverted();
+			}
+
+			// 寫入原始數據日誌 (Python 友好格式)
+			if (log_file.is_open()) {
+				log_file << std::fixed << std::setprecision(3);
+
+				log_file << "FRAME:" << currentframe << ",BONE:" << k << ",NAME:" << bone_name << "\n";
+
+				// 初始位置
+				log_file << "INIT_POS:" << initial_trans[0] << "," << initial_trans[1] << "," << initial_trans[2] << "\n";
+
+				// 初始旋轉
+				UMMat44d initial_world_mat = file_data.initial_world_matrices[k];
+				UMVec4d initial_rot_quat = extractQuat(initial_world_mat);
+				log_file << "INIT_ROT:" << initial_rot_quat.x << "," << initial_rot_quat.y << "," << initial_rot_quat.z << "," << initial_rot_quat.w << "\n";
+
+				// 世界矩陣 (4x4)
+				log_file << "WORLD_MAT:";
+				for (int row = 0; row < 4; ++row) {
+					for (int col = 0; col < 4; ++col) {
+						log_file << world[row][col];
+						if (row < 3 || col < 3) log_file << ",";
+					}
+				}
+				log_file << "\n";
+
+				// 父骨骼世界矩陣
+				log_file << "PARENT_MAT:";
+				for (int row = 0; row < 4; ++row) {
+					for (int col = 0; col < 4; ++col) {
+						log_file << parent_world[row][col];
+						if (row < 3 || col < 3) log_file << ",";
+					}
+				}
+				log_file << "\n";
+                
+                log_file << "LOCAL_TRANS:" << local[3][0] << "," << local[3][1] << "," << local[3][2] << "\n";
 			}
 
 			vmd::VmdBoneFrame bone_frame;
@@ -485,6 +566,9 @@ static bool execute_vmd_export(const int currentframe)
             bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans[0];
             bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
             bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
+			if (log_file.is_open()) {
+				log_file << "VMD_POS_TEMP:" << bone_frame.position[0] << "," << bone_frame.position[1] << "," << bone_frame.position[2] << "\n";
+			}
             // Step 2: Add parent bone's initial position
 			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
                 UMVec3f parent_initial_trans;
@@ -513,6 +597,13 @@ static bool execute_vmd_export(const int currentframe)
 			bone_frame.orientation[1] = static_cast<float>(quat[1]);
 			bone_frame.orientation[2] = static_cast<float>(quat[2]);
 			bone_frame.orientation[3] = static_cast<float>(quat[3]);
+
+			// 記錄計算後的 VMD 數據
+			if (log_file.is_open()) {
+				log_file << "VMD_POS:" << bone_frame.position[0] << "," << bone_frame.position[1] << "," << bone_frame.position[2] << "\n";
+				log_file << "VMD_ROT:" << bone_frame.orientation[0] << "," << bone_frame.orientation[1] << "," << bone_frame.orientation[2] << "," << bone_frame.orientation[3] << "\n";
+			}
+
 			for (auto& n : bone_frame.interpolation)
 			{
 				for (int m = 0; m < 4; ++m) {
@@ -578,6 +669,13 @@ static bool execute_vmd_export(const int currentframe)
 			// 	}
 			// }
 
+			// 記錄約束後的最終數據
+			if (log_file.is_open()) {
+				log_file << "FINAL_POS:" << bone_frame.position[0] << "," << bone_frame.position[1] << "," << bone_frame.position[2] << "\n";
+				log_file << "FINAL_ROT:" << bone_frame.orientation[0] << "," << bone_frame.orientation[1] << "," << bone_frame.orientation[2] << "," << bone_frame.orientation[3] << "\n";
+				log_file << "\n";
+			}
+
 			file_data.vmd->bone_frames.push_back(bone_frame);
 		}
 
@@ -599,6 +697,11 @@ static bool execute_vmd_export(const int currentframe)
 			}
 			file_data.vmd->ik_frames.push_back(ik_frame);
 		}
+	}
+
+	// 在最後一幀時關閉日誌文件
+	if (currentframe == parameter.end_frame && log_file.is_open()) {
+		log_file.close();
 	}
 
 	return true;
