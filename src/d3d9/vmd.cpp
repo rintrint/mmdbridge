@@ -525,53 +525,58 @@ static bool execute_vmd_export(const int currentframe)
 				}
 			}
 
-			// constraints
-			if (file_data.pmd)
-			{
-				// The bone is not translatable.
-				if (const pmd::PmdBone& bone = file_data.pmd->bones[k]; bone.bone_type == pmd::BoneType::Rotation)
-				{
-					bone_frame.position[0] = 0.0f;
-					bone_frame.position[1] = 0.0f;
-					bone_frame.position[2] = 0.0f;
-				}
-			}
-			else if (file_data.pmx)
-			{
-				const pmx::PmxBone& bone = file_data.pmx->bones[k];
-				// The bone is not translatable.
-				if (!(bone.bone_flag & 0x0004))
-				{
-					bone_frame.position[0] = 0.0f;
-					bone_frame.position[1] = 0.0f;
-					bone_frame.position[2] = 0.0f;
-				}
-				// The bone is not rotatable.
-				if (!(bone.bone_flag & 0x0002))
-				{
-					bone_frame.orientation[0] = 0.0f;
-					bone_frame.orientation[1] = 0.0f;
-					bone_frame.orientation[2] = 0.0f;
-					bone_frame.orientation[3] = 1.0f;
-				}
-				if (file_data.physics_bone_map.find(k) != file_data.physics_bone_map.end()) {
-					if (file_data.physics_bone_map[k] == 2)
-					{
-						bone_frame.position[0] = 0.0f;
-						bone_frame.position[1] = 0.0f;
-						bone_frame.position[2] = 0.0f;
-					}
-				}
-				// expect for rigid_type == BoneConnected
-				const int parent_bone = file_data.parent_index_map[k];
-				if (file_data.physics_bone_map.find(parent_bone) != file_data.physics_bone_map.end()) {
-					if (file_data.physics_bone_map[parent_bone] == 0) {
-						bone_frame.position[0] = 0.0f;
-						bone_frame.position[1] = 0.0f;
-						bone_frame.position[2] = 0.0f;
-					}
-				}
-			}
+			// The following code is disabled.
+			// This constraint logic is unnecessary for MMD:
+			// 1. Bones can still translate/rotate regardless of restrictions, especially certain physic bones such as chest bones.
+			// 2. Baked animations already capture MMD's final movement.
+			/////////////////////////////////////////////////////////////////
+			// // constraints
+			// if (file_data.pmd)
+			// {
+			// 	// The bone is not translatable.
+			// 	if (const pmd::PmdBone& bone = file_data.pmd->bones[k]; bone.bone_type == pmd::BoneType::Rotation)
+			// 	{
+			// 		bone_frame.position[0] = 0.0f;
+			// 		bone_frame.position[1] = 0.0f;
+			// 		bone_frame.position[2] = 0.0f;
+			// 	}
+			// }
+			// else if (file_data.pmx)
+			// {
+			// 	const pmx::PmxBone& bone = file_data.pmx->bones[k];
+			// 	// The bone is not translatable.
+			// 	if (!(bone.bone_flag & 0x0004))
+			// 	{
+			// 		bone_frame.position[0] = 0.0f;
+			// 		bone_frame.position[1] = 0.0f;
+			// 		bone_frame.position[2] = 0.0f;
+			// 	}
+			// 	// The bone is not rotatable.
+			// 	if (!(bone.bone_flag & 0x0002))
+			// 	{
+			// 		bone_frame.orientation[0] = 0.0f;
+			// 		bone_frame.orientation[1] = 0.0f;
+			// 		bone_frame.orientation[2] = 0.0f;
+			// 		bone_frame.orientation[3] = 1.0f;
+			// 	}
+			// 	if (file_data.physics_bone_map.find(k) != file_data.physics_bone_map.end()) {
+			// 		if (file_data.physics_bone_map[k] == 2)
+			// 		{
+			// 			bone_frame.position[0] = 0.0f;
+			// 			bone_frame.position[1] = 0.0f;
+			// 			bone_frame.position[2] = 0.0f;
+			// 		}
+			// 	}
+			// 	// expect for rigid_type == BoneConnected
+			// 	const int parent_bone = file_data.parent_index_map[k];
+			// 	if (file_data.physics_bone_map.find(parent_bone) != file_data.physics_bone_map.end()) {
+			// 		if (file_data.physics_bone_map[parent_bone] == 0) {
+			// 			bone_frame.position[0] = 0.0f;
+			// 			bone_frame.position[1] = 0.0f;
+			// 			bone_frame.position[2] = 0.0f;
+			// 		}
+			// 	}
+			// }
 
 			file_data.vmd->bone_frames.push_back(bone_frame);
 		}
