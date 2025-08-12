@@ -413,6 +413,7 @@ static bool execute_vmd_export(const int currentframe)
 			// export mode
 			const bool is_ik_effector_bone = file_data.ik_frame_bone_map.count(k) > 0;
 			const bool is_affected_by_ik = file_data.ik_bone_map.count(k) > 0;
+			const bool is_fuyo_effector_bone = file_data.fuyo_target_map.find(k) != file_data.fuyo_target_map.end();
 			const bool is_affected_by_fuyo = file_data.fuyo_bone_map.count(k) > 0;
 			const bool is_physics_bone = file_data.physics_bone_map.count(k) > 0;
 			bool is_simulated_physics_bone = false;
@@ -426,6 +427,9 @@ static bool execute_vmd_export(const int currentframe)
 			}
 			// Since IK is baked to FK, skip exporting IK bone motion keyframes
 			if (is_ik_effector_bone) {
+				continue;
+			}
+			if (is_fuyo_effector_bone) {
 				continue;
 			}
 			if (archive.export_mode == 0) {
@@ -557,16 +561,6 @@ static bool execute_vmd_export(const int currentframe)
 						bone_frame.position[1] = 0.0f;
 						bone_frame.position[2] = 0.0f;
 					}
-				}
-				// expect for fuyo
-				if (file_data.fuyo_target_map.find(k) != file_data.fuyo_target_map.end()) {
-					bone_frame.position[0] = 0.0f;
-					bone_frame.position[1] = 0.0f;
-					bone_frame.position[2] = 0.0f;
-					bone_frame.orientation[0] = 0.0f;
-					bone_frame.orientation[1] = 0.0f;
-					bone_frame.orientation[2] = 0.0f;
-					bone_frame.orientation[3] = 1.0f;
 				}
 
 				// expect for rigid_type == BoneConnected
