@@ -66,7 +66,7 @@ private:
 	BridgeParameter() :
 		//script_call_setting(2)
 		 start_frame(0)
-		, end_frame(100)
+		, end_frame(0)
 		, frame_width(800)
 		, frame_height(450)
 		, export_fps(30.0)

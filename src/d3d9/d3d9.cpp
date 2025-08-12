@@ -146,7 +146,7 @@ static void d3d_vector3_transform(
 namespace
 {
 	std::wstring pythonName; // スクリプト名
-	int script_call_setting = 2; // スクリプト呼び出し設定
+	int script_call_setting = 1; // スクリプト呼び出し設定
 	std::map<int, int> exportedFrames;
 
 	/// スクリプトのリロード.
