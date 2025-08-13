@@ -40,41 +40,33 @@ jobs:
     - name: Add DXSDK_DIR to ENV
       run: |
         winhome=`cygpath -w $HOME`
-        echo DXSDK_DIR=$winhome/dxsdk_cache/ >> $GITHUB_ENV
+        echo DXSDK_DIR=$winhome/dxsdk_dir/ >> $GITHUB_ENV
       shell: bash
 
-
-    - name: DXSDK from cache
-      id: dxsdk-cache
-      uses: actions/cache@v4
-      with:
-        path: ~/dxsdk_cache
-        key: v1-dxsdk_cache
-
-    - name: DXSDK cache create
-      if: ${{steps.dxsdk-cache.outputs.cache-hit != 'true'}}
+    - name: Download DXSDK
       run: |
          curl -L https://download.microsoft.com/download/a/e/7/ae743f1f-632b-4809-87a9-aa1bb3458e31/DXSDK_Jun10.exe -o _DX2010_.exe
-         mkdir -p $HOME/dxsdk_cache
-         mv _DX2010_.exe $HOME/dxsdk_cache/
-         7z x $HOME/dxsdk_cache/_DX2010_.exe DXSDK/Include -o_DX2010_
-         7z x $HOME/dxsdk_cache/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
-         mv _DX2010_/DXSDK/* $HOME/dxsdk_cache/
-         ls -la $HOME/dxsdk_cache/
+         mkdir -p $HOME/dxsdk_dir
+         mv _DX2010_.exe $HOME/dxsdk_dir/
+         7z x $HOME/dxsdk_dir/_DX2010_.exe DXSDK/Include -o_DX2010_
+         7z x $HOME/dxsdk_dir/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
+         ls -la _DX2010_/DXSDK/
+         mv _DX2010_/DXSDK/* $HOME/dxsdk_dir/
+         ls -la $HOME/dxsdk_dir/
          rm -fR _DX2010_
       shell: bash
 
     - name: DXSDK comment out some codes
       run: |
-        sed -i -e "347 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "348 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "349 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "350 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "351 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "352 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "353 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "354 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
-        sed -i -e "355 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "347 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "348 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "349 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "350 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "351 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "352 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "353 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "354 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        sed -i -e "355 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
       shell: bash
 
     - name: Checkout MMDBridge
