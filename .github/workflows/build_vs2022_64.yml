@@ -23,7 +23,7 @@ jobs:
       contents: read
       packages: write
     env:
-      VCPKG_BINARY_SOURCES: "clear;nuget,readwrite"
+      VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/${{github.repository_owner}}/index.json,readwrite"
 
     steps:
     - name: Add MSBuild to PATH
@@ -43,15 +43,12 @@ jobs:
         echo DXSDK_DIR=$winhome/dxsdk_cache/ >> $GITHUB_ENV
       shell: bash
 
-    - name: Create DXSDK cache folder
-      run: mkdir -p $HOME/dxsdk_cache
-      shell: bash
 
     - name: DXSDK from cache
       id: dxsdk-cache
       uses: actions/cache@v4
       with:
-        path: $HOME/dxsdk_cache
+        path: ~/dxsdk_cache
         key: v1-dxsdk_cache
 
     - name: DXSDK cache create
@@ -63,7 +60,8 @@ jobs:
          7z x $HOME/dxsdk_cache/_DX2010_.exe DXSDK/Include -o_DX2010_
          7z x $HOME/dxsdk_cache/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
          mv _DX2010_/DXSDK/* $HOME/dxsdk_cache/
-         rm -fR _DX*_
+         ls -la $HOME/dxsdk_cache/
+         rm -fR _DX2010_
       shell: bash
 
     - name: DXSDK comment out some codes
@@ -104,19 +102,11 @@ jobs:
          find "$GITHUB_WORKSPACE" -name "MMDExport.h" -type f -print
       shell: bash
 
-    - name: Create vcpkg cache folder
-      run: mkdir -p $VCPKG_INSTALLATION_ROOT/installed
-      shell: bash
-
-    - name: vcpkg from cache
-      id: vcpkg-cache
-      uses: actions/cache@v4
-      with:
-        path: $VCPKG_INSTALLATION_ROOT/installed
-        key: v1-vcpkg-cache
+    - name: Setup NuGet for vcpkg binary caching
+      run: |
+        dotnet nuget add source --username ${{github.repository_owner}} --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json"
 
     - name: Install dependencies via vcpkg
-      if: ${{steps.vcpkg-cache.outputs.cache-hit != 'true'}}
       run: |
         if [ ! -f "vcpkg.json" ]; then
           echo "vcpkg.json not found! Installing packages manually."
@@ -129,23 +119,6 @@ jobs:
 
     - name: vcpkg integration
       run: vcpkg integrate install
-
-    - name: Create nuget.config
-      shell: cmd
-      run: |
-        echo ^<?xml version="1.0" encoding="utf-8"?^> > nuget.config
-        echo ^<configuration^> >> nuget.config
-        echo   ^<packageSources^> >> nuget.config
-        echo     ^<clear /^> >> nuget.config
-        echo     ^<add key="github" value="https://nuget.pkg.github.com/${{github.repository_owner}}/index.json" /^> >> nuget.config
-        echo   ^</packageSources^> >> nuget.config
-        echo   ^<packageSourceCredentials^> >> nuget.config
-        echo     ^<github^> >> nuget.config
-        echo       ^<add key="Username" value="${{github.actor}}" /^> >> nuget.config
-        echo       ^<add key="ClearTextPassword" value="${{secrets.GITHUB_TOKEN}}" /^> >> nuget.config
-        echo     ^</github^> >> nuget.config
-        echo   ^</packageSourceCredentials^> >> nuget.config
-        echo ^</configuration^> >> nuget.config
 
     - name: cmake
       shell: cmd
