@@ -10,7 +10,7 @@ ADD_COMPILE_OPTIONS(/utf-8)
 # shared compiler options
 SET(CMAKE_CXX_FLAGS "/EHsc"
     )
-# embeded pdb 
+# embeded pdb
 SET(CMAKE_CXX_FLAGS_DEBUG
     /Z7
     )
@@ -32,7 +32,7 @@ GET_FILENAME_COMPONENT(MMD_DIR
     ABSOLUTE
     )
 #FIND_PACKAGE(ilmbase REQUIRED)
-SET(ilmbase_INCLUDE_DIRS 
+SET(ilmbase_INCLUDE_DIRS
     ${CMAKE_INSTALL_PREFIX}/include/OpenEXR)
 SET(Imath_INCLUDE_DIRS
     ${CMAKE_INSTALL_PREFIX}/include/Imath)
@@ -46,7 +46,7 @@ SET(ALEMBIC_LIBRARIES
 ADD_SUBDIRECTORY(src)
 
 # additional install files
-INSTALL(FILES 
+INSTALL(FILES
     ${CMAKE_INSTALL_PREFIX}/bin/python312.dll
     ${CMAKE_INSTALL_PREFIX}/bin/Alembic.dll
     ${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll
@@ -63,9 +63,36 @@ INSTALL(FILES ${python_sciprts}
 
 FILE(INSTALL ${CMAKE_INSTALL_PREFIX}/lib/python312.lib DESTINATION ${MMD_DIR})
 
-INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts 
+INSTALL(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
+    DESTINATION ${MMD_DIR}/python312/
+    PATTERN "test*" EXCLUDE
+    PATTERN "__pycache__" EXCLUDE
+    PATTERN "*.pyc" EXCLUDE
+    PATTERN "tkinter*" EXCLUDE
+    PATTERN "idlelib*" EXCLUDE
+    PATTERN "turtle*" EXCLUDE
+    PATTERN "unittest*" EXCLUDE
+    PATTERN "pydoc*" EXCLUDE
+    PATTERN "turtledemo*" EXCLUDE
+    PATTERN "email*" EXCLUDE
+    PATTERN "urllib*" EXCLUDE
+    PATTERN "http*" EXCLUDE
+    PATTERN "xmlrpc*" EXCLUDE
+    PATTERN "wsgiref*" EXCLUDE
+    PATTERN "sqlite3*" EXCLUDE
+    PATTERN "distutils*" EXCLUDE
+    PATTERN "ensurepip*" EXCLUDE
+    PATTERN "lib2to3*" EXCLUDE
+    PATTERN "msilib*" EXCLUDE
+    PATTERN "venv*" EXCLUDE
+    PATTERN "curses*" EXCLUDE
+    PATTERN "dbm*" EXCLUDE
+    PATTERN "__phello__*" EXCLUDE
+    )
+INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts
     DESTINATION ${MMD_DIR}
     )
-INSTALL(DIRECTORY 
-    DESTINATION ${MMD_DIR}/out)
+INSTALL(DIRECTORY
+    DESTINATION ${MMD_DIR}/out
+    )
 
