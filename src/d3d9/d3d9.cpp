@@ -622,10 +622,10 @@ namespace
 
 	std::string get_accessory_filename(int at)
 	{
-		const char* sjis = ExpGetAcsFilename(at);
-		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)sjis, -1, NULL, 0);
+		const char* cp932 = ExpGetAcsFilename(at);
+		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
 		wchar_t* utf16 = new wchar_t[size];
-		::MultiByteToWideChar(932, 0, (LPCSTR)sjis, -1, (LPWSTR)utf16, size);
+		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
 		std::wstring wchar(utf16);
 		delete[] utf16;
 		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
@@ -636,10 +636,10 @@ namespace
 	{
 		const int count = get_bone_size(at);
 		if (count <= 0) return "";
-		const char* sjis = ExpGetPmdFilename(at);
-		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)sjis, -1, NULL, 0);
+		const char* cp932 = ExpGetPmdFilename(at);
+		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
 		wchar_t* utf16 = new wchar_t[size];
-		::MultiByteToWideChar(932, 0, (LPCSTR)sjis, -1, (LPWSTR)utf16, size);
+		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
 		std::wstring wchar(utf16);
 		delete [] utf16;
 		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
@@ -663,10 +663,10 @@ namespace
 	{
 		const int count = get_bone_size(at);
 		if (count <= 0) return "";
-		const char* sjis = ExpGetPmdBoneName(at, bone_index);
-		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)sjis, -1, NULL, 0);
+		const char* cp932 = ExpGetPmdBoneName(at, bone_index);
+		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
 		wchar_t* utf16 = new wchar_t[size];
-		::MultiByteToWideChar(932, 0, (LPCSTR)sjis, -1, (LPWSTR)utf16, size);
+		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
 		std::wstring wchar(utf16);
 		delete [] utf16;
 		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
