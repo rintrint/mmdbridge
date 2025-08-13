@@ -163,13 +163,9 @@ jobs:
       run: |
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.INSTALL_PROJECT_PATH}}
 
-    - name: Zip
-      run: |
-        7z a $HOME/MMDBridge_artifact_${GITHUB_RUN_NUMBER}.7z ${GITHUB_WORKSPACE}/MikuMikuDance_x64/
-      shell: bash
-
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-          path: $HOME/MMDBridge_artifact_${GITHUB_RUN_NUMBER}.7z
+        name: MMDBridge_artifact_${{github.run_number}}
+        path: ${{github.workspace}}/MikuMikuDance_x64/
 
