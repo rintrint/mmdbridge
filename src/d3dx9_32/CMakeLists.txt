@@ -6,7 +6,7 @@ ADD_DEFINITIONS(
     -DUNICODE
     -D_UNICODE
     )
-add_compile_options(/utf-8)
+ADD_COMPILE_OPTIONS(/utf-8)
 LINK_DIRECTORIES(
     $ENV{DXSDK_DIR}/lib/x64
     )

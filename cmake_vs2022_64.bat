@@ -7,5 +7,8 @@ set BUILD_DIR="build_vs2022_64"
 
 if not exist %BUILD_DIR% mkdir %BUILD_DIR%
 pushd %BUILD_DIR%
-%CMAKE% -D CMAKE_INSTALL_PREFIX=%VCPKG_DIR%/installed/x64-windows -G "Visual Studio 17 2022" .. 
+if "%VCPKG_TARGET_TRIPLET%"=="" (
+    set VCPKG_TARGET_TRIPLET=x64-windows
+)
+%CMAKE% -D CMAKE_INSTALL_PREFIX=%VCPKG_DIR%/installed/%VCPKG_TARGET_TRIPLET% -G "Visual Studio 17 2022" ..
 popd
