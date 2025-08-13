@@ -37,42 +37,46 @@ jobs:
       shell: bash
 
     # https://stackoverflow.com/questions/61037714/how-to-install-an-old-version-of-the-direct-x-api-in-github-actions
-    - name:  Add DXSDK_DIR to ENV
+    - name: Add DXSDK_DIR to ENV
       run: |
         winhome=`cygpath -w $HOME`
-        echo DXSDK_DIR=$winhome/cache/ >> $GITHUB_ENV
+        echo DXSDK_DIR=$winhome/dxsdk_cache/ >> $GITHUB_ENV
+      shell: bash
+
+    - name: Create DXSDK cache folder
+      run: mkdir -p $HOME/dxsdk_cache
       shell: bash
 
     - name: DXSDK from cache
-      id:   cache
+      id: dxsdk-cache
       uses: actions/cache@v4
       with:
-        path: ~/cache
-        key: v1-cache
+        path: $HOME/dxsdk_cache
+        key: v1-dxsdk_cache
 
     - name: DXSDK cache create
-      if:    ${{steps.cache.outputs.cache-hit != 'true'}}
-      run:   |
+      if: ${{steps.dxsdk-cache.outputs.cache-hit != 'true'}}
+      run: |
          curl -L https://download.microsoft.com/download/a/e/7/ae743f1f-632b-4809-87a9-aa1bb3458e31/DXSDK_Jun10.exe -o _DX2010_.exe
-         mkdir -p $HOME/cache
-         mv _DX2010_.exe $HOME/cache/
-         7z x $HOME/cache/_DX2010_.exe DXSDK/Include -o_DX2010_
-         7z x $HOME/cache/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
-         mv _DX2010_/DXSDK/* $HOME/cache/
+         mkdir -p $HOME/dxsdk_cache
+         mv _DX2010_.exe $HOME/dxsdk_cache/
+         7z x $HOME/dxsdk_cache/_DX2010_.exe DXSDK/Include -o_DX2010_
+         7z x $HOME/dxsdk_cache/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
+         mv _DX2010_/DXSDK/* $HOME/dxsdk_cache/
          rm -fR _DX*_
       shell: bash
 
     - name: DXSDK comment out some codes
       run: |
-        sed -i -e "347 s/#/\/\/#/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "348 s/#/\/\/#/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "349 s/HRESULT/\/\/HRESULT/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "350 s/HRESULT/\/\/HRESULT/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "351 s/#/\/\/#/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "352 s/HRESULT/\/\/HRESULT/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "353 s/HRESULT/\/\/HRESULT/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "354 s/#/\/\/#/g" $HOME/cache/include/d3dx9core.h
-        sed -i -e "355 s/#/\/\/#/g" $HOME/cache/include/d3dx9core.h
+        sed -i -e "347 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "348 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "349 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "350 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "351 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "352 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "353 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "354 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
+        sed -i -e "355 s/#/\/\/#/g" $HOME/dxsdk_cache/include/d3dx9core.h
       shell: bash
 
     - name: Checkout MMDBridge
@@ -85,7 +89,7 @@ jobs:
       shell: bash
 
     - name: Copy MMD
-      run:  |
+      run: |
          # curl from Google Drive is unstable, using local zip instead
          # curl -L "https://drive.google.com/uc?id=1Iucxu0tDsD05Siyv8VBGgm9vjD-f-RhM&export=download" -o _MikuMikuDance_.zip
          cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_v932x64.zip" _MikuMikuDance_.zip
@@ -100,14 +104,19 @@ jobs:
          find "$GITHUB_WORKSPACE" -name "MMDExport.h" -type f -print
       shell: bash
 
+    - name: Create vcpkg cache folder
+      run: mkdir -p $VCPKG_INSTALLATION_ROOT/installed
+      shell: bash
+
     - name: vcpkg from cache
       id: vcpkg-cache
       uses: actions/cache@v4
       with:
-        path: ${{env.VCPKG_INSTALLATION_ROOT}}/installed
-        key: v1-vcpkg-installed
+        path: $VCPKG_INSTALLATION_ROOT/installed
+        key: v1-vcpkg-cache
 
     - name: Install dependencies via vcpkg
+      if: ${{steps.vcpkg-cache.outputs.cache-hit != 'true'}}
       run: |
         if [ ! -f "vcpkg.json" ]; then
           echo "vcpkg.json not found! Installing packages manually."
@@ -156,12 +165,11 @@ jobs:
 
     - name: Zip
       run: |
-        rm -f ~/MMDBridge_artifact_*
-        7z a ~/MMDBridge_artifact_${GITHUB_RUN_NUMBER}.7z ${GITHUB_WORKSPACE}/MikuMikuDance_x64/
+        7z a $HOME/MMDBridge_artifact_${GITHUB_RUN_NUMBER}.7z ${GITHUB_WORKSPACE}/MikuMikuDance_x64/
       shell: bash
 
     - name: Upload
       uses: actions/upload-artifact@v4
       with:
-          path: ~/MMDBridge_artifact_${GITHUB_RUN_NUMBER}.7z
+          path: $HOME/MMDBridge_artifact_${GITHUB_RUN_NUMBER}.7z
 
