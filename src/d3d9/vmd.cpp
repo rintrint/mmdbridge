@@ -122,6 +122,10 @@ static bool start_vmd_export(
 			filename_ext = filename_string.substr(pos);
 		}
 		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), [](unsigned char c){ return std::tolower(c); });
+
+		std::wstring filename_wstring;
+		oguna::EncodingConverter::Cp932ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+
 		if (filename_ext == ".pmd")
 		{
 			PMDPtr pmd;
@@ -130,7 +134,8 @@ static bool start_vmd_export(
 			}
 			else
 			{
-				std::cerr << "failed to load pmd file: " << filename << std::endl;
+				std::wstring error_message = L"failed to load pmd file: " + filename_wstring;
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			}
 			FileDataForVMD data;
 			data.pmd = pmd;
@@ -140,8 +145,6 @@ static bool start_vmd_export(
 		else if (filename_ext == ".pmx")
 		{
 			const auto pmx = std::make_shared<pmx::PmxModel>();
-			std::wstring filename_wstring;
-			oguna::EncodingConverter::Cp932ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
 			std::ifstream stream(filename_wstring, std::ios_base::binary);
 			if (stream.good())
 			{
@@ -150,7 +153,8 @@ static bool start_vmd_export(
 			}
 			else
 			{
-				std::cerr << "failed to open pmx file: " << filename << std::endl;
+				std::wstring error_message = L"failed to open pmx file: " + filename_wstring;
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			}
 			FileDataForVMD data;
 			data.pmx = pmx;
@@ -159,7 +163,8 @@ static bool start_vmd_export(
 		}
 		else
 		{
-			std::cerr << "this is not a pmd or pmx file: " << filename << std::endl;
+			std::wstring error_message = L"this is not a pmd or pmx file: " + filename_wstring;
+			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 		}
 	}
 
