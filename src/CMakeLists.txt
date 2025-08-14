@@ -4,7 +4,7 @@ ADD_SUBDIRECTORY(d3dx9_32)
 ##############################################################################
 # d3d9
 ##############################################################################
-FILE(GLOB d3d9_sources 
+FILE(GLOB d3d9_sources
     d3d9/*.cpp
     d3d9/*.h
     d3d9/d3d9.rc
@@ -39,7 +39,7 @@ ADD_COMPILE_OPTIONS(/utf-8)
 ADD_LIBRARY(d3d9 SHARED
     ${d3d9_sources}
     )
-TARGET_LINK_LIBRARIES(d3d9 
+TARGET_LINK_LIBRARIES(d3d9
     ${PYTHON_LIBRARIES}
     Shlwapi
     WinMM
