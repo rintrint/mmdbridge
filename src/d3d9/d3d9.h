@@ -1,4 +1,3 @@
-
 #pragma once
 
 #ifndef CINTERFACE
@@ -77,10 +76,10 @@ typedef struct RenderData {
 	    = pos_rhw
 		= normal
 	    = psize
-	    = diffuse 
+	    = diffuse
 	    = specular
 		= false;
-	    
+
 		for (int i = 0; i < 5; ++i) {
 			pos_xyzb[i] = false;
 		}
@@ -103,7 +102,7 @@ typedef struct RenderedMaterial {
     UMVec3f   ambient;        /* Ambient color RGB */
     UMVec3f   specular;       /* Specular 'shininess' */
     UMVec3f   emissive;       /* Emissive color RGB */
-    float        power; 
+    float        power;
 	IDirect3DTexture9 *tex;
 	std::wstring texture;
 	std::string memoryTexture;
@@ -128,7 +127,7 @@ typedef struct RenderedBuffer {
 	bool isAccessory;
 	int accessory;
 	int order;
-	
+
 	virtual ~RenderedBuffer()
 	{
 		//for (size_t i = 0; i < materials.size(); ++i) {
@@ -154,7 +153,7 @@ typedef struct RenderedTexture {
 struct TextureParameter
 {
 	TextureParameter():
-		texture(NULL), 
+		texture(NULL),
 		hasTextureSampler0(FALSE),
 		hasTextureSampler1(FALSE),
 		hasTextureSampler2(FALSE),

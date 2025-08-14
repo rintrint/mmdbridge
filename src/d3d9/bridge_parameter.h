@@ -50,7 +50,7 @@ public:
 	std::map<int, int> py_int_map;
 	/// スクリプトからの一時保存値(float)
 	std::map<int, float> py_float_map;
-	
+
 	VertexBufferList finish_buffer_list;
 	RenderBufferMap render_buffer_map;
 
@@ -72,7 +72,7 @@ private:
 		, export_fps(30.0)
 		, is_texture_buffer_enabled(false)
 		, is_exporting_without_mesh(false) {}
-	
+
 	static BridgeParameter parameter;
 };
 

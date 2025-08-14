@@ -31,8 +31,8 @@ template <class T> std::string to_string(T value)
 // 行列で3Dベクトルをトランスフォームする
 // D3DXVec3Transformとほぼ同じ
 static void d3d_vector3_dir_transform(
-	D3DXVECTOR3 &dst, 
-	const D3DXVECTOR3 &src, 
+	D3DXVECTOR3 &dst,
+	const D3DXVECTOR3 &src,
 	const D3DXMATRIX &matrix)
 {
 	const float tmp[] = {
@@ -46,8 +46,8 @@ static void d3d_vector3_dir_transform(
 }
 
 static void d3d_vector3_transform(
-	D3DXVECTOR3 &dst, 
-	const D3DXVECTOR3 &src, 
+	D3DXVECTOR3 &dst,
+	const D3DXVECTOR3 &src,
 	const D3DXMATRIX &matrix)
 {
 	const float tmp[] = {
@@ -62,17 +62,17 @@ static void d3d_vector3_transform(
 
 class AlembicArchive {
 public:
-	
-	static AlembicArchive& instance() { 
+
+	static AlembicArchive& instance() {
 		static AlembicArchive instance;
-		return instance; 
+		return instance;
 	}
 
 	Alembic::Abc::OArchive* archive;
 	AbcA::uint32_t timeindex;
 	AbcA::TimeSamplingPtr timesampling;
 	std::shared_ptr<std::ofstream> m_stream;
-	
+
 	typedef std::map<int, Alembic::AbcGeom::OXform> XformMap;
 	XformMap xform_map;
 
@@ -84,13 +84,13 @@ public:
 
 	typedef std::map<int, Alembic::AbcGeom::OPolyMeshSchema> SchemaMap;
 	SchemaMap schema_map;
-	
+
 	typedef std::map<int, int > SurfaceSizeMap;
 	SurfaceSizeMap surface_size_map;
-	
+
 	typedef std::map<int, Alembic::AbcGeom::OCamera> CameraMap;
 	CameraMap camera_map;
-	
+
 	typedef std::map<int, Alembic::AbcGeom::OCameraSchema> CameraSchemaMap;
 	CameraSchemaMap camera_schema_map;
 
@@ -110,12 +110,12 @@ public:
 	int export_mode;
 
 	bool is_use_euler_rotation_camera;
-	
+
 	RenderedBuffer::UVList temporary_uv_list;
 	RenderedBuffer::NormalList temporary_normal_list;
 	RenderedBuffer::VertexList temporary_vertex_list;
 
-	void end() { 
+	void end() {
 		xform_map.clear();
 		xform_schema_map.clear();
 		mesh_map.clear();
@@ -141,7 +141,7 @@ private:
 
 static bool start_alembic_export(
 	const std::wstring& filepath,
-	int export_mode, 
+	int export_mode,
 	bool isExportNomals,
 	bool is_export_uvs,
 	bool is_use_euler_rotation_camera,
@@ -156,8 +156,8 @@ static bool start_alembic_export(
 	if (!alembic_archive.archive)
 	{
 		std::wstring output_path(filepath);
-		if (output_path.empty()) 
-		{			
+		if (output_path.empty())
+		{
 			output_path = parameter.base_path + L"out/alembic_file.abc";
 		}
 		if (is_use_ogawa) {
@@ -176,7 +176,7 @@ static bool start_alembic_export(
 					Alembic::Abc::kWrapExisting, Alembic::Abc::ErrorHandler::kThrowPolicy);
 		}
 		else
-		{			
+		{
 			alembic_archive.archive =
 				new Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(),
 					oguna::EncodingConverter::wstringTostring(output_path));
@@ -201,7 +201,7 @@ static bool end_alembic_export()
 		AlembicArchive::instance().end();
 		return true;
 	}
-		
+
 	return false;
 }
 
@@ -283,7 +283,7 @@ static void convertToQuad(
 			}
 		}
 	}
-	
+
 	std::vector<UMVec3f> faceNormalList(faceCountList.size());
 	for (int i = 0, isize = static_cast<int>(faceCountList.size()); i < isize; ++i)
 	{
@@ -361,7 +361,7 @@ static void convertToQuad(
 						viToViMap[t1 * 3 + 2] = quadFaceList.size();
 						quadFaceList.push_back(tri1[2]);
 					}
-					
+
 					quadFaceCountList.push_back(4);
 					exportedFaces[t1] = 1;
 					exportedFaces[t2] = 1;
@@ -413,7 +413,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 	{
 		Alembic::AbcGeom::OPolyMesh polyMesh;
 		const int key = renderedBufferIndex * 10000 + k;
-				
+
 		Alembic::AbcGeom::OXform xform;
 		if (archive.xform_map.find(key) != archive.xform_map.end())
 		{
@@ -456,12 +456,12 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 			AlembicArchive::TriViToVertexIndex triViToVi;
 			archive.trivi_to_vertex_index_map[key] = triViToVi;
 		}
-			
+
 		Alembic::AbcGeom::OPolyMeshSchema &meshSchema = archive.schema_map[key];
 		meshSchema.setTimeSampling(archive.timesampling);
 
 		Alembic::AbcGeom::OPolyMeshSchema::Sample empty;
-			
+
 		std::vector<Alembic::Util::int32_t> faceList;
 		std::vector<Alembic::Util::int32_t> faceCountList;
 
@@ -487,7 +487,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		{
 			normalListByMaterial.resize(materialSurfaceSize * 3);
 		}
-			
+
 		AlembicArchive::FaceToVertexIndex& fiToVi = archive.face_to_vertex_index_map[key];
 		AlembicArchive::TriViToVertexIndex& triViToVi = archive.trivi_to_vertex_index_map[key];
 		int& preSurfaceSize = archive.surface_size_map[key];
@@ -635,7 +635,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 			}
 			Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
 			uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)&uvListByMaterial.front(), uvListByMaterial.size()));
-			uvSample.setScope(Alembic::AbcGeom::kFacevaryingScope);  
+			uvSample.setScope(Alembic::AbcGeom::kFacevaryingScope);
 			sample.setUVs(uvSample);
 		}
 
@@ -658,7 +658,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		meshSchema.set(sample);
 	}
 }
-	
+
 static void export_alembic_xform_by_material_direct(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, int renderedBufferIndex)
 {
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
@@ -667,7 +667,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 	{
 		Alembic::AbcGeom::OPolyMesh polyMesh;
 		const int key = renderedBufferIndex * 10000 + k;
-				
+
 		Alembic::AbcGeom::OXform xform;
 		if (archive.xform_map.find(key) != archive.xform_map.end())
 		{
@@ -698,12 +698,12 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		{
 			archive.surface_size_map[key] = 0;
 		}
-			
+
 		Alembic::AbcGeom::OPolyMeshSchema &meshSchema = archive.schema_map[key];
 		meshSchema.setTimeSampling(archive.timesampling);
 
 		Alembic::AbcGeom::OPolyMeshSchema::Sample empty;
-			
+
 		std::vector<Alembic::Util::int32_t> faceList;
 		std::vector<Alembic::Util::int32_t> faceCountList;
 
@@ -729,7 +729,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		{
 			normalListByMaterial.resize(materialSurfaceSize * 3);
 		}
-			
+
 		int& preSurfaceSize = archive.surface_size_map[key];
 		bool isFirstSurface = material->surface.faces.size() != preSurfaceSize;
 		if (!isFirstMesh && isFirstSurface)
@@ -771,18 +771,18 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		}
 
 		preSurfaceSize = material->surface.faces.size();
-				
+
 		for (int n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
 		{
 			vertexListByMaterial[n].z = -vertexListByMaterial[n].z;
 		}
 
 		Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
-				
+
 		// vertex
 		Alembic::AbcGeom::P3fArraySample positions( (const Imath::V3f *) &vertexListByMaterial.front(), vertexListByMaterial.size());
 		sample.setPositions(positions);
-				
+
 		// face index
 		if (isFirstMesh)
 		{
@@ -817,7 +817,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 			normalSample.setVals(Alembic::AbcGeom::N3fArraySample( (const Alembic::AbcGeom::N3f *) &normalListByMaterial.front(), normalListByMaterial.size()));
 			sample.setNormals(normalSample);
 		}
-			
+
 		meshSchema.set(sample);
 	}
 }
@@ -836,7 +836,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 		xform = Alembic::AbcGeom::OXform(topObj, "xform_" + umbase::UMStringUtil::number_to_string(renderedBufferIndex), archive.timesampling);
 		archive.xform_map[renderedBufferIndex] = xform;
 	}
-		
+
 	bool isFirstMesh = false;
 	Alembic::AbcGeom::OPolyMesh polyMesh;
 	if (archive.mesh_map.find(renderedBufferIndex) != archive.mesh_map.end())
@@ -855,10 +855,10 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 
 	Alembic::AbcGeom::OPolyMeshSchema &meshSchema = archive.schema_map[renderedBufferIndex];
 	meshSchema.setTimeSampling(archive.timesampling);
-		
+
 	std::vector<Alembic::Util::int32_t> faceList;
 	std::vector<Alembic::Util::int32_t> faceCountList;
-		
+
 	const RenderedBuffer::UVList &uvList = renderedBuffer.uvs;
 	const RenderedBuffer::VertexList &vertexList = renderedBuffer.vertecies;
 	const RenderedBuffer::NormalList &normalList =  renderedBuffer.normals;
@@ -877,7 +877,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 		RenderedMaterial* material = renderedBuffer.materials.at(k);
 		totalFaceCount += material->surface.faces.size();
 	}
-		
+
 	if (archive.surface_size_map.find(renderedBufferIndex) == archive.surface_size_map.end())
 	{
 		archive.surface_size_map[renderedBufferIndex] = 0;
@@ -910,7 +910,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	}
 
 	Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
-				
+
 	// vertex
 	for (int n = 0, nsize = vertexList.size(); n < nsize; ++n)
 	{
@@ -918,7 +918,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	}
 	Alembic::AbcGeom::P3fArraySample positions( (const Imath::V3f *) &temporary_vertex.front(), temporary_vertex.size());
 	sample.setPositions(positions);
-				
+
 	// face index
 	if (isFirstMesh)
 	{
@@ -1003,7 +1003,7 @@ static py::list get_abc_angle_axis()
 
 	D3DXMATRIX convertedWordInv;
 	::D3DXMatrixMultiply(&convertedWordInv, &renderedBuffer.world_inv, &convertMat);
-			
+
 	D3DXVECTOR3 eye;
 	{
 		D3DXVECTOR3 v;
@@ -1047,7 +1047,7 @@ static py::list get_abc_angle_axis()
 	result.append(quat.axis()[2]);
 	return result;
 }
-	
+
 static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, bool isUseEuler)
 {
 	static constexpr int cameraKey = 0xFFFFFF;
@@ -1066,12 +1066,12 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 		Alembic::AbcGeom::OXformSchema &xformSchema = xform.getSchema();
 		archive.xform_schema_map[cameraKey] = xformSchema;
 	}
-		
+
 	// set camera transform
 	{
 		Alembic::AbcGeom::OXformSchema &xformSchema = archive.xform_schema_map[cameraKey];
 		xformSchema.setTimeSampling(archive.timesampling);
-		
+
 		Alembic::AbcGeom::XformSample xformSample;
 
 		D3DXMATRIX convertMat(
@@ -1082,14 +1082,14 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 
 		D3DXMATRIX convertedWordInv;
 		::D3DXMatrixMultiply(&convertedWordInv, &renderedBuffer.world_inv, &convertMat);
-			
+
 		D3DXVECTOR3 eye;
 		{
 			D3DXVECTOR3 v;
 			UMGetCameraEye(&v);
 			d3d_vector3_transform(eye, v,convertedWordInv);
 		}
-			
+
 		D3DXVECTOR3 at;
 		{
 			D3DXVECTOR3 v;
@@ -1142,7 +1142,7 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 
 		xformSchema.set(xformSample);
 	}
-		
+
 	Alembic::AbcGeom::OCamera camera;
 	if (archive.camera_map.find(cameraKey) != archive.camera_map.end())
 	{
@@ -1152,7 +1152,7 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 	{
 		camera = Alembic::AbcGeom::OCamera(xform, "camera", archive.timesampling);
 		archive.camera_map[cameraKey] = camera;
-			
+
 		Alembic::AbcGeom::OCameraSchema &cameraSchema = camera.getSchema();
 		archive.camera_schema_map[cameraKey] = cameraSchema;
 	}
@@ -1185,7 +1185,7 @@ static bool execute_alembic_export(int currentframe)
 {
 	AlembicArchive &archive = AlembicArchive::instance();
 	if (!archive.archive) { return Py_BuildValue(""); }
-	
+
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const VertexBufferList& finishBuffers = BridgeParameter::instance().finish_buffer_list;
 
@@ -1244,7 +1244,7 @@ PYBIND11_PLUGIN( mmdbridge_abc )
 	{
 		PyImport_AppendInittab("mmdbridge_abc", PyInit_mmdbridge_abc);
 	}
-	void DisposeAlembic() 
+	void DisposeAlembic()
 	{
 		AlembicArchive::instance().end();
 	}

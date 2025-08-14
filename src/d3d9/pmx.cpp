@@ -32,10 +32,10 @@ public:
 
 class PMXArchive {
 public:
-	
+
 	static PMXArchive& instance() {
 		static PMXArchive instance;
-		return instance; 
+		return instance;
 	}
 
 	FileData file_data;
@@ -57,7 +57,7 @@ private:
 static bool start_pmx_export(const std::string& directory_path, const std::string& model_name)
 {
 	PMXArchive &archive = PMXArchive::instance();
-	
+
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	if (parameter.export_fps <= 0)
 	{
@@ -132,7 +132,7 @@ static bool end_pmx_export()
 	std::ofstream stream(output_filepath.c_str(), std::ios::binary);
 	archive.file_data.pmx->Write(stream);
 	stream.close();
-	
+
 	umstring vmd_filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".vmd");
 	auto vmd_output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + vmd_filename);
 	vmd->SaveToFile(vmd_output_filepath.c_str());
@@ -227,7 +227,7 @@ static void export_pmx(int currentframe, bool isfirst)
 				mat.toon_texture_index = 4;
 
 				mat.index_count = materialSurfaceSize * 3;
-				mat.material_name = 
+				mat.material_name =
 					std::wstring(L"buffer_") + umbase::UMStringUtil::number_to_wstring(i)
 					 + std::wstring(L"_mat_") + umbase::UMStringUtil::number_to_wstring(k);
 				for (int n = 0; n < 4; ++n) {
@@ -367,7 +367,7 @@ void InitPMX()
 	{
 		PyImport_AppendInittab("mmdbridge_pmx", PyInit_mmdbridge_pmx);
 	}
-	void DisposePMX() 
+	void DisposePMX()
 	{
 		PMXArchive::instance().end();
 	}
