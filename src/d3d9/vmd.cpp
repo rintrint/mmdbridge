@@ -193,8 +193,21 @@ static bool end_vmd_export()
 			oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
 			const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(dst);
 			umstring filename_string = umbase::UMPath::get_file_name(umstr);
+			if (filename_string.empty())
+			{
+				std::wstring error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+				continue;
+			}
 			const umstring extension = umbase::UMStringUtil::utf8_to_utf16(".vmd");
-			filename_string.replace(filename_string.size() - 4, 4, extension);
+			if (filename_string.length() >= 4)
+			{
+				filename_string.replace(filename_string.length() - 4, 4, extension);
+			}
+			else
+			{
+				filename_string += extension;
+			}
 			auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename_string);
 			file_data.vmd->SaveToFile(output_filepath);
 		}
