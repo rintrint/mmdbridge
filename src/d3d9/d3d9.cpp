@@ -8,6 +8,7 @@
 #include <sstream>
 #include <tchar.h>
 #include <fstream>
+#include <regex>
 #include <algorithm>
 #include <shlwapi.h>
 
@@ -973,10 +974,66 @@ void run_python_script()
 			script.c_str(),
 			global);
 	}
-	catch(py::error_already_set const &ex)
+	catch (py::error_already_set const& ex)
 	{
-		std::string python_error_string = ex.what();
-		::MessageBoxA(NULL, python_error_string.c_str(), "python error", MB_OK);
+		std::stringstream error_report;
+		error_report << "----------- MMDBridge Python/C++ Error Report -----------\n\n";
+		error_report << "[C++ Exception Info]\n" << ex.what() << "\n\n";
+		error_report << "[Problematic Python Code Line]\n";
+		std::string what_str = ex.what();
+		std::regex re(R"(\((\d+)\):)");
+		std::smatch match;
+		if (std::regex_search(what_str, match, re) && match.size() > 1) {
+			try {
+				int reported_line_number = std::stoi(match[1].str());
+				int trigger_line_number = std::max(1, reported_line_number - 1);
+
+				const std::string& full_script = BridgeParameter::instance().mmdbridge_python_script;
+				std::stringstream script_stream(full_script);
+				std::string script_line;
+				std::vector<std::string> lines;
+				while (std::getline(script_stream, script_line, '\n')) {
+					if (!script_line.empty() && script_line.back() == '\r') {
+						script_line.pop_back();
+					}
+					lines.push_back(script_line);
+				}
+				error_report << "Error likely triggered by call on line " << trigger_line_number
+							<< " (execution was halted before line " << reported_line_number << "):\n";
+				error_report << "--------------------------------------------------\n";
+
+				int start_line = std::max(1, trigger_line_number - 2);
+				int end_line = std::min((int)lines.size(), trigger_line_number + 2);
+				for (int i = start_line; i <= end_line; ++i) {
+					if (i == trigger_line_number) {
+						error_report << ">> " << std::setw(3) << i << ": " << lines[i - 1] << "\n";
+					} else {
+						error_report << "   " << std::setw(3) << i << ": " << lines[i - 1] << "\n";
+					}
+				}
+				error_report << "--------------------------------------------------\n\n";
+			} catch (const std::exception& e) {
+				error_report << "Could not parse source code line: " << e.what() << "\n\n";
+			}
+		} else {
+			error_report << "Could not parse line number from the error message.\n\n";
+		}
+		error_report << "[Python Traceback]\n";
+		if (PyErr_Occurred()) {
+			try {
+				py::object traceback = py::module::import("traceback");
+				py::object format_exc = traceback.attr("format_exc");
+				std::string full_traceback = py::str(format_exc());
+				error_report << full_traceback;
+			} catch (...) {
+				error_report << "Failed to import the Python 'traceback' module.\n";
+			}
+			PyErr_Clear();
+		} else {
+			error_report << "No Python traceback available (PyErr_Occurred() returned false).\n"
+						<< "The error likely occurred in the C++/Python conversion layer.\n";
+		}
+		::MessageBoxA(NULL, error_report.str().c_str(), "MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
 	}
 }
 //-----------------------------------------------------------Hook関数ポインタ-----------------------------------------------------------
