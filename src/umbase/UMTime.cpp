@@ -53,14 +53,14 @@ UMTime::~UMTime()
 		+ UMStringUtil::number_to_string(seconds)
 		+ "s "
 		+ UMStringUtil::number_to_string(mills)
-		+ "ms\n"
+		+ "ms"
 		);
 	
 #ifdef WITH_EMSCRIPTEN
-	printf("%s\n", message.c_str());
+	fprintf(stderr, "%s\n", message.c_str());
 #else
 	::OutputDebugStringA(message.c_str());
-	std::cout << message << std::endl;
+	std::cerr << message << std::endl;
 
 	if (show_message_box_) {
 		::MessageBoxA(NULL, message.c_str(), "hoge", MB_OK);

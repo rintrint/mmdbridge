@@ -73,8 +73,8 @@ namespace pmx
 			UErrorCode err = U_ZERO_ERROR;
 			size = ucnv_convert("UTF-8", "UTF-16LE", (char*)outbuf.data(), outbuf.capacity(), buffer.data(), size, &err);
 			if(!U_SUCCESS(err)) {
-				std::cout << "oops, something wrong?" << std::endl;
-				std::cout << u_errorName(err) << std::endl;
+				std::cerr << "oops, something wrong?" << std::endl;
+				std::cerr << u_errorName(err) << std::endl;
 				exit(-1);
 			}
 			
