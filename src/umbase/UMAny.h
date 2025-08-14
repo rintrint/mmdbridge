@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -19,7 +19,7 @@ namespace umbase
 class UMAny
 {
 public:
-	explicit UMAny(const UMAny& other) : 
+	explicit UMAny(const UMAny& other) :
 	  content(other.content->clone())
 	{}
 
@@ -29,7 +29,7 @@ public:
 	{}
 
 	template<typename  T>
-	UMAny& operator=(T&& value)		
+	UMAny& operator=(T&& value)
 	{
 		content.release();
 		content = std::make_unique<holder<T>>(value);
@@ -37,7 +37,7 @@ public:
 	}
 
 	~UMAny() {}
-	
+
 	class placeholder
 	{
 	public:
@@ -50,12 +50,12 @@ public:
 	{
 	public:
 		holder(const T& value) :
-		  content(value) 
+		  content(value)
 		{}
 
 		~holder() {}
 
-		placeholder* clone() const 
+		placeholder* clone() const
 		{
 			return new holder<T>(content);
 		}

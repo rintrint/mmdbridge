@@ -4,7 +4,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -29,7 +29,7 @@ class UMStringUtil
 	DISALLOW_COPY_AND_ASSIGN(UMStringUtil);
 
 public:
-	
+
 	template <typename T>
 	static std::wstring number_to_wstring(T value)
 	{
@@ -39,7 +39,7 @@ public:
 		converter >> wstr;
 		return wstr;
 	}
-	
+
 	template <typename T>
 	static std::string number_to_string(T value)
 	{
@@ -49,7 +49,7 @@ public:
 		converter >> str;
 		return str;
 	}
-	
+
 	template <typename T>
 	static std::string number_to_sequence_string(T value, int n)
 	{
@@ -59,7 +59,7 @@ public:
 		converter >> str;
 		return str;
 	}
-	
+
 	/**
 	 * convert wstring to utf16
 	 */
@@ -76,7 +76,7 @@ public:
 #endif
 		return u16str;
 	}
-	
+
 	/**
 	 * convert utf16 to wstring
 	 */
@@ -91,7 +91,7 @@ public:
 #endif
 		return wstr;
 	}
-	
+
 	/**
 	 * convert wstring to utf8
 	 */

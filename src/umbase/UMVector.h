@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -43,7 +43,7 @@ class UMVector2
 public:
 	T x;
 	T y;
-	
+
 	/**
 	 * constructor
 	 */
@@ -58,12 +58,12 @@ public:
 	 * constructor
 	 */
 	UMVector2(T a, T b) : x(a), y(b) {}
-	
+
 	/**
 	 * copy constructor
 	 */
 	UMVector2 (const UMVector2 &v) : x(v.x), y(v.y) {}
-	
+
 	/**
 	 * assign
 	 */
@@ -72,12 +72,12 @@ public:
 		y = v.y;
 		return *this;
 	}
-	
+
 	/**
 	 * get
 	 */
 	T& operator [] (int i) { return (&x)[i]; }
-	
+
 	/**
 	 * get
 	 */
@@ -89,21 +89,21 @@ public:
 	bool operator == (const UMVector2 &v) const {
 		return (x == v.x && y == v.y);
 	}
-	
+
 	/**
 	 * compare not equal
 	 */
 	bool operator != (const UMVector2 &v) const {
 		return !(*this == v);
 	}
-	
+
 	/**
 	 * plus
 	 */
 	UMVector2 operator + (const UMVector2 &v) const {
 		return UMVector2(x + v.x, y + v.y);
 	}
-	
+
 	/**
 	 * plus equal
 	 */
@@ -126,7 +126,7 @@ public:
 	UMVector2 operator - (const UMVector2 &v) const {
 		return UMVector2(x - v.x, y - v.y);
 	}
-	
+
 	/**
 	 * minus equal
 	 */
@@ -135,7 +135,7 @@ public:
 		y -= v.y;
 		return *this;
 	}
-	
+
 	/**
 	 * multiply scolor
 	 */
@@ -143,7 +143,7 @@ public:
 	UMVector2 operator * (const U &s) const {
 		return UMVector2(x * s, y * s);
 	}
-	
+
 	/**
 	 * multiply equal
 	 */
@@ -170,7 +170,7 @@ public:
 		(*this) *= static_cast<U>(1 / s);
 		return *this;
 	}
-	
+
 	/**
 	 * dot
 	 */
@@ -207,7 +207,7 @@ public:
 		}
 		return dst;
 	}
-	
+
 	/**
 	 * square of length
 	 */
@@ -233,7 +233,7 @@ public:
 	T x;
 	T y;
 	T z;
-	
+
 	/**
 	 * constructor
 	 */
@@ -248,7 +248,7 @@ public:
 	 * constructor
 	 */
 	UMVector3(T a, T b, T c) : x(a), y(b), z(c) {}
-	
+
 	/**
 	 * constructor
 	 */
@@ -273,7 +273,7 @@ public:
 	 * get
 	 */
 	T& operator [] (int i) { return (&x)[i]; }
-	
+
 	/**
 	 * get
 	 */
@@ -285,21 +285,21 @@ public:
 	bool operator == (const UMVector3 &v) const {
 		return (x == v.x && y == v.y && z== v.z);
 	}
-	
+
 	/**
 	 * compare not equal
 	 */
 	bool operator != (const UMVector3 &v) const {
 		return !(*this == v);
 	}
-	
+
 	/**
 	 * plus
 	 */
 	UMVector3 operator + (const UMVector3 &v) const {
 		return UMVector3(x + v.x, y + v.y, z + v.z);
 	}
-	
+
 	/**
 	 * plus equal
 	 */
@@ -309,21 +309,21 @@ public:
 		z += v.z;
 		return *this;
 	}
-	
+
 	/**
 	 * minus
 	 */
 	UMVector3 operator - () const {
 		return UMVector3(-x, -y, -z);
 	}
-	
+
 	/**
 	 * minus
 	 */
 	UMVector3 operator - (const UMVector3 &v) const {
 		return UMVector3(x - v.x, y - v.y, z - v.z);
 	}
-	
+
 	/**
 	 * minus equal
 	 */
@@ -341,7 +341,7 @@ public:
 	UMVector3 operator * (const U &s) const {
 		return UMVector3(x * (T)s, y * (T)s, z * (T)s);
 	}
-	
+
 	/**
 	 * multiply equal
 	 */
@@ -360,7 +360,7 @@ public:
 	UMVector3 operator / (const U &s) const {
 		return (*this) * static_cast<U>(1 / s);
 	}
-	
+
 	/**
 	 * divide equal
 	 */
@@ -369,7 +369,7 @@ public:
 		(*this) *= static_cast<U>(1 / s);
 		return *this;
 	}
-	
+
 	/**
 	 * dot
 	 */
@@ -410,7 +410,7 @@ public:
 		}
 		return dst;
 	}
-	
+
 	/**
 	 * square of length
 	 */
@@ -437,7 +437,7 @@ public:
 	T y;
 	T z;
 	T w;
-	
+
 	/**
 	 * constructor
 	 */
@@ -452,17 +452,17 @@ public:
 	 * constructor
 	 */
 	UMVector4(T a, T b, T c, T d) : x(a), y(b), z(c), w(d) {}
-	
+
 	/**
 	 * constructor
 	 */
 	UMVector4(const UMVector3<T>& v, T d) : x(v.x), y(v.y), z(v.z), w(d) {}
-	
+
 	/**
 	 * copy constructor
 	 */
 	UMVector4 (const UMVector4 &v) : x(v.x), y(v.y), z(v.z), w(v.w) {}
-	
+
 	/**
 	 * assign
 	 */
@@ -473,18 +473,18 @@ public:
 		w = v.w;
 		return *this;
 	}
-	
+
 	/**
 	 * get
 	 */
 	T& operator [] (int i) { return (&x)[i]; }
-	
+
 	/**
 	 * get
 	 */
 	const T& operator [] (int i) const { return (&x)[i]; }
 
-	/** 
+	/**
 	 * get vector3
 	 */
 	UMVector3<T> xyz() const { return UMVector3<T>(x, y, z); }
@@ -495,21 +495,21 @@ public:
 	bool operator == (const UMVector4 &v) const {
 		return (x == v.x && y == v.y && z == v.z && w == v.w);
 	}
-	
+
 	/**
 	 * compare not equal
 	 */
 	bool operator != (const UMVector4 &v) const {
 		return !(*this == v);
 	}
-	
+
 	/**
 	 * plus
 	 */
 	UMVector4 operator + (const UMVector4 &v) const {
 		return UMVector4(x + v.x, y + v.y, z + v.z, w + v.w);
 	}
-	
+
 	/**
 	 * plus equal
 	 */
@@ -534,7 +534,7 @@ public:
 	UMVector4 operator - (const UMVector4 &v) const {
 		return UMVector4(x - v.x, y - v.y, z - v.z, w - v.w);
 	}
-	
+
 	/**
 	 * minus equal
 	 */
@@ -553,7 +553,7 @@ public:
 	UMVector4 operator * (const U &s) const {
 		return UMVector4(x * s, y * s, z * s, w * s);
 	}
-	
+
 	/**
 	 * multiply equal
 	 */
@@ -582,14 +582,14 @@ public:
 		(*this) *= static_cast<U>(1 / s);
 		return *this;
 	}
-	
+
 	/**
 	 * dot
 	 */
 	T dot(const UMVector4 &v) const {
 		return (x*v.x + y*v.y + z*v.z + w*v.w);
 	}
-	
+
 	/**
 	 * cross
 	 */

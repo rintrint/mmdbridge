@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #include "UMBox.h"
@@ -20,7 +20,7 @@
 
 namespace umbase
 {
-	
+
 /**
  * constructor
  */
@@ -29,7 +29,7 @@ UMBox::UMBox()
 	max_( -(std::numeric_limits<double>::infinity)() )
 {}
 
-/** 
+/**
  * initialize
  */
 void UMBox::init()
@@ -38,7 +38,7 @@ void UMBox::init()
 	max_ = UMVec3d( -(std::numeric_limits<double>::infinity)() );
 }
 
-/** 
+/**
  * extend box by point
  */
 void UMBox::extend(const UMVec3d& p)
@@ -53,7 +53,7 @@ void UMBox::extend(const UMVec3d& p)
 		std::max(maximum().z, p.z)));
 }
 
-/** 
+/**
  * extend box by box
  */
 void UMBox::extend(const UMBox& box)
@@ -117,11 +117,11 @@ bool UMBox::is_overlap(const UMBox& box)
 UMBox UMBox::transformed(const UMMat44d& mat) const
 {
 	if (is_empty()) return *this;
-	
+
 	UMBox box;
 	if (mat.m[0][3] == 0 && mat.m[1][3] == 0 && mat.m[2][3] == 0 && mat.m[3][3] == 1)
 	{
-		for (int i = 0; i < 3; i++) 
+		for (int i = 0; i < 3; i++)
 		{
 			box.min_[i] = box.max_[i] = mat.m[3][i];
 			for (int k = 0; k < 3; ++k)
@@ -143,7 +143,7 @@ UMBox UMBox::transformed(const UMMat44d& mat) const
 	}
 	else
 	{
-		UMVec3d points[8] = 
+		UMVec3d points[8] =
 		{
 			UMVec3d(box.min_.x, box.min_.y, box.min_.z),
 			UMVec3d(box.max_.x, box.min_.y, box.min_.z),

@@ -4,7 +4,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -33,7 +33,7 @@ public:
 	 * @param [in] print_time print time on destructor
 	 */
 	UMTime(const std::string& message);
-	
+
 	/**
 	 * constructor
 	 * @param [in] print_time print time on destructor

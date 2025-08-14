@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -25,13 +25,13 @@ typedef std::shared_ptr<UMEvent> UMEventPtr;
 
 typedef std::vector<UMEventPtr> UMEventList;
 
-class UMEvent 
+class UMEvent
 {
 	DISALLOW_COPY_AND_ASSIGN(UMEvent);
 
 public:
 	typedef umbase::UMAny Parameter;
-	
+
 	UMEvent(UMEventType event_type)
 		: key_(event_type),
 		parameter_(0) {}
@@ -52,7 +52,7 @@ public:
 		parameter_ = std::move(parameter);
 	}
 
-private:	
+private:
 	const UMEventType key_;
 	UMListenerList listeners_;
 	Parameter parameter_;

@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -32,7 +32,7 @@ public:
 	/**
 	 * connect listener to events
 	 */
-	void connect(UMListenerPtr listener) { 
+	void connect(UMListenerPtr listener) {
 		if (!listener) return;
 		UMEventList::iterator it = event_list_.begin();
 		for (; it != event_list_.end(); ++it)
@@ -47,7 +47,7 @@ public:
 protected:
 	UMListenerConnector() {}
 
-	/** 
+	/**
 	 * get event list
 	 */
 	UMEventList& mutable_event_list() { return event_list_; }

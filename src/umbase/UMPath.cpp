@@ -4,7 +4,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #if !defined(WITH_EMSCRIPTEN)
@@ -12,7 +12,7 @@
 #include <Mmsystem.h>
 #include <tchar.h>
 #include <shlwapi.h>
-#endif 
+#endif
 
 #include <string>
 
@@ -21,7 +21,7 @@
 
 namespace umbase
 {
-	
+
 bool UMPath::exists(const wchar_t* absolute_path)
 {
 #ifdef WITH_EMSCRIPTEN
@@ -41,7 +41,7 @@ bool UMPath::is_folder(const wchar_t* absolute_path)
 }
 
 bool UMPath::get_child_path_list(
-	std::vector<umstring>& dst_folder_list, 
+	std::vector<umstring>& dst_folder_list,
 	std::vector<umstring>& dst_file_list,
 	const umstring& src_absolute_folder_path)
 {

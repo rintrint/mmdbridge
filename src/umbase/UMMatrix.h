@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -14,7 +14,7 @@
 
 namespace umbase
 {
-	
+
 template <class T> class UMMatrix44;
 
 typedef UMMatrix44<float>  UMMat44f;
@@ -29,7 +29,7 @@ class UMMatrix44
 public:
 	/// column-major order matrix
 	T m[4][4];
-	
+
 	/**
 	 * constructor
 	 */
@@ -68,7 +68,7 @@ public:
 		m[2][0] = _m31; m[2][1] = _m32; m[2][2] = _m33; m[2][3] = _m34;
 		m[3][0] = _m41; m[3][1] = _m42; m[3][2] = _m43; m[3][3] = _m44;
 	}
-	
+
 	/**
 	 * copy constructor
 	 */
@@ -80,7 +80,7 @@ public:
 			}
 		}
 	}
-	
+
 	/**
 	 * assign
 	 */
@@ -123,7 +123,7 @@ public:
 	/**
 	 * compare equal
 	 */
-	bool operator == (const UMMatrix44 &v) const 
+	bool operator == (const UMMatrix44 &v) const
 	{
 		bool equal = true;
 		for (int i = 0; i < 4; ++i) {
@@ -135,24 +135,24 @@ public:
 		}
 		return equal;
 	}
-	
+
 	/**
 	 * compare not equal
 	 */
-	bool operator != (const UMMatrix44 &mat) const 
+	bool operator != (const UMMatrix44 &mat) const
 	{
 		return !(*this == mat);
 	}
-	
+
 	/**
 	 * multiply
 	 */
-	UMMatrix44 operator * (const UMMatrix44 &mat) const 
+	UMMatrix44 operator * (const UMMatrix44 &mat) const
 	{
 		UMMatrix44<T> dst;
 		for(int i = 0; i < 4; ++i) {
 			for(int j = 0; j < 4; ++j) {
-				dst.m[i][j] = 0.0; 
+				dst.m[i][j] = 0.0;
 				for(int k = 0; k < 4 ; ++k) {
 					dst.m[i][j] += m[i][k] * mat.m[k][j];
 				}
@@ -160,7 +160,7 @@ public:
 		}
 		return dst;
 	}
-	
+
 	/**
 	 * multiply (transformed vector)
 	 */
@@ -187,7 +187,7 @@ public:
 		};
 		return UMVector4<T>(tmp[0], tmp[1], tmp[2], tmp[3]);
 	}
-	
+
 	/**
 	 * identity
 	 */
@@ -199,7 +199,7 @@ public:
 			}
 		}
 	}
-	
+
 	/**
 	 * get transposed matrix
 	 */
@@ -250,11 +250,11 @@ public:
 		T det = determinant();
 		if ( !det ) { return UMMatrix44(); }
 
-		for (int i = 0; i < 4; ++i) 
+		for (int i = 0; i < 4; ++i)
 		{
-			for (int j = 0; j<4; ++j) 
+			for (int j = 0; j<4; ++j)
 			{
-				if (j != i) 
+				if (j != i)
 				{
 					int a = j;
 					if ( j > i ) { a = a-1; }
@@ -276,7 +276,7 @@ public:
 		return dst;
 	}
 
-	UMVector3<T> translate() const 
+	UMVector3<T> translate() const
 	{
 		return UMVector3<T>(m[3][0], m[3][1], m[3][2]);
 	}
@@ -546,7 +546,7 @@ void um_matrix_perspective_fov_rh(UMMatrix44<T>& dst, T fov_y, T aspect, T zn, T
 	dst.m[0][3] = 0.0;
 	dst.m[1][3] = 0.0;
 	dst.m[2][3] = -1.0;
-	dst.m[3][3] = 0.0;	
+	dst.m[3][3] = 0.0;
 }
 
 /**
@@ -665,8 +665,8 @@ void um_matrix_perspective_off_center_rh(
  */
 template<typename T>
 void um_matrix_look_at_lh(
-		UMMatrix44<T>& dst, 
-		const UMVector3<T>& eye, 
+		UMMatrix44<T>& dst,
+		const UMVector3<T>& eye,
 		const UMVector3<T>& at,
 		const UMVector3<T>& up)
 {
@@ -697,13 +697,13 @@ void um_matrix_look_at_lh(
 	dst.m[3][3] = 1.0;
 }
 
-/** 
+/**
  * D3DXMatrixLookAtRH
  */
 template<typename T>
 void um_matrix_look_at_rh(
 		UMMatrix44<T>& dst,
-		const UMVector3<T>& eye, 
+		const UMVector3<T>& eye,
 		const UMVector3<T>& at,
 		const UMVector3<T>& up)
 {
@@ -734,7 +734,7 @@ void um_matrix_look_at_rh(
 	dst.m[3][3] = 1.0;
 }
 
-/** 
+/**
  * remove scale from matrix
  */
 template<typename T>

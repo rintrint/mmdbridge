@@ -4,7 +4,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 
@@ -22,7 +22,7 @@
 
 namespace umbase
 {
-	
+
 /// constructor
 UMTime::UMTime(const std::string& message)
 	: message_(message),
@@ -48,14 +48,14 @@ UMTime::~UMTime()
 	unsigned long seconds = time / 1000;
 	unsigned long mills = time - seconds * 1000;
 	std::string message(
-		message_ 
-		+ ": " 
+		message_
+		+ ": "
 		+ UMStringUtil::number_to_string(seconds)
 		+ "s "
 		+ UMStringUtil::number_to_string(mills)
 		+ "ms"
 		);
-	
+
 #ifdef WITH_EMSCRIPTEN
 	fprintf(stderr, "%s\n", message.c_str());
 #else
@@ -68,7 +68,7 @@ UMTime::~UMTime()
 #endif
 }
 
-unsigned int UMTime::current_time() 
+unsigned int UMTime::current_time()
 {
 #ifdef WITH_EMSCRIPTEN
 	return static_cast<unsigned int>(glfwGetTime() * 1000.0);

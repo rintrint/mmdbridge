@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -31,7 +31,7 @@ class UMBox
 public:
 
 	UMBox();
-	
+
 	/**
 	 * @param [in] v initialize point
 	 */
@@ -46,14 +46,14 @@ public:
 	UMBox(const UMVec3d& min, const UMVec3d& max) :
 		min_(min),
 		max_(max){}
-	
+
 	~UMBox() {}
-	
+
 	/**
 	 * copy constructor
 	 */
 	UMBox (const UMBox &box) : min_(box.min_), max_(box.max_) {}
-	
+
 	/**
 	 * assign
 	 */
@@ -67,12 +67,12 @@ public:
 	 * initialize
 	 */
 	void init();
-	
+
 	/**
 	 * get
 	 */
 	UMVec3d& operator [] (int i) { return i == 0 ? min_ : max_; }
-	
+
 	/**
 	 * get
 	 */
@@ -82,13 +82,13 @@ public:
 	 * get minimum
 	 */
 	const UMVec3d& minimum() const { return min_; }
-	
+
 	/**
 	 * set minimum
 	 * @param [in] minimum minimum point of this box
 	 */
 	void set_minimum(const UMVec3d& min) { min_ = min; }
-	
+
 	/**
 	 * get maximum
 	 */
@@ -104,7 +104,7 @@ public:
 	 * is empty
 	 */
 	bool is_empty() const { return min_.x >= max_.x && min_.y >= max_.y && min_.z >= max_.z; }
-	
+
 	/**
 	 * get center
 	 */
@@ -118,12 +118,12 @@ public:
 	/**
 	 * get area
 	 */
-	double area() const { 
+	double area() const {
 		UMVec3d d = max_ - min_;
 		return 2.0 * (d.x * d.y + d.x * d.z + d.y * d.z);
 	}
 
-	/** 
+	/**
 	 * extend box by point
 	 */
 	void extend(const UMVec3d& p);
@@ -142,7 +142,7 @@ public:
 	 * get normal at point
 	 */
 	UMVec3d normal(const UMVec3d& point) const;
-	
+
 	/**
 	 * get transformed box
 	 */

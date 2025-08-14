@@ -5,7 +5,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license. 
+ * Licensed  under the MIT license.
  *
  */
 #pragma once
@@ -20,7 +20,7 @@ namespace umbase
  */
 #ifndef DISALLOW_COPY_AND_ASSIGN
 	#ifdef WITH_EMSCRIPTEN
-		#define DISALLOW_COPY_AND_ASSIGN(TypeName) 
+		#define DISALLOW_COPY_AND_ASSIGN(TypeName)
 	#else
 		#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
 			private: TypeName(const TypeName&); \
@@ -39,7 +39,7 @@ namespace umbase
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
 #endif
-	
+
 #ifndef M_PI_INV
 #define M_PI_INV 0.31830988618379069
 #endif
