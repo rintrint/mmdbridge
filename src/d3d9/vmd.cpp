@@ -481,7 +481,7 @@ static bool execute_vmd_export(const int currentframe)
 			UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(i, k));
 			UMMat44d local = world;
 			int parent_index = file_data.parent_index_map[k];
-			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
+			if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
 				UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
 				local = world * parent_world.inverted();
 			}
@@ -496,26 +496,29 @@ static bool execute_vmd_export(const int currentframe)
             bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
             bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
             // Step 2: Add parent bone's initial position
-			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
-				if (parent_index >= 0)
+			if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
+				if (file_data.pmd)
 				{
-					if (file_data.pmd)
-					{
-						if (parent_index >= 0 && parent_index < file_data.pmd->bones.size()){
-							const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
-							bone_frame.position[0] += parent_bone.bone_head_pos[0];
-							bone_frame.position[1] += parent_bone.bone_head_pos[1];
-							bone_frame.position[2] += parent_bone.bone_head_pos[2];
-						}
+					if (parent_index >= 0 && parent_index < file_data.pmd->bones.size()){
+						const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
+						bone_frame.position[0] += parent_bone.bone_head_pos[0];
+						bone_frame.position[1] += parent_bone.bone_head_pos[1];
+						bone_frame.position[2] += parent_bone.bone_head_pos[2];
+					} else {
+						std::string message = "Detected an invalid parent_index: " + std::to_string(parent_index);
+						::MessageBoxA(NULL, message.c_str(), "Invalid Parent Index", MB_OK | MB_ICONWARNING);
 					}
-					else if (file_data.pmx)
-					{
-						if (parent_index >= 0 && parent_index < file_data.pmx->bones.size()){
-							const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
-							bone_frame.position[0] += parent_bone.position[0];
-							bone_frame.position[1] += parent_bone.position[1];
-							bone_frame.position[2] += parent_bone.position[2];
-						}
+				}
+				else if (file_data.pmx)
+				{
+					if (parent_index >= 0 && parent_index < file_data.pmx->bones.size()){
+						const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
+						bone_frame.position[0] += parent_bone.position[0];
+						bone_frame.position[1] += parent_bone.position[1];
+						bone_frame.position[2] += parent_bone.position[2];
+					} else {
+						std::string message = "Detected an invalid parent_index: " + std::to_string(parent_index);
+						::MessageBoxA(NULL, message.c_str(), "Invalid Parent Index", MB_OK | MB_ICONWARNING);
 					}
 				}
             }
