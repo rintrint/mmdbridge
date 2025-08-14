@@ -2,6 +2,10 @@ name: build_vs2022_64
 
 on: [push]
 
+concurrency:
+  group: nuget-vcpkg-cache
+  cancel-in-progress: false
+
 env:
   # Path to the solution file relative to the root of the project.
   SOLUTION_FILE_PATH: ./build_vs2022_64/mmdbridge.sln
