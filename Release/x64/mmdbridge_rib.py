@@ -61,9 +61,9 @@ def export_rib(ribpath):
 
 			ribfile.write("AttributeBegin\n")
 			ribfile.write("Attribute \"identifier\" \"name\" \"" + material_name +"\"\n")
-			
 
-			if len(texture) > 0:	
+
+			if len(texture) > 0:
 				texname, ext = os.path.splitext(texture)
 
 				# outtex = get_base_path() + "tmp\\" + texname + ".tif" #3Delight
@@ -95,7 +95,7 @@ def export_rib(ribpath):
 				ribfile.write("Surface \"paintedplastic\" " + '\"'+"texturename"+'\"'+" "+'\"'+texname + ".ltx"+'\"'+"\n")
 			else:
 				ribfile.write("Surface \"paintedplastic\"\n" )
-			
+
 			ribfile.write("\"Ka\" [ 0.5 ]\n")
 			ribfile.write("\"Kd\" [ 0.7 ]\n")
 			ribfile.write("\"Ks\" [ 0.3 ]\n")

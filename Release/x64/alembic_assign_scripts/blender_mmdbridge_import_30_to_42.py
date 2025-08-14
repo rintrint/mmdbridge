@@ -15,7 +15,7 @@ bl_info = {
 
 class Mtl():
     def __init__(self):
-        self.name = ""    
+        self.name = ""
         self.textureMap = ""
         self.alphaMap = ""
         self.diffuse = [0.7, 0.7, 0.7, 1.0]
@@ -30,7 +30,7 @@ class Mtl():
 def import_mtl(path, result, relation):
     current = None
     export_mode = 0
-    
+
     with open(path, 'r', encoding="utf-8") as mtl:
         for line in mtl.readlines():
             words = line.split()
@@ -41,16 +41,16 @@ def import_mtl(path, result, relation):
                     result[current.name] = current
                 current = Mtl()
                 current.name = str(words[1])
-                
+
                 nameSplits = current.name.split("_")
                 if len(nameSplits) >= 3:
                     try:
                         objectNumber = int(nameSplits[1])
                         materialNumber = int(nameSplits[2])
-                        
+
                         if objectNumber not in relation.keys():
                             relation[objectNumber] = []
-                        
+
                         relation[objectNumber].append(materialNumber)
                     except ValueError:
                         print(f"Warning: Unable to parse object and material numbers from {current.name}")
@@ -192,7 +192,7 @@ def import_alembic_and_mtl(filepath, context):
     # Find .mtl file in the same directory
     base_path, file_name = os.path.split(filepath)
     mtl_file = os.path.join(base_path, file_name.replace(".abc", ".mtl"))
-    
+
     if os.path.exists(mtl_file):
         # If corresponding .mtl file is found, import materials
         import_mmdbridge_material(mtl_file, context)
@@ -222,7 +222,7 @@ def update_mtl_file(mtl_file, original_materials, objects):
 class MMDBridgeAlembicImportOperator(bpy.types.Operator, ImportHelper):
     bl_idname = "import_scene.mmdbridge_alembic_material"
     bl_label = "MMDBridge Alembic and Material Importer (.abc, .mtl)"
-    
+
     filename_ext = ".abc"
     filter_glob: StringProperty(default="*.abc", options={'HIDDEN'})
 

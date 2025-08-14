@@ -33,7 +33,7 @@ def export_mtl(mtlpath):
 			mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
 			mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
 			if (diffuse[3] < 1):
-				mtlfile.write("d "+str(diffuse[3])+"\n")				
+				mtlfile.write("d "+str(diffuse[3])+"\n")
 			mtlfile.write("Ns "+str(power)+"\n")
 			#mtlfile.write("Ni 1.33\n")
 			# lum = 1 no specular highlights, lum = 2 light normaly
@@ -123,7 +123,7 @@ def execute_tungsten(outfile, tangstenpath, jsonpath, samples):
 		renderer_desc = data['renderer']
 		renderer_desc['output_file'] = outfile
 		renderer_desc['spp'] = samples
-	
+
 	if "primitives" in data:
 		for prim in data['primitives']:
 			prim['backface_culling'] = True

@@ -36,7 +36,7 @@ def export_mtl(mtlpath):
 			mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
 			mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
 			if (diffuse[3] < 1):
-				mtlfile.write("d "+str(diffuse[3])+"\n")				
+				mtlfile.write("d "+str(diffuse[3])+"\n")
 			mtlfile.write("Ns "+str(power)+"\n")
 			#mtlfile.write("Ni 1.33\n")
 			# lum = 1 no specular highlights, lum = 2 light normaly
@@ -126,19 +126,19 @@ def export_vdr(vdrpath, objpath, mtlpath):
 	vdrline += "    Upside " + str(up[0]) + " " + str(up[1]) + " " + str(-up[2]) + "\n"
 
 	messagebox(vdrline)
-	vdrfile.write(vdrline)	
+	vdrfile.write(vdrline)
 
 def execute_vidro(outpath, vidropath, vdrpath):
-	
+
 	win_command_flag='start /b /normal /WAIT \"\" '
 
-	vidro = '\"' +vidropath + '\"'	
-	vidro +=  ' \"' + vdrpath + '\"' 
+	vidro = '\"' +vidropath + '\"'
+	vidro +=  ' \"' + vdrpath + '\"'
 	vidro += " /run "
 	vidro += " /gi=128 "
 	vidro += " /width=" + str(get_frame_width()) + " "
 	vidro += " /height=" + str(get_frame_height()) + " "
-	vidro += " /out= " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"' 
+	vidro += " /out= " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"'
 #	messagebox(vidro)
 
 	os.system(win_command_flag + vidro)

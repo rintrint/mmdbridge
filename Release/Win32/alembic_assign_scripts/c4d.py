@@ -6,7 +6,7 @@ import sys
 
 class Mtl():
     def __init__(self):
-        self.name = ""    
+        self.name = ""
         self.textureMap = ""
         self.alphaMap = ""
         self.diffuse = [0.7, 0.7, 0.7]
@@ -18,9 +18,9 @@ class Mtl():
 	self.isAccessory = False
 
 def import_mtl(path, result):
-    
+
     current = None
-    
+
     mtl = open(path, 'r', encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
@@ -61,10 +61,10 @@ def import_mtl(path, result):
         result[current.name] = current
 
     mtl.close()
-        
+
 def main():
     #gui.MessageDialog('Hello World!')
-    
+
     abc = c4d.storage.LoadDialog( \
         c4d.FILESELECTTYPE_ANYTHING, \
         "Select .abc Folder", \
@@ -72,15 +72,15 @@ def main():
 
     if not os.path.isdir(abc):
         return
-    
+
     files = os.listdir(abc)
-    
+
     if len(files) <= 0:
         return
-    
+
     doc = documents.GetActiveDocument()
     docName = doc.GetDocumentName()
-    
+
     # find docName.mtl
     mtl = ""
     for file in files:
@@ -91,7 +91,7 @@ def main():
                 mtl = os.path.join(abc, maybeMtl)
                 print("a", mtl)
                 break
-    
+
     # find first mtl
     if mtl == "":
         for file in files:
@@ -99,13 +99,13 @@ def main():
             if ext == ".mtl":
                 mtl = os.path.join(abc, file)
                 break
-    
+
     if mtl == "":
         return
-    
+
     mtlDict = {}
     import_mtl(mtl, mtlDict)
-    
+
     for obj in doc.GetObjects():
         #gui.MessageDialog(obj.GetName())
         name = obj.GetName()
@@ -113,7 +113,7 @@ def main():
             materialName = name.replace('material_', '')
             materialName = materialName.replace('xform', 'material')
             if materialName in mtlDict.keys():
-                # new material    
+                # new material
                 mat = c4d.BaseMaterial(c4d.Mmaterial)
                 mtlData = mtlDict[materialName]
                 # assign texture
@@ -145,24 +145,24 @@ def main():
 	                    mtlData.diffuse[0], \
 	                    mtlData.diffuse[1], \
 	                    mtlData.diffuse[2])
-                    
+
                 mat[c4d.MATERIAL_SPECULAR_COLOR] = c4d.Vector(\
                     mtlData.specular[0], \
                     mtlData.specular[1], \
                     mtlData.specular[2])
-                                
+
                 if mtlData.trans < 0.9999:
                     mat[c4d.MATERIAL_USE_ALPHA] = True
                     mat[c4d.MATERIAL_TRANSPARENCY_BRIGHTNESS] = mtlData.trans
-                        
+
                 mat[c4d.MATERIAL_SPECULAR_TEXTURESTRENGTH] = mtlData.power
-                    
+
                 mat[c4d.MATERIAL_USE_COLOR] = True
                 mat[c4d.MATERIAL_USE_SPECULAR] = True
                 mat[c4d.MATERIAL_USE_SPECULARCOLOR] = True
-                
+
                 mat.Update(True, True)
-                    
+
                 # assign material to object
                 doc.InsertMaterial(mat)
                 doc.SetActiveObject(obj)

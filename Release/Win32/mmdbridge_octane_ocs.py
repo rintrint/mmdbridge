@@ -399,7 +399,7 @@ class OCSNodePin:
 class OCSNodeGraph:
 	doc = None
 	element = None
-	
+
 	name = None
 	currentnewnodeid = None
 	currentnewnodepinconnectionid = None
@@ -1341,7 +1341,7 @@ def export_mtl(mtlpath):
 			mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
 			mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
 			if (diffuse[3] < 1):
-				mtlfile.write("d "+str(diffuse[3])+"\n")				
+				mtlfile.write("d "+str(diffuse[3])+"\n")
 			mtlfile.write("Ns "+str(power)+"\n")
 			#mtlfile.write("Ni 1.33\n")
 			# lum = 1 no specular highlights, lum = 2 light normaly
@@ -1413,7 +1413,7 @@ def createObjNode(doc, objrelativepath):
 	objNode.setObjMeshImportParams(createDefaultObjImportParams(doc).getElement())
 	objNode.setLinkedFileName(objrelativepath.replace("/","\\"))
 
-	
+
 	materialPin = MaterialNodePin(doc, "material_0_0", 0, "diffuse")
 	materialPin.setDiffuse([1, 0, 0])
 	materialPin.setSmooth(True)
@@ -1427,7 +1427,7 @@ def createObjNode(doc, objrelativepath):
 def export_ocs(ocspath, objrelativepath):
 	if os.path.isfile(ocspath):
 		os.remove(ocspath)
-	
+
 	ocsfile = open(ocspath, 'a')
 	doc = minidom.Document()
 	scene = OCSScene(doc)
@@ -1460,7 +1460,7 @@ def export_ocs(ocspath, objrelativepath):
 			mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
 			mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
 			if (diffuse[3] < 1):
-				mtlfile.write("d "+str(diffuse[3])+"\n")				
+				mtlfile.write("d "+str(diffuse[3])+"\n")
 			mtlfile.write("Ns "+str(power)+"\n")
 			#mtlfile.write("Ni 1.33\n")
 			# lum = 1 no specular highlights, lum = 2 light normaly
@@ -1514,7 +1514,7 @@ def execute_octane(outpath, octanepath, objpath, mtlpath, samples):
 		octane += " --daylight-sundir-y " + str( 0.3 )
 		octane += " --daylight-sundir-z " + str(light[2])
 	#octane += " -q"
-	octane += " -o " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"' 
+	octane += " -o " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"'
 	octane += " -e "
 
 	#messagebox(octane)

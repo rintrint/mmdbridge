@@ -30,7 +30,7 @@ from bpy_extras.io_utils import (ImportHelper,\
 
 class Mtl():
 	def __init__(self):
-		self.name = ""	
+		self.name = ""
 		self.textureMap = ""
 		self.alphaMap = ""
 		self.diffuse = [0.7, 0.7, 0.7]
@@ -43,11 +43,11 @@ class Mtl():
 		self.isAccessory = False
 
 def import_mtl(path, result, relation):
-	
+
 	current = None
-	
+
 	export_mode = 0
-	
+
 	mtl = open(path, 'r', encoding = "utf-8")
 	for line in mtl.readlines():
 		words = line.split()
@@ -60,17 +60,17 @@ def import_mtl(path, result, relation):
 				result[current.name] = current
 			# new mtl
 			current = Mtl()
-			current.name = str(words[1])		   
-			
+			current.name = str(words[1])
+
 			# object relations
 			nameSplits = current.name.split("_")
 			objectNumber = int(nameSplits[1])
 			materialNumber = int(nameSplits[2])
 			if not objectNumber in relation.keys():
 				relation[objectNumber] = []
-			
+
 			relation[objectNumber].append(materialNumber)
-			
+
 		if "Ka" == words[0]:
 			current.ambient[0] = float(words[1])
 			current.ambient[1] = float(words[2])
@@ -99,13 +99,13 @@ def import_mtl(path, result, relation):
 			elif words[1] == "mode":
 				export_mode = int(words[2])
 	mtl.close()
-		
+
 	if current != None and current.name != "":
 		result[current.name] = current
 
 	for rel in relation.values():
 		rel.sort()
-		
+
 	return export_mode
 
 def assign_material(base_path, obj, mesh, mtlmat, image_dict):
@@ -158,12 +158,12 @@ def import_mmdbridge_material(filepath, context):
 class MMDBridgeImportOperator(bpy.types.Operator, ImportHelper):
 	bl_idname = "import_scene.mmdbridge_material"
 	bl_label = "MMDBridge Material Importer(.mtl)"
-	
+
 	filename_ext = ".mtl"
 	fliter_glob = bpy.props.StringProperty(default="*.mtl")
 
 	filepath = bpy.props.StringProperty(subtype="FILE_PATH")
-		
+
 	path_mode = path_reference_mode
 
 	def execute(self, context):

@@ -4,7 +4,7 @@ import sys
 
 class Mtl():
     def __init__(self):
-        self.name = ""    
+        self.name = ""
         self.textureMap = ""
         self.alphaMap = ""
         self.diffuse = [0.7, 0.7, 0.7]
@@ -16,9 +16,9 @@ class Mtl():
 	self.isAccessory = False
 
 def import_mtl(path, result):
-    
+
     current = None
-    
+
     mtl = open(path, 'r', encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
@@ -73,7 +73,7 @@ def main():
 
     if not os.path.isdir(abc):
         return
-    
+
     files = os.listdir(abc)
 
     if len(files) <= 0:

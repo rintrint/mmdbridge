@@ -4,7 +4,7 @@ import sys
 
 class Mtl():
     def __init__(self):
-        self.name = ""    
+        self.name = ""
         self.textureMap = ""
         self.alphaMap = ""
         self.diffuse = [0.7, 0.7, 0.7]
@@ -17,11 +17,11 @@ class Mtl():
 	self.isAccessory = False
 
 def import_mtl(path, result, relation):
-    
+
     current = None
-    
+
     export_mode = 0
-    
+
     mtl = open(path, 'r', encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
@@ -34,17 +34,17 @@ def import_mtl(path, result, relation):
                 result[current.name] = current
             # new mtl
             current = Mtl()
-            current.name = str(words[1])           
-            
+            current.name = str(words[1])
+
             # object relations
             nameSplits = current.name.split("_")
             objectNumber = int(nameSplits[1])
             materialNumber = int(nameSplits[2])
             if not objectNumber in relation.keys():
                 relation[objectNumber] = []
-            
+
             relation[objectNumber].append(materialNumber)
-            
+
         if "Ka" == words[0]:
             current.ambient[0] = float(words[1])
             current.ambient[1] = float(words[2])
@@ -73,13 +73,13 @@ def import_mtl(path, result, relation):
             elif words[1] == "mode":
                 export_mode = int(words[2])
     mtl.close()
-        
+
     if current != None and current.name != "":
         result[current.name] = current
 
     for rel in relation.values():
         rel.sort()
-        
+
     return export_mode
 
 def execute():
@@ -89,9 +89,9 @@ def execute():
     print(abc)
     if not os.path.isdir(abc):
         return
-    
+
     files = os.listdir(abc)
-    
+
     if len(files) <= 0:
         return
 
@@ -102,14 +102,14 @@ def execute():
         if ext == ".mtl":
             mtl = os.path.join(abc, file)
             break
-    
+
     if mtl == "":
         return
-    
+
     mtlDict = {}
     relationDict = {}
     import_mtl(mtl, mtlDict, relationDict)
-    
+
     for name in cmds.ls():
         print(name)
         if 'xform_' in name and 'material_' in name:
@@ -153,7 +153,7 @@ def execute():
                             mtlData.diffuse[0],\
                             mtlData.diffuse[1],\
                             mtlData.diffuse[2])
-                            
+
                 if len(mtlData.alphaMap) > 0:
                     texturePath = os.path.join(abc, mtlData.alphaMap)
                     file_node = cmds.shadingNode("file", asTexture=True, n=name+"_atex")
@@ -166,17 +166,17 @@ def execute():
                     mtlData.trans,\
                     mtlData.trans)
                 """
-                
+
                 cmds.setAttr(material+'.specularColor', \
                     mtlData.specular[0],\
                     mtlData.specular[1],\
                     mtlData.specular[2])
-                    
+
                 cmds.setAttr(material+'.ambientColor', \
                     mtlData.ambient[0],\
                     mtlData.ambient[1],\
                     mtlData.ambient[2])
-                
+
                 # deselect all
                 cmds.select(all=True, deselect=True)
 execute()

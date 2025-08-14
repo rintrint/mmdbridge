@@ -4,7 +4,7 @@ import sys
 
 class Mtl():
     def __init__(self):
-        self.name = ""    
+        self.name = ""
         self.textureMap = ""
         self.alphaMap = ""
         self.diffuse = [0.7, 0.7, 0.7]
@@ -17,11 +17,11 @@ class Mtl():
         self.isAccessory = False
 
 def import_mtl(path, result, relation):
-    
+
     current = None
-    
+
     export_mode = 0
-    
+
     mtl = open(path, 'r', encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
@@ -34,17 +34,17 @@ def import_mtl(path, result, relation):
                 result[current.name] = current
             # new mtl
             current = Mtl()
-            current.name = str(words[1])           
-            
+            current.name = str(words[1])
+
             # object relations
             nameSplits = current.name.split("_")
             objectNumber = int(nameSplits[1])
             materialNumber = int(nameSplits[2])
             if not objectNumber in relation.keys():
                 relation[objectNumber] = []
-            
+
             relation[objectNumber].append(materialNumber)
-            
+
         if "Ka" == words[0]:
             current.ambient[0] = float(words[1])
             current.ambient[1] = float(words[2])
@@ -73,15 +73,15 @@ def import_mtl(path, result, relation):
             elif words[1] == "mode":
                 export_mode = int(words[2])
     mtl.close()
-        
+
     if current != None and current.name != "":
         result[current.name] = current
 
     for rel in relation.values():
         rel.sort()
-        
+
     return export_mode
-    
+
 
 def descendants(node):
     for c in node.Children:
@@ -102,7 +102,7 @@ def assignMaterial(abc, mtlDict, relationDict):
             objectNumber = int(temp[0 : temp.find('_material_')])
             materialNumber = temp[temp.find('_material_')+10 : len(temp)]
             materialName = 'material_' + str(objectNumber) + '_' + str(materialNumber)
-            
+
             if materialName in mtlDict.keys():
                 # new material
                 mtlData = mtlDict[materialName]
@@ -111,7 +111,7 @@ def assignMaterial(abc, mtlDict, relationDict):
                 mat.Specular = MaxPlus.Color(mtlData.specular[0], mtlData.specular[1], mtlData.specular[2])
                 mat.Ambient = MaxPlus.Color(mtlData.ambient[0], mtlData.ambient[1], mtlData.ambient[2])
                 mat.Shiness = mtlData.power
-                
+
                 if len(mtlData.textureMap) > 0:
                     mat.SetEnableMap(1, True)
                     texturePath = os.path.join(abc, mtlData.textureMap)
@@ -121,7 +121,7 @@ def assignMaterial(abc, mtlDict, relationDict):
                     submap = MaxPlus.ISubMap._CastFrom(mat)
                     submap.SetSubTexmap(1, tex)
                     mat.SetActiveTexmap(tex)
-                    
+
                 target.Material = mat
 
 def execute():
@@ -134,7 +134,7 @@ def execute():
         return
 
     files = os.listdir(abc)
-    
+
     if len(files) <= 0:
         return
 
@@ -145,10 +145,10 @@ def execute():
         if ext == ".mtl":
             mtl = os.path.join(abc, file)
             break
-    
+
     if mtl == "":
         return
-    
+
     mtlDict = {}
     relationDict = {}
     import_mtl(mtl, mtlDict, relationDict)

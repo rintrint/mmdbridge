@@ -91,14 +91,14 @@ def export_rib(ribpath, framenumber):
 
 			ribfile.write("AttributeBegin\n")
 			ribfile.write("Attribute \"identifier\" \"name\" \"" + material_name +"\"\n")
-			
 
-			if len(texture) > 0:	
+
+			if len(texture) > 0:
 				texname, ext = os.path.splitext(texture)
 				ribfile.write("Surface \"paintedplastic\" " + '\"'+"texturename"+'\"'+" "+'\"'+texname + ".tex"+'\"'+"\n")
 			else:
 				ribfile.write("Surface \"paintedplastic\"\n" )
-			
+
 			ribfile.write("\"Ka\" [ 0.5 ]\n")
 			ribfile.write("\"Kd\" [ 0.7 ]\n")
 			ribfile.write("\"Ks\" [ 0.3 ]\n")
@@ -175,7 +175,7 @@ def export_mtl(mtlpath, export_mode):
 			mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
 			mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
 			if (diffuse[3] < 1):
-				mtlfile.write("d "+str(diffuse[3])+"\n")				
+				mtlfile.write("d "+str(diffuse[3])+"\n")
 			mtlfile.write("Ns "+str(power)+"\n")
 			#mtlfile.write("Ni 1.33\n")
 			# lum = 1 no specular highlights, lum = 2 light normaly

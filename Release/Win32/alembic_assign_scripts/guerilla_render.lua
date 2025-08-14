@@ -6,7 +6,7 @@ Mtl = {
 	diffuse_g = 0.7,
 	diffuse_b = 0.7,
 	specular_r = 0.7,
-	specular_g = 0.7, 
+	specular_g = 0.7,
 	specular_b = 0.7,
 	ambient_r = 0.7,
 	ambient_g = 0.7,
@@ -166,7 +166,7 @@ function assign_shader(modifier, mtl, mat_name, shader, tex, mat_group_name)
 		for i, v in pairs(shader) do
 			if type(v) == "table" then
 				for k, w in pairs(v) do
-					if k == "DiffuseColor" then	
+					if k == "DiffuseColor" then
 						print("wshaderset", tex_name)
 						w.Shader:set(tex_name)
 					end
