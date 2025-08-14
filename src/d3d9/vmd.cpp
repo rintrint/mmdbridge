@@ -217,15 +217,20 @@ static void init_file_data(FileDataForVMD& data)
 			for (const auto& rigid : rigids)
 			{
 				const int target_bone = rigid.related_bone_index;
-				const int parent_bone = data.parent_index_map[target_bone];
-				if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
+
+				if (target_bone != -1) // Avoid dangerous map[-1] access, which auto-creates a buggy {-1, 0} mapping.
 				{
-					if (bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
+					const int parent_bone = data.parent_index_map[target_bone];
+					if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
 					{
-						parent_physics_bone_list.push_back(parent_bone);
+						if (bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
+						{
+							parent_physics_bone_list.push_back(parent_bone);
+						}
 					}
 				}
 			}
+
 			for (int parent_bone : parent_physics_bone_list)
 			{
 				const pmd::PmdRigidBody& parent_rigid = rigids[bone_to_rigid_map[parent_bone]];
@@ -284,15 +289,20 @@ static void init_file_data(FileDataForVMD& data)
 			{
 				const pmx::PmxRigidBody& rigid = data.pmx->rigid_bodies[i];
 				const int target_bone = rigid.target_bone;
-				const int parent_bone = data.parent_index_map[target_bone];
-				if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
+
+				if (target_bone != -1) // Avoid dangerous map[-1] access, which auto-creates a buggy {-1, 0} mapping.
 				{
-					if (bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
+					const int parent_bone = data.parent_index_map[target_bone];
+					if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
 					{
-						parent_physics_bone_list.push_back(parent_bone);
+						if (bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
+						{
+							parent_physics_bone_list.push_back(parent_bone);
+						}
 					}
 				}
 			}
+
 			for (int parent_bone : parent_physics_bone_list)
 			{
 				const pmx::PmxRigidBody& parent_rigid = data.pmx->rigid_bodies[bone_to_rigid_map[parent_bone]];
