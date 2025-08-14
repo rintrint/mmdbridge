@@ -498,7 +498,7 @@ namespace pmx
 		stream->read((char*)&version, sizeof(float));
 		if (version != 2.0f && version != 2.1f)
 		{
-			std::cerr << "invalid pmx version:" << version << " this is not ver2.0 or ver2.1" << std::endl;
+			std::cerr << "invalid pmx version: " << version << " this is not ver2.0 or ver2.1" << std::endl;
 			throw;
 		}
 		// ファイル設定

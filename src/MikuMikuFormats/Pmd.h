@@ -472,7 +472,7 @@ namespace pmd
 			stream->read((char*) &(result->version), sizeof(float));
 			if (result->version != 1.0f)
 			{
-				std::cerr << "invalid pmd version:" << result->version << std::endl;
+				std::cerr << "invalid pmd version: " << result->version << std::endl;
 				return nullptr;
 			}
 

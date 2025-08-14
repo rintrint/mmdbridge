@@ -130,7 +130,7 @@ static bool start_vmd_export(
 			}
 			else
 			{
-				std::cerr << "Failed to load PMD file: " << filename << std::endl;
+				std::cerr << "failed to load pmd file: " << filename << std::endl;
 			}
 			FileDataForVMD data;
 			data.pmd = pmd;
@@ -150,7 +150,7 @@ static bool start_vmd_export(
 			}
 			else
 			{
-				std::cerr << "Failed to open PMX file: " << filename << std::endl;
+				std::cerr << "failed to open pmx file: " << filename << std::endl;
 			}
 			FileDataForVMD data;
 			data.pmx = pmx;
@@ -159,7 +159,7 @@ static bool start_vmd_export(
 		}
 		else
 		{
-			std::cerr << "Error: The model '" << filename << "' is not a PMD or PMX file." << std::endl;
+			std::cerr << "this is not a pmd or pmx file: " << filename << std::endl;
 		}
 	}
 
@@ -530,7 +530,7 @@ static bool execute_vmd_export(const int currentframe)
 						bone_frame.position[1] += parent_bone.bone_head_pos[1];
 						bone_frame.position[2] += parent_bone.bone_head_pos[2];
 					} else {
-						std::cerr << "invalid parent index:" << parent_index << std::endl;
+						std::cerr << "invalid parent index: " << parent_index << std::endl;
 					}
 				}
 				else if (file_data.pmx)
@@ -541,7 +541,7 @@ static bool execute_vmd_export(const int currentframe)
 						bone_frame.position[1] += parent_bone.position[1];
 						bone_frame.position[2] += parent_bone.position[2];
 					} else {
-						std::cerr << "invalid parent index:" << parent_index << std::endl;
+						std::cerr << "invalid parent index: " << parent_index << std::endl;
 					}
 				}
             }
