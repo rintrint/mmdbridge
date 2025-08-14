@@ -113,14 +113,31 @@ static bool start_vmd_export(
 		if (archive.file_path_map.find(filename) != archive.file_path_map.end()) {
 			continue;
 		}
-		if (const PMDPtr pmd = pmd::PmdModel::LoadFromFile(filename))
+
+		std::string filename_string(filename);
+		std::string filename_ext = "";
+		auto const pos = filename_string.find_last_of('.');
+		if (pos != std::string::npos && pos != 0 && pos + 1 < filename_string.length())
 		{
+			filename_ext = filename_string.substr(pos);
+		}
+		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), [](unsigned char c){ return std::tolower(c); });
+		if (filename_ext == ".pmd")
+		{
+			PMDPtr pmd;
+			if ((pmd = pmd::PmdModel::LoadFromFile(filename)))
+			{
+			}
+			else
+			{
+				std::cerr << "Failed to load PMD file: " << filename << std::endl;
+			}
 			FileDataForVMD data;
 			data.pmd = pmd;
 			archive.data_list.push_back(data);
 			archive.file_path_map[filename] = archive.data_list.size() - 1ULL;
 		}
-		else
+		else if (filename_ext == ".pmx")
 		{
 			const auto pmx = std::make_shared<pmx::PmxModel>();
 			std::wstring filename_wstring;
@@ -131,10 +148,18 @@ static bool start_vmd_export(
 				pmx->Init();
 				pmx->Read(&stream);
 			}
+			else
+			{
+				std::cerr << "Failed to open PMX file: " << filename << std::endl;
+			}
 			FileDataForVMD data;
 			data.pmx = pmx;
 			archive.data_list.push_back(data);
 			archive.file_path_map[filename] = archive.data_list.size() - 1ULL;
+		}
+		else
+		{
+			std::cerr << "Error: The model '" << filename << "' is not a PMD or PMX file." << std::endl;
 		}
 	}
 
