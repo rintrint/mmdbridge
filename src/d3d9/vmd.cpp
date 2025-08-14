@@ -166,6 +166,8 @@ static bool start_vmd_export(
 			std::wstring error_message;
 			if (filename_wstring.empty()) {
 				error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
+				error_message += L" MMDBridge needs to read the model file to obtain sufficient information to calculate correct bone transformations.";
+				error_message += L" Please ensure the PMX/PMD filepath contains only CP932 characters before importing it into MMD.";
 			} else {
 				error_message = L"This is not a pmd/pmx file: " + filename_wstring;
 			}
@@ -195,7 +197,10 @@ static bool end_vmd_export()
 			umstring filename_string = umbase::UMPath::get_file_name(umstr);
 			if (filename_string.empty())
 			{
-				std::wstring error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
+				std::wstring error_message;
+				error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
+				error_message += L" MMDBridge needs to read the model file to obtain sufficient information to calculate correct bone transformations.";
+				error_message += L" Please ensure the PMX/PMD filepath contains only CP932 characters before importing it into MMD.";
 				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 				continue;
 			}
