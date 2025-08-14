@@ -77,7 +77,7 @@ namespace pmx
 				std::cerr << u_errorName(err) << std::endl;
 				exit(-1);
 			}
-			
+
 			result.assign((const char*)outbuf.data(), size);
 			return result;
 #endif
@@ -335,7 +335,7 @@ namespace pmx
 		this->morph_english_name = ReadString(stream, setting->encoding);
 		stream->read((char*) &category, sizeof(MorphCategory));
 		stream->read((char*) &morph_type, sizeof(MorphType));
-		
+
 		int offset_count;
 		stream->read((char*) &offset_count, sizeof(int));
 		switch (this->morph_type)

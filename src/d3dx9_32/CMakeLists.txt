@@ -15,7 +15,7 @@ ADD_LIBRARY(d3dx9_32 SHARED
     d3dx9.h
     hook64.def
     )
-TARGET_LINK_LIBRARIES(d3dx9_32 
+TARGET_LINK_LIBRARIES(d3dx9_32
     Shlwapi
     )
 INSTALL(TARGETS d3dx9_32
