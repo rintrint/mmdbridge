@@ -445,7 +445,7 @@ namespace pmd
 			std::ifstream stream(filename_wstring, std::ios::binary);
 			if (stream.fail())
 			{
-				std::wstring error_message = L"could not open file: " + filename_wstring;
+				std::wstring error_message = L"Could not open file: " + filename_wstring;
 				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 				return nullptr;
 			}

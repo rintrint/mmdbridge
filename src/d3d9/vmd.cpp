@@ -134,7 +134,7 @@ static bool start_vmd_export(
 			}
 			else
 			{
-				std::wstring error_message = L"failed to load pmd file: " + filename_wstring;
+				std::wstring error_message = L"Failed to load pmd file: " + filename_wstring;
 				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			}
 			FileDataForVMD data;
@@ -153,7 +153,7 @@ static bool start_vmd_export(
 			}
 			else
 			{
-				std::wstring error_message = L"failed to open pmx file: " + filename_wstring;
+				std::wstring error_message = L"Failed to open pmx file: " + filename_wstring;
 				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			}
 			FileDataForVMD data;
@@ -163,7 +163,12 @@ static bool start_vmd_export(
 		}
 		else
 		{
-			std::wstring error_message = L"this is not a pmd or pmx file: " + filename_wstring;
+			std::wstring error_message;
+			if (filename_wstring.empty()) {
+				error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
+			} else {
+				error_message = L"This is not a pmd/pmx file: " + filename_wstring;
+			}
 			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 		}
 	}
