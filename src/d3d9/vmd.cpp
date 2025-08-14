@@ -505,8 +505,7 @@ static bool execute_vmd_export(const int currentframe)
 						bone_frame.position[1] += parent_bone.bone_head_pos[1];
 						bone_frame.position[2] += parent_bone.bone_head_pos[2];
 					} else {
-						std::string message = "Detected an invalid parent_index: " + std::to_string(parent_index);
-						::MessageBoxA(NULL, message.c_str(), "Invalid Parent Index", MB_OK | MB_ICONWARNING);
+						std::cerr << "invalid parent index:" << parent_index << std::endl;
 					}
 				}
 				else if (file_data.pmx)
@@ -517,8 +516,7 @@ static bool execute_vmd_export(const int currentframe)
 						bone_frame.position[1] += parent_bone.position[1];
 						bone_frame.position[2] += parent_bone.position[2];
 					} else {
-						std::string message = "Detected an invalid parent_index: " + std::to_string(parent_index);
-						::MessageBoxA(NULL, message.c_str(), "Invalid Parent Index", MB_OK | MB_ICONWARNING);
+						std::cerr << "invalid parent index:" << parent_index << std::endl;
 					}
 				}
             }

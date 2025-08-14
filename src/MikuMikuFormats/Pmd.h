@@ -464,15 +464,15 @@ namespace pmd
 			stream->read(magic, 3);
 			if (magic[0] != 'P' || magic[1] != 'm' || magic[2] != 'd')
 			{
-				std::cerr << "invalid file" << std::endl;
+				std::cerr << "invalid pmd file." << std::endl;
 				return nullptr;
 			}
 
 			// version
 			stream->read((char*) &(result->version), sizeof(float));
-			if (result ->version != 1.0f)
+			if (result->version != 1.0f)
 			{
-				std::cerr << "invalid version" << std::endl;
+				std::cerr << "invalid pmd version:" << result->version << std::endl;
 				return nullptr;
 			}
 

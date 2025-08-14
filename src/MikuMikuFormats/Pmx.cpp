@@ -192,7 +192,7 @@ namespace pmx
 			this->skinning = std::make_unique<PmxVertexSkinningQDEF>();
 			break;
 		default:
-			throw "invalid skinning type";
+			throw ("invalid skinning type:" + std::to_string(static_cast<int>(skinning_type)));
 		}
 		this->skinning->Read(stream, setting);
 		stream->read((char*) &this->edge, sizeof(float));
@@ -491,14 +491,14 @@ namespace pmx
 		stream->read((char*)magic, sizeof(char) * 4);
 		if (magic[0] != 0x50 || magic[1] != 0x4d || magic[2] != 0x58 || magic[3] != 0x20)
 		{
-			std::cerr << "invalid magic number." << std::endl;
+			std::cerr << "invalid pmx file." << std::endl;
 			throw;
 		}
 		// バージョン
 		stream->read((char*)&version, sizeof(float));
 		if (version != 2.0f && version != 2.1f)
 		{
-			std::cerr << "this is not ver2.0 or ver2.1 but " << version << "." << std::endl;
+			std::cerr << "invalid pmx version:" << version << " this is not ver2.0 or ver2.1" << std::endl;
 			throw;
 		}
 		// ファイル設定
