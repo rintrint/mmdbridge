@@ -487,24 +487,27 @@ static bool execute_vmd_export(const int currentframe)
             bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
             // Step 2: Add parent bone's initial position
 			if (parent_index != 0xFFFF && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
-                UMVec3f parent_initial_trans;
-                if (file_data.pmd)
-                {
-                    const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
-                    parent_initial_trans[0] = parent_bone.bone_head_pos[0];
-                    parent_initial_trans[1] = parent_bone.bone_head_pos[1];
-                    parent_initial_trans[2] = parent_bone.bone_head_pos[2];
-                }
-                else if (file_data.pmx)
-                {
-                    const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
-                    parent_initial_trans[0] = parent_bone.position[0];
-                    parent_initial_trans[1] = parent_bone.position[1];
-                    parent_initial_trans[2] = parent_bone.position[2];
-                }
-                bone_frame.position[0] += parent_initial_trans[0];
-                bone_frame.position[1] += parent_initial_trans[1];
-                bone_frame.position[2] += parent_initial_trans[2];
+				if (parent_index >= 0)
+				{
+					if (file_data.pmd)
+					{
+						if (parent_index >= 0 && parent_index < file_data.pmd->bones.size()){
+							const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
+							bone_frame.position[0] += parent_bone.bone_head_pos[0];
+							bone_frame.position[1] += parent_bone.bone_head_pos[1];
+							bone_frame.position[2] += parent_bone.bone_head_pos[2];
+						}
+					}
+					else if (file_data.pmx)
+					{
+						if (parent_index >= 0 && parent_index < file_data.pmx->bones.size()){
+							const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
+							bone_frame.position[0] += parent_bone.position[0];
+							bone_frame.position[1] += parent_bone.position[1];
+							bone_frame.position[2] += parent_bone.position[2];
+						}
+					}
+				}
             }
 
 			local[3][0] = local[3][1] = local[3][2] = 0.0;
