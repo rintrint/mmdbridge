@@ -134,7 +134,7 @@ static bool start_vmd_export(
 			FileDataForVMD data;
 			data.pmx = pmx;
 			archive.data_list.push_back(data);
-			archive.file_path_map[filename] = archive.data_list.size() - 1;
+			archive.file_path_map[filename] = archive.data_list.size() - 1ULL;
 		}
 	}
 
