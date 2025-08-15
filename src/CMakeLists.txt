@@ -11,7 +11,7 @@ FILE(GLOB d3d9_sources
     d3d9/hook.def
     umbase/*.cpp
     umbase/*.h
-    )
+)
 INCLUDE_DIRECTORIES(
     umbase
     d3dx9_32
@@ -22,11 +22,11 @@ INCLUDE_DIRECTORIES(
     ${Alembic_INCLUDE_DIRS}
     ${pybind11_INCLUDE_DIRS}
     ${Imath_INCLUDE_DIRS}
-    )
+)
 LINK_DIRECTORIES(
     ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/lib/x64
-    )
+)
 ADD_DEFINITIONS(
     -DNOMINMAX
     -DUNICODE
@@ -34,11 +34,13 @@ ADD_DEFINITIONS(
     -DWITH_VMD
     -DWITH_PMX
     -DWITH_ALEMBIC
-    )
+)
+
 ADD_COMPILE_OPTIONS(/utf-8)
+
 ADD_LIBRARY(d3d9 SHARED
     ${d3d9_sources}
-    )
+)
 TARGET_LINK_LIBRARIES(d3d9
     ${PYTHON_LIBRARIES}
     Shlwapi
@@ -47,8 +49,8 @@ TARGET_LINK_LIBRARIES(d3d9
     MMDExport
     MikuMikuFormats
     ${ALEMBIC_LIBRARIES}
-    )
+)
 INSTALL(TARGETS d3d9
     RUNTIME DESTINATION ${MMD_DIR}
-    )
+)
 

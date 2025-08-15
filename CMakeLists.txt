@@ -9,11 +9,11 @@ ADD_COMPILE_OPTIONS(/utf-8)
 
 # shared compiler options
 SET(CMAKE_CXX_FLAGS "/EHsc"
-    )
+)
 # embeded pdb
 SET(CMAKE_CXX_FLAGS_DEBUG
     /Z7
-    )
+)
 
 # path settings
 #FIND_PACKAGE(PythonLibs REQUIRED)
@@ -26,11 +26,11 @@ SET(PYTHON_LIBRARIES
 SET(pybind11_INCLUDE_DIRS
     ${CMAKE_INSTALL_PREFIX}/include
     ${PYTHON_INCLUDE_DIRS}
-    )
+)
 GET_FILENAME_COMPONENT(MMD_DIR
     ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_x64
     ABSOLUTE
-    )
+)
 #FIND_PACKAGE(ilmbase REQUIRED)
 SET(ilmbase_INCLUDE_DIRS
     ${CMAKE_INSTALL_PREFIX}/include/OpenEXR)
@@ -54,12 +54,12 @@ INSTALL(FILES
     ${CMAKE_INSTALL_PREFIX}/bin/zlib1.dll
     ${CMAKE_INSTALL_PREFIX}/bin/szip.dll
     DESTINATION ${MMD_DIR}
-    )
+)
 FILE(GLOB python_sciprts Release/Win32/*.py
-    )
+)
 INSTALL(FILES ${python_sciprts}
     DESTINATION ${MMD_DIR}
-    )
+)
 
 FILE(INSTALL ${CMAKE_INSTALL_PREFIX}/lib/python312.lib DESTINATION ${MMD_DIR})
 
@@ -88,11 +88,11 @@ INSTALL(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     PATTERN "curses*" EXCLUDE
     PATTERN "dbm*" EXCLUDE
     PATTERN "__phello__*" EXCLUDE
-    )
+)
 INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts
     DESTINATION ${MMD_DIR}
-    )
+)
 INSTALL(DIRECTORY
     DESTINATION ${MMD_DIR}/out
-    )
+)
 
