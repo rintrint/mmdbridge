@@ -113,9 +113,6 @@ jobs:
         fi
       shell: bash
 
-    - name: vcpkg integration
-      run: vcpkg integrate install
-
     - name: cmake
       shell: cmd
       run: .\cmake_vs2022_64.bat

@@ -8,10 +8,20 @@ SET(CMAKE_CXX_EXTENSIONS OFF)
 ADD_COMPILE_OPTIONS(/utf-8)
 
 # shared compiler options
-SET(CMAKE_CXX_FLAGS "/EHsc"
+ADD_COMPILE_OPTIONS(
+    /EHsc
+    # /W0
+    # /W1
+    # /W2
+    # /W3
+    # /W4 # High warning level (NOT /Wall)
+    # /WX # Warnings as errors
+    # /analyze # Static analysis
+    # /wd4267
 )
+
 # embeded pdb
-SET(CMAKE_CXX_FLAGS_DEBUG
+ADD_COMPILE_OPTIONS(
     /Z7
 )
 
@@ -40,8 +50,13 @@ SET(Imath_INCLUDE_DIRS
 SET(ALEMBIC_INCLUDE_DIRS
     ${CMAKE_INSTALL_PREFIX}/include)
 SET(ALEMBIC_LIBRARIES
-    ${CMAKE_INSTALL_PREFIX}/lib/Alembic.lib)
-
+    ${CMAKE_INSTALL_PREFIX}/lib/Alembic.lib
+    ${CMAKE_INSTALL_PREFIX}/lib/hdf5.lib
+    ${CMAKE_INSTALL_PREFIX}/lib/hdf5_hl.lib
+    ${CMAKE_INSTALL_PREFIX}/lib/Imath-3_1.lib
+    ${CMAKE_INSTALL_PREFIX}/lib/zlib.lib
+    ${CMAKE_INSTALL_PREFIX}/lib/szip.lib
+)
 # projects
 ADD_SUBDIRECTORY(src)
 
@@ -50,7 +65,7 @@ INSTALL(FILES
     ${CMAKE_INSTALL_PREFIX}/bin/python312.dll
     ${CMAKE_INSTALL_PREFIX}/bin/Alembic.dll
     ${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/imath-3_1.dll
+    ${CMAKE_INSTALL_PREFIX}/bin/Imath-3_1.dll
     ${CMAKE_INSTALL_PREFIX}/bin/zlib1.dll
     ${CMAKE_INSTALL_PREFIX}/bin/szip.dll
     DESTINATION ${MMD_DIR}

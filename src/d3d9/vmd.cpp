@@ -380,7 +380,7 @@ static UMMat44d to_ummat(const D3DMATRIX& mat)
 	return ummat;
 }
 
-// from imath
+// from Imath
 static UMVec4d extractQuat(const UMMat44d &mat)
 {
 	double s;

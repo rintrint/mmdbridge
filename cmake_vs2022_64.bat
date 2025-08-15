@@ -8,5 +8,5 @@ pushd %BUILD_DIR%
 if "%VCPKG_TARGET_TRIPLET%"=="" (
     set VCPKG_TARGET_TRIPLET=x64-windows
 )
-%CMAKE% -D CMAKE_INSTALL_PREFIX=%VCPKG_DIR%/installed/%VCPKG_TARGET_TRIPLET% -G "Visual Studio 17 2022" ..
+%CMAKE% -D CMAKE_INSTALL_PREFIX=%VCPKG_DIR%/installed/%VCPKG_TARGET_TRIPLET% -DCMAKE_TOOLCHAIN_FILE=%VCPKG_DIR%/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" ..
 popd
