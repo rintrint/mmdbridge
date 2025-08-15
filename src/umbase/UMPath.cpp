@@ -197,14 +197,25 @@ umstring UMPath::get_env(const umstring& env)
 #ifdef WITH_EMSCRIPTEN
 	return env;
 #else
-	if (wchar_t* val =  _wgetenv(UMStringUtil::utf16_to_wstring(env).c_str()))
+	wchar_t* buffer = nullptr;
+	size_t bufferSize = 0;
+
+	errno_t err = _wdupenv_s(&buffer, &bufferSize, UMStringUtil::utf16_to_wstring(env).c_str());
+
+	if (err == 0 && buffer != nullptr)
 	{
-		return UMStringUtil::wstring_to_utf16(val);
+		umstring result = UMStringUtil::wstring_to_utf16(buffer);
+		free(buffer);
+		return result;
 	}
-	umstring none;
-	return none;
-#endif // WITH_EMSCRIPTEN
+
+	if (buffer != nullptr)
+	{
+		free(buffer);
+	}
+
+	return umstring();
+#endif
 }
 
 } // umbase
-
