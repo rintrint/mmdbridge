@@ -100,7 +100,7 @@ umstring UMPath::get_temp_absolute_path()
 		temp_path += buffer[i];
 	}
 	wchar_t temp_file_path[MAX_PATH];
-	if (::GetTempFileName(temp_path.c_str(), NULL, 0, temp_file_path) != 0)
+	if (::GetTempFileNameW(temp_path.c_str(), L"um", 0, temp_file_path) != 0)
 	{
 		return umbase::UMStringUtil::wstring_to_utf16(temp_file_path);
 	}

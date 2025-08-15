@@ -288,7 +288,6 @@ namespace
 
 	bool is_accessory(int at)
 	{
-		int result = 0;
 		if (BridgeParameter::instance().render_buffer(at).isAccessory)
 		{
 			return true;
@@ -1398,7 +1397,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行する");
 				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行しない");
 				// Specify data to display initially when window is created
-				LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)parameter.python_script_name.c_str());
+				LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
 				SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
 				SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
 
@@ -1468,7 +1467,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						{
 							SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
 						}
-						LRESULT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)current_selection_text);
+						LRESULT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)current_selection_text);
 						if (index_to_select == CB_ERR && parameter.python_script_name_list.size() > 0)
 						{
 							index_to_select = 0;
@@ -2147,11 +2146,11 @@ static HRESULT WINAPI drawIndexedPrimitive(
 						}
 						if (!renderData.normal)
 						{
-							for (size_t i = 0, size = renderedBuffer.normals.size(); i < size; ++i)
+							for (size_t j = 0, normalSize = renderedBuffer.normals.size(); j < normalSize; ++j)
 							{
 								D3DXVec3Normalize(
-									&renderedBuffer.normals[i],
-									&renderedBuffer.normals[i]);
+									&renderedBuffer.normals[j],
+									&renderedBuffer.normals[j]);
 							}
 						}
 					}

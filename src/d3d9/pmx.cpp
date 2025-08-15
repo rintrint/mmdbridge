@@ -180,13 +180,11 @@ static void export_pmx(int currentframe, bool isfirst)
 		pmx->materials.resize(material_count);
 		pmx->bones.resize(1);
 		pmx->textures.resize(texture_map.size());
-		int i = 0;
-		for (TextureMap::iterator it = texture_map.begin(); it != texture_map.end(); ++it, ++i)
+		for (const auto& texture_pair : texture_map)
 		{
-			std::wstring&  tex = pmx->textures[it->second];
-			tex.swap(
+			pmx->textures[texture_pair.second] =
 				umbase::UMStringUtil::utf16_to_wstring(
-				umbase::UMStringUtil::utf8_to_utf16(it->first + ".png")));
+					umbase::UMStringUtil::utf8_to_utf16(texture_pair.first + ".png"));
 		}
 
 		pmx->setting.bone_index_size = 1;
