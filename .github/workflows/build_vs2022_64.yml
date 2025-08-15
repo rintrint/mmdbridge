@@ -1,6 +1,6 @@
 name: build_vs2022_64
 
-on: [push]
+on: [push, pull_request, workflow_dispatch]
 
 concurrency:
   group: nuget-vcpkg-cache
