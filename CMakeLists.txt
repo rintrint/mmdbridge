@@ -12,7 +12,7 @@ ADD_COMPILE_OPTIONS(
     /EHsc
     # /W0
     # /W1
-    # /W2
+    /W2
     # /W3
     # /W4 # High warning level (NOT /Wall)
     # /WX # Warnings as errors

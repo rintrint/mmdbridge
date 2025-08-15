@@ -378,9 +378,9 @@ namespace
 		return finishTextureBuffers.size();
 	}
 
-	std::vector<float> get_texture_size(int at)
+	std::vector<int> get_texture_size(int at)
 	{
-		std::vector<float> result;
+		std::vector<int> result;
 		result.push_back(renderedTextures[finishTextureBuffers[at].first].size.x);
 		result.push_back(renderedTextures[finishTextureBuffers[at].first].size.y);
 		return result;
@@ -579,7 +579,7 @@ namespace
 		return BridgeParameter::instance().frame_height;
 	}
 
-	int get_export_fps()
+	double get_export_fps()
 	{
 		return BridgeParameter::instance().export_fps;
 	}
