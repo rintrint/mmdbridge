@@ -1,5 +1,5 @@
 ADD_SUBDIRECTORY(MikuMikuFormats)
-ADD_SUBDIRECTORY(d3dx9_32)
+ADD_SUBDIRECTORY(d3dx9_43)
 
 ##############################################################################
 # d3d9
@@ -14,7 +14,7 @@ FILE(GLOB d3d9_sources
 )
 INCLUDE_DIRECTORIES(
     umbase
-    d3dx9_32
+    d3dx9_43
     MikuMikuFormats
     ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/include
@@ -45,7 +45,7 @@ TARGET_LINK_LIBRARIES(d3d9
     ${PYTHON_LIBRARIES}
     Shlwapi
     WinMM
-    d3dx9_32
+    d3dx9_43
     MMDExport
     MikuMikuFormats
     ${ALEMBIC_LIBRARIES}
