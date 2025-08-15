@@ -1,3 +1,4 @@
+#pragma execution_character_set("utf-8")
 #define CINTERFACE
 
 #include "d3d9.h"
@@ -1378,7 +1379,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				if(hInstance)
 				{
 					pluginDialog = hWnd;
-					::DialogBoxA(hInstance, "IDD_DIALOG1", NULL,  DialogProc);
+					::DialogBoxW(hInstance, L"IDD_DIALOG1", NULL,  DialogProc);
 				}
 				break;
 			}
@@ -1417,9 +1418,9 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
 				SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
 
-				::SetWindowTextA(hEdit1, to_string(parameter.start_frame).c_str());
-				::SetWindowTextA(hEdit2, to_string(parameter.end_frame).c_str());
-				::SetWindowTextA(hEdit5, to_string(parameter.export_fps).c_str());
+				::SetWindowTextW(hEdit1, to_wstring(parameter.start_frame).c_str());
+				::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
+				::SetWindowTextW(hEdit5, to_wstring(parameter.export_fps).c_str());
 			}
 			return TRUE;
 		case WM_CLOSE:
