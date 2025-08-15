@@ -2502,8 +2502,8 @@ bool d3d9_initialize()
 	GetSystemDirectory(system_path_buffer, sizeof(system_path_buffer) / sizeof(TCHAR));
 	std::wstring d3d9_path(system_path_buffer);
 	replace(d3d9_path.begin(), d3d9_path.end(), '\\', '/');
-	d3d9_path.append(L"/D3D9.DLL");
-	// Original D3D9.DLL module
+	d3d9_path.append(L"/d3d9.dll");
+	// Original d3d9.dll module
 	HMODULE d3d9_module(LoadLibrary(d3d9_path.c_str()));
 
 	if (!d3d9_module) {

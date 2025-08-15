@@ -6447,8 +6447,8 @@ BOOL init()
 	TCHAR system_path_buffer[1024]; // システムパス保存用
 	GetSystemDirectory(system_path_buffer, MAX_PATH );
 	std::wstring d3d9x_path(system_path_buffer);
-	d3d9x_path.append(_T("\\D3DX9_32.DLL"));
-	HMODULE d3d9x_module(LoadLibrary(d3d9x_path.c_str())); // オリジナルのD3DX9_32.DLLのモジュール
+	d3d9x_path.append(_T("\\d3dx9_32.dll"));
+	HMODULE d3d9x_module(LoadLibrary(d3d9x_path.c_str())); // オリジナルのd3dx9_32.dllのモジュール
 
 	if (!d3d9x_module) {
 		::MessageBoxA(NULL, "Failed to load d3dx9_32.dll", "hoge",MB_OK);
