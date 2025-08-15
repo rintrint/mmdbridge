@@ -13,7 +13,7 @@
  * DirectX SDK (June 2010)
  * MikuMikuFormats
  * alembic (includes: hdf5, ilmbase, szip, zlib)
- * python3
+ * python312
  * pybind11
 
 ## Licensing

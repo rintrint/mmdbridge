@@ -22,7 +22,7 @@ The following packages will be built and installed:
   * ilmbase:x64-windows
   * msmpi:x64-windows
     pybind11:x64-windows
-  * python3:x64-windows
+  * python312:x64-windows
   * szip:x64-windows
   * zlib:x64-windows
 Additional packages (*) will be installed to complete this operation.

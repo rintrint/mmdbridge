@@ -937,18 +937,6 @@ void run_python_script()
 	}
 	else
 	{
-		std::wstring python_home = BridgeParameter::instance().base_path + L"python312";
-		std::wstring python_exe = python_home + L"/python.exe";
-
-		if (!PathFileExistsW(python_exe.c_str()))
-		{
-			std::wstring error_msg = L"Python environment not found.\n\n";
-			error_msg += L"Missing ";
-			error_msg += python_exe;
-			::MessageBoxW(NULL, error_msg.c_str(), L"Python Error", MB_OK);
-			return;
-		}
-
 		InitAlembic();
 		InitVMD();
 		InitPMX();
@@ -959,8 +947,7 @@ void run_python_script()
 		PyConfig_InitIsolatedConfig(&config);
 
 		// Set various configurations
-		PyConfig_SetString(&config, &config.home, python_home.c_str());
-		config.inspect = 0;  // Replace Py_InspectFlag = 0
+		config.inspect = 0;
 
 		// Set command line arguments
 		const std::wstring wpath = BridgeParameter::instance().base_path;
