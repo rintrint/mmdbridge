@@ -746,13 +746,13 @@ namespace
 		return result;
 	}
 
-	std::vector<float> invert_matrix(const std::vector<float> &tp1)
+	std::vector<double> invert_matrix(const std::vector<double> &tp1)
 	{
 		if (tp1.size() < 16) {
 			PyErr_SetString(PyExc_IndexError, "index out of range");
 			throw py::error_already_set();
 		}
-		std::vector<float> result;
+		std::vector<double> result;
 		UMMat44d src;
 		for (int i = 0; i < 4; ++i) {
 			for (int k = 0; k < 4; ++k) {
@@ -768,13 +768,13 @@ namespace
 		return result;
 	}
 
-	std::vector<float> extract_xyz_degree(const std::vector<float> &tp1)
+	std::vector<double> extract_xyz_degree(const std::vector<double> &tp1)
 	{
 		if (tp1.size() < 16) {
 			PyErr_SetString(PyExc_IndexError, "index out of range");
 			throw py::error_already_set();
 		}
-		std::vector<float> result;
+		std::vector<double> result;
 		UMMat44d src;
 		for (int i = 0; i < 4; ++i) {
 			for (int k = 0; k < 4; ++k) {
@@ -1392,7 +1392,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行する");
 				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行しない");
 				// ウインドウ生成時にはじめに表示するデータを指定
-				UINT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)parameter.python_script_name.c_str());
+				LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)parameter.python_script_name.c_str());
 				SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
 				SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
 
@@ -1451,7 +1451,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				case IDC_BUTTON1: // 再検索
 					{
 						wchar_t current_selection_text[MAX_PATH] = { 0 };
-						int current_selection_index = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+						LRESULT current_selection_index = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
 						if (current_selection_index != CB_ERR)
 						{
 							SendMessage(hCombo1, CB_GETLBTEXT, current_selection_index, (LPARAM)current_selection_text);
@@ -1462,7 +1462,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						{
 							SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
 						}
-						UINT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)current_selection_text);
+						LRESULT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)current_selection_text);
 						if (index_to_select == CB_ERR && parameter.python_script_name_list.size() > 0)
 						{
 							index_to_select = 0;
