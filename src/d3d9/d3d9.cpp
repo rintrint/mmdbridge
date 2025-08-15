@@ -89,8 +89,8 @@ static void messagebox_matrix(D3DXMATRIX& mat, const char *title)
 }
 
 // Hook functions for IDirect3DDevice9
-void hookDevice(void);
-void originalDevice(void);
+static void hookDevice(void);
+static void originalDevice(void);
 // Hooked device
 IDirect3DDevice9 *p_device = NULL;
 
@@ -1346,7 +1346,7 @@ static void setMySize() {
 
 LONG_PTR originalWndProc  =NULL;
 // Function declarations for this code module:
-INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
+static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE hInstance= NULL;
 HWND pluginDialog = NULL;
 
