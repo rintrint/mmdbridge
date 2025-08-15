@@ -49,30 +49,35 @@ SET(Imath_INCLUDE_DIRS
 #FIND_PACKAGE(Alembic REQUIRED)
 SET(ALEMBIC_INCLUDE_DIRS
     ${CMAKE_INSTALL_PREFIX}/include)
+FILE(GLOB IMATH_LIBS "${CMAKE_INSTALL_PREFIX}/lib/Imath-3_*.lib")
+LIST(SORT IMATH_LIBS)
+LIST(GET IMATH_LIBS -1 IMATH_LIB)
 SET(ALEMBIC_LIBRARIES
     ${CMAKE_INSTALL_PREFIX}/lib/Alembic.lib
     ${CMAKE_INSTALL_PREFIX}/lib/hdf5.lib
     ${CMAKE_INSTALL_PREFIX}/lib/hdf5_hl.lib
-    ${CMAKE_INSTALL_PREFIX}/lib/Imath-3_1.lib
+    ${IMATH_LIB}
     ${CMAKE_INSTALL_PREFIX}/lib/zlib.lib
     ${CMAKE_INSTALL_PREFIX}/lib/szip.lib
 )
 # projects
 ADD_SUBDIRECTORY(src)
 
-# additional install files
+FILE(GLOB IMATH_DLLS "${CMAKE_INSTALL_PREFIX}/bin/Imath-3_*.dll")
+LIST(SORT IMATH_DLLS)
+LIST(GET IMATH_DLLS -1 IMATH_DLL)
 INSTALL(FILES
     ${CMAKE_INSTALL_PREFIX}/bin/python312.dll
     ${CMAKE_INSTALL_PREFIX}/bin/Alembic.dll
     ${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/Imath-3_1.dll
+    ${IMATH_DLL}
     ${CMAKE_INSTALL_PREFIX}/bin/zlib1.dll
     ${CMAKE_INSTALL_PREFIX}/bin/szip.dll
     DESTINATION ${MMD_DIR}
 )
-FILE(GLOB python_sciprts Release/Win32/*.py
+FILE(GLOB python_scripts Release/Win32/*.py
 )
-INSTALL(FILES ${python_sciprts}
+INSTALL(FILES ${python_scripts}
     DESTINATION ${MMD_DIR}
 )
 
