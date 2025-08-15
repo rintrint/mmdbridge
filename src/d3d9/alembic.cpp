@@ -1226,14 +1226,12 @@ static bool execute_alembic_export(int currentframe)
 }
 
 // ---------------------------------------------------------------------------
-PYBIND11_PLUGIN( mmdbridge_abc )
-{
-    py::module m("mmdbridge_abc");
-	m.def("start_alembic_export", start_alembic_export);
+PYBIND11_MODULE(mmdbridge_abc, m) {
+    m.doc() = "MMD Bridge ABC export module";
+    m.def("start_alembic_export", start_alembic_export);
     m.def("end_alembic_export", end_alembic_export);
     m.def("execute_alembic_export", execute_alembic_export);
     m.def("get_abc_angle_axis", get_abc_angle_axis);
-    return m.ptr();
 }
 
 #endif //WITH_ALEMBIC

@@ -351,12 +351,11 @@ static bool execute_pmx_export(int currentframe)
 }
 
 // ---------------------------------------------------------------------------
-PYBIND11_PLUGIN(mmdbridge_pmx) {
-	py::module m("mmdbridge_pmx");
+PYBIND11_MODULE(mmdbridge_pmx, m) {
+	m.doc() = "MMD Bridge PMX export module";
 	m.def("start_pmx_export", start_pmx_export);
 	m.def("end_pmx_export", end_pmx_export);
 	m.def("execute_pmx_export", execute_pmx_export);
-	return m.ptr();
 }
 
 #endif //WITH_PMX

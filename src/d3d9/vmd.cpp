@@ -672,12 +672,11 @@ static bool execute_vmd_export(const int currentframe)
 }
 
 // ---------------------------------------------------------------------------
-PYBIND11_PLUGIN(mmdbridge_vmd) {
-	py::module m("mmdbridge_vmd");
-	m.def("start_vmd_export", start_vmd_export);
-	m.def("end_vmd_export", end_vmd_export);
-	m.def("execute_vmd_export", execute_vmd_export);
-	return m.ptr();
+PYBIND11_MODULE(mmdbridge_vmd, m) {
+    m.doc() = "MMD Bridge VMD export module";
+    m.def("start_vmd_export", start_vmd_export);
+    m.def("end_vmd_export", end_vmd_export);
+    m.def("execute_vmd_export", execute_vmd_export);
 }
 
 #endif //WITH_VMD
