@@ -6443,7 +6443,7 @@ BOOL init()
 	//	mmdbridge_python_script.append("\r\n");
 	//}
 
-	//::MessageBoxA(NULL, "d3dx9_32.dll読み込みます", "hoge",MB_OK);
+	//::MessageBoxA(NULL, "Loading d3dx9_32.dll...", "hoge",MB_OK);
 	TCHAR system_path_buffer[1024]; // システムパス保存用
 	GetSystemDirectory(system_path_buffer, MAX_PATH );
 	std::wstring d3d9x_path(system_path_buffer);
@@ -6451,11 +6451,11 @@ BOOL init()
 	HMODULE d3d9x_module(LoadLibrary(d3d9x_path.c_str())); // オリジナルのD3D9X_32.DLLのモジュール
 
 	if (!d3d9x_module) {
-		::MessageBoxA(NULL, "d3dx9_32.dll読み込み失敗", "hoge",MB_OK);
+		::MessageBoxA(NULL, "Failed to load d3dx9_32.dll", "hoge",MB_OK);
 		return FALSE;
 	}
 
-	//::MessageBoxA(NULL, "d3dx9_32.dll読み込みました", "hoge",MB_OK);
+	//::MessageBoxA(NULL, "d3dx9_32.dll loaded successfully", "hoge",MB_OK);
 	//// オリジナルの関数ポインタを取得
 	original_D3DXAssembleShader = reinterpret_cast<HRESULT  (WINAPI*)(        LPCSTR                          pSrcData,         UINT                            SrcDataLen,         CONST D3DXMACRO*                pDefines,         LPD3DXINCLUDE                   pInclude,         DWORD                           Flags,         LPD3DXBUFFER*                   ppShader,         LPD3DXBUFFER*                   ppErrorMsgs)>(GetProcAddress(d3d9x_module, "D3DXAssembleShader"));
 	original_D3DXAssembleShaderFromFileA = reinterpret_cast<HRESULT  (WINAPI*)(        LPCSTR                          pSrcFile,         CONST D3DXMACRO*                pDefines,         LPD3DXINCLUDE                   pInclude,         DWORD                           Flags,         LPD3DXBUFFER*                   ppShader,         LPD3DXBUFFER*                   ppErrorMsgs)>(GetProcAddress(d3d9x_module, "D3DXAssembleShaderFromFileA"));

@@ -1045,7 +1045,16 @@ void run_python_script()
 			error_report << "No Python traceback available (PyErr_Occurred() returned false).\n"
 						<< "The error likely occurred in the C++/Python conversion layer.\n";
 		}
-		::MessageBoxA(NULL, error_report.str().c_str(), "MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
+		std::string error_report_utf8 = error_report.str();
+
+		int wide_char_size = ::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, NULL, 0);
+		if (wide_char_size > 0)
+		{
+			wchar_t* wide_char_buffer = new wchar_t[wide_char_size];
+			::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, wide_char_buffer, wide_char_size);
+			::MessageBoxW(NULL, wide_char_buffer, L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
+			delete[] wide_char_buffer;
+		}
 	}
 }
 //-----------------------------------------------------------Hook function pointers-----------------------------------------------------------
