@@ -64,7 +64,7 @@ namespace oguna
 			size = ::MultiByteToWideChar(CP_UTF8, 0, src, length, NULL, NULL);
 			buffer.resize(size * sizeof(wchar_t), 0);
 			MultiByteToWideChar(CP_UTF8, 0, src, length, (LPWSTR)buffer.data(), buffer.size());
-			out->swap(std::wstring((wchar_t*)buffer.data(), size));
+			out->assign((wchar_t*)buffer.data(), size);
 			return size;
 		}
 

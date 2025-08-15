@@ -181,14 +181,14 @@ namespace vmd
 			stream->write((char*)&ik_count, sizeof(int));
 			for (int i = 0; i < ik_count; i++)
 			{
-				const VmdIkEnable& ik_enable = this->ik_enable.at(i);
+				const VmdIkEnable& current_ik = this->ik_enable.at(i);
 
 				// VMD format: IK name field is 20 bytes (15 bytes name + 5 bytes padding)
-				stream->write(ik_enable.ik_name.c_str(), 15);
+				stream->write(current_ik.ik_name.c_str(), 15);
 				char ik_padding[5] = {0};  // Ensure last 5 bytes are zero
 				stream->write(ik_padding, 5);
 
-				stream->write((char*)&ik_enable.enable, sizeof(uint8_t));
+				stream->write((char*)&current_ik.enable, sizeof(uint8_t));
 			}
 		}
 	};

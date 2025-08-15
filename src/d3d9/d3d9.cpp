@@ -1479,8 +1479,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					}
 					break;
 			}
-			break;
-		return TRUE;
+			return TRUE;
 	}
 	return FALSE;
 }
