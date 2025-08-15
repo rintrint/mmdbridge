@@ -6451,7 +6451,12 @@ BOOL init()
 	HMODULE d3d9x_module(LoadLibrary(d3d9x_path.c_str())); // オリジナルのd3dx9_43.dllのモジュール
 
 	if (!d3d9x_module) {
-		::MessageBoxA(NULL, "Failed to load d3dx9_43.dll", "hoge",MB_OK);
+		::MessageBoxA(NULL,
+			"The file d3dx9_43.dll is missing.\n"
+			"This application requires the DirectX End-User Runtimes (June 2010).\n"
+			"Please install it and try again.",
+			"Missing DirectX Component",
+			MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
 
