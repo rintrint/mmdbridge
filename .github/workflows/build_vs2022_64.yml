@@ -103,14 +103,7 @@ jobs:
         dotnet nuget add source --username ${{github.repository_owner}} --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json"
 
     - name: Install dependencies via vcpkg
-      run: |
-        if [ ! -f "vcpkg.json" ]; then
-          echo "vcpkg.json not found! Installing packages manually."
-          vcpkg install alembic[hdf5]:x64-windows-release pybind11:x64-windows-release
-        else
-          echo "vcpkg.json found. Installing all dependencies from vcpkg.json."
-          vcpkg install --triplet x64-windows-release
-        fi
+      run: vcpkg install alembic[hdf5]:x64-windows-release pybind11:x64-windows-release
       shell: bash
 
     - name: cmake
