@@ -117,6 +117,11 @@ jobs:
       run: |
         msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
 
+    - name: List library files on build failure
+      if: failure()
+      run: ls -la "$VCPKG_INSTALLATION_ROOT/installed/x64-windows-release/lib/"*.lib
+      shell: bash
+
     - name: Install
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: |
