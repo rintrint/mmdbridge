@@ -12,12 +12,25 @@ ADD_COMPILE_OPTIONS(
     /EHsc
     # /W0
     # /W1
-    /W2
-    # /W3
+    # /W2
+    /W4
     # /W4 # High warning level (NOT /Wall)
     # /WX # Warnings as errors
-    # /analyze # Static analysis
-    # /wd4267
+    /analyze # Static analysis
+    /external:W0 # Disable warnings for external headers
+    /external:I${CMAKE_INSTALL_PREFIX}/include # Mark external include directories
+    /analyze:external- # Disable static analysis for external headers
+    /wd4267 # Disable "conversion from size_t to int, possible loss of data"
+    /wd6326 # Disable "potential comparison of constant with constant"
+
+    # unreferenced
+    /wd4100
+    /wd4189
+    /wd4505
+)
+# Suppress C++17 codecvt deprecation warnings
+ADD_COMPILE_DEFINITIONS(
+    _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 )
 
 # embeded pdb
