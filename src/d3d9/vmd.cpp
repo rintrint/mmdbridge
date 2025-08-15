@@ -544,7 +544,7 @@ static bool execute_vmd_export(const int currentframe)
 			bone_frame.name = ExpGetPmdBoneName(i, k);
 
             // Calculate VMD position
-            // Step 1: Calculate basic displacement offset (current local position - own initial position)
+            // Step 1: Subtract own initial position
             bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans[0];
             bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
             bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
