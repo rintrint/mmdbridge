@@ -31,6 +31,11 @@ namespace py = pybind11;
 #include "UMPath.h"
 #include "EncodingHelper.h"
 
+// Require Python 3.11 or higher
+#if PY_VERSION_HEX < 0x030B0000
+	#error "This code requires Python 3.11 or higher"
+#endif
+
 #ifdef _WIN64
 #define _LONG_PTR LONG_PTR
 #else
@@ -47,7 +52,7 @@ template <class T> std::wstring to_wstring(T value)
 	return umbase::UMStringUtil::number_to_wstring(value);
 }
 
-//ワイド文字列からutf8文字列に変換
+// Convert wide string to utf8 string
 static void to_string(std::string &dest, const std::wstring &src)
 {
 	dest = oguna::EncodingConverter::wstringTostring(src);
@@ -82,10 +87,10 @@ static void messagebox_matrix(D3DXMATRIX& mat, const char *title)
 		+to_string(mat._41)+" "+to_string(mat._42)+" "+to_string(mat._43)+" "+to_string(mat._44)+"\n").c_str(), title, MB_OK);
 }
 
-// IDirect3DDevice9のフック関数
+// Hook functions for IDirect3DDevice9
 void hookDevice(void);
 void originalDevice(void);
-// フックしたデバイス
+// Hooked device
 IDirect3DDevice9 *p_device = NULL;
 
 RenderData renderData;
@@ -104,14 +109,14 @@ static bool copyTextureToFiles(const std::wstring &texturePath);
 
 static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTexture9 * texture, bool copied);
 
-//------------------------------------------Python呼び出し--------------------------------------------------------
+//------------------------------------------Python invocation--------------------------------------------------------
 static int pre_frame = 0;
 static int presentCount = 0;
 static int process_frame = -1;
 static int ui_frame = 0;
 
-// 行列で3Dベクトルをトランスフォームする
-// D3DXVec3Transformとほぼ同じ
+// Transform 3D vector with matrix
+// Almost same as D3DXVec3Transform
 static void d3d_vector3_dir_transform(
 	D3DXVECTOR3 &dst,
 	const D3DXVECTOR3 &src,
@@ -145,11 +150,11 @@ static void d3d_vector3_transform(
 // python
 namespace
 {
-	std::wstring pythonName; // スクリプト名
-	int script_call_setting = 1; // スクリプト呼び出し設定
+	std::wstring pythonName; // Script name
+	int script_call_setting = 1; // Script call setting
 	std::map<int, int> exportedFrames;
 
-	/// スクリプトのリロード.
+	/// Reload script.
 	bool relaod_python_script()
 	{
 		BridgeParameter::mutable_instance().mmdbridge_python_script.clear();
@@ -923,10 +928,7 @@ void run_python_script()
 
 	if (Py_IsInitialized())
 	{
-		//
-		PyEval_InitThreads();
-		Py_InspectFlag = 0;
-
+		// Python already initialized, just execute script
 		if (script_call_setting > 1)
 		{
 			script_call_setting = 0;
@@ -934,42 +936,52 @@ void run_python_script()
 	}
 	else
 	{
-        std::wstring python_home = BridgeParameter::instance().base_path + L"python312";
-        std::wstring python_exe = python_home + L"/python.exe";
+		std::wstring python_home = BridgeParameter::instance().base_path + L"python312";
+		std::wstring python_exe = python_home + L"/python.exe";
 
-        if (!PathFileExistsW(python_exe.c_str()))
-        {
+		if (!PathFileExistsW(python_exe.c_str()))
+		{
 			std::wstring error_msg = L"Python environment not found.\n\n";
 			error_msg += L"Missing ";
 			error_msg += python_exe;
 			::MessageBoxW(NULL, error_msg.c_str(), L"Python Error", MB_OK);
-            return;
-        }
+			return;
+		}
 
-        InitAlembic();
-        InitVMD();
-        InitPMX();
-        PyImport_AppendInittab("mmdbridge", PyInit_mmdbridge);
-        Py_SetPythonHome(python_home.c_str());
-        Py_Initialize();
+		InitAlembic();
+		InitVMD();
+		InitPMX();
+		PyImport_AppendInittab("mmdbridge", PyInit_mmdbridge);
 
-		// 入力引数の設定
-		{
-			int argc = 1;
-			const std::wstring wpath = BridgeParameter::instance().base_path;
-			wchar_t *path[] = {
-				const_cast<wchar_t*>(wpath.c_str())
-			};
-			PySys_SetArgv(argc, path);
+		// Use modern PyConfig API
+		PyConfig config;
+		PyConfig_InitIsolatedConfig(&config);
+
+		// Set various configurations
+		PyConfig_SetString(&config, &config.home, python_home.c_str());
+		config.inspect = 0;  // Replace Py_InspectFlag = 0
+
+		// Set command line arguments
+		const std::wstring wpath = BridgeParameter::instance().base_path;
+		wchar_t* argv[] = { const_cast<wchar_t*>(wpath.c_str()) };
+		PyConfig_SetArgv(&config, 1, argv);
+
+		// Initialize Python
+		PyStatus status = Py_InitializeFromConfig(&config);
+		PyConfig_Clear(&config);
+
+		if (PyStatus_Exception(status)) {
+			::MessageBoxA(NULL, "Failed to initialize Python", "Python Error", MB_OK);
+			return;
 		}
 	}
 
 	try
 	{
-		// モジュール初期化.
+		// Module initialization.
 		auto global = py::dict(py::module::import("__main__").attr("__dict__"));
 		auto script = BridgeParameter::instance().mmdbridge_python_script;
-		// スクリプトの実行.
+		// Script execution.
 		auto res = py::eval<py::eval_statements>(
 			script.c_str(),
 			global);
@@ -1036,7 +1048,7 @@ void run_python_script()
 		::MessageBoxA(NULL, error_report.str().c_str(), "MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
 	}
 }
-//-----------------------------------------------------------Hook関数ポインタ-----------------------------------------------------------
+//-----------------------------------------------------------Hook function pointers-----------------------------------------------------------
 
 // Direct3DCreate9
 IDirect3D9 *(WINAPI *original_direct3d_create)(UINT)(NULL);
@@ -1060,11 +1072,11 @@ HRESULT (WINAPI *original_present)(IDirect3DDevice9*, const RECT*, const RECT*, 
 HRESULT (WINAPI *original_reset)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*)(NULL);
 
 // IDirect3DDevice9::BeginStateBlock
-// この関数で、lpVtblが修正されるので、lpVtbl書き換えなおす
+// This function modifies lpVtbl, so we need to restore lpVtbl
 HRESULT (WINAPI *original_begin_state_block)(IDirect3DDevice9 *)(NULL);
 
 // IDirect3DDevice9::EndStateBlock
-// この関数で、lpVtblが修正されるので、lpVtbl書き換えなおす
+// This function modifies lpVtbl, so we need to restore lpVtbl
 HRESULT (WINAPI *original_end_state_block)(IDirect3DDevice9*, IDirect3DStateBlock9**)(NULL);
 
 // IDirect3DDevice9::DrawIndexedPrimitive
@@ -1119,7 +1131,7 @@ static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstr
 	else { return false; }
 
 	wchar_t dir[MAX_PATH];
-	wcscpy(dir, texturePath.c_str());
+	wcscpy_s(dir, MAX_PATH, texturePath.c_str());
 	PathRemoveFileSpecW(dir);
 
 	for (size_t i = 0; i <  finishTextureBuffers.size(); ++i)
@@ -1172,7 +1184,7 @@ static bool copyTextureToFiles(const std::wstring &texturePath)
 
 static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTexture9 * texture, bool copied)
 {
-	// すでにfinishTexutureBufferにあるかどうか
+	// Check if already in finishTextureBuffer
 	bool found = false;
 	for (size_t i = 0; i < finishTextureBuffers.size(); ++i)
 	{
@@ -1181,7 +1193,7 @@ static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTextu
 
 	if (!found)
 	{
-		// 書き出していなかったので書き出しファイルリストに入れる
+		// Not written out yet, so add to write file list
 		std::pair<IDirect3DTexture9*, bool> texturebuffer(texture, copied);
 		finishTextureBuffers.push_back(texturebuffer);
 	}
@@ -1191,7 +1203,7 @@ static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTextu
 		TextureBuffers::iterator tit = renderData.textureBuffers.find(texture);
 		if(tit != renderData.textureBuffers.end())
 		{
-			// テクスチャをメモリに書き出し
+			// Write texture to memory
 			D3DLOCKED_RECT lockRect;
 			HRESULT isLocked = texture->lpVtbl->LockRect(texture, 0, &lockRect, NULL, D3DLOCK_READONLY);
 			if (isLocked != D3D_OK) { return false; }
@@ -1245,9 +1257,9 @@ static HRESULT WINAPI endScene(IDirect3DDevice9 *device)
 
 }
 
-HWND g_hWnd=NULL;	//ウィンドウハンドル
-HMENU g_hMenu=NULL;	//メニュー
-HWND g_hFrame = NULL; //フレーム数
+HWND g_hWnd=NULL;	// Window handle
+HMENU g_hMenu=NULL;	// Menu
+HWND g_hFrame = NULL; // Frame number
 
 
 static void GetFrame(HWND hWnd)
@@ -1275,10 +1287,10 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 	{
 		return FALSE;
 	}
-	return TRUE;	//continue
+	return TRUE;	// continue
 }
 
-//乗っ取り対象ウィンドウの検索
+// Search for target window to hijack
 static BOOL CALLBACK enumWindowsProc(HWND hWnd,LPARAM lParam)
 {
 	if (g_hWnd && g_hFrame) {
@@ -1288,7 +1300,7 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd,LPARAM lParam)
 	HANDLE hModule=(HANDLE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
 	if(GetModuleHandle(NULL)==hModule)
 	{
-		//自分のプロセスが作ったウィンドウを見つけた
+		// Found window created by our process
 		char szClassName[256];
 		GetClassNameA(hWnd,szClassName,sizeof(szClassName)/sizeof(szClassName[0]));
 
@@ -1297,10 +1309,10 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd,LPARAM lParam)
 		if (name == "Polygon Movie Maker"){
 			g_hWnd = hWnd;
 			EnumChildWindows(hWnd, enumChildWindowsProc, 0);
-			return FALSE;	//break
+			return FALSE;	// break
 		}
 	}
-	return TRUE;	//continue
+	return TRUE;	// continue
 }
 
 static void setMyMenu()
@@ -1340,7 +1352,7 @@ static void setMySize() {
 }
 
 LONG_PTR originalWndProc  =NULL;
-// このコード モジュールに含まれる関数の宣言を転送します:
+// Function declarations for this code module:
 INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE hInstance= NULL;
 HWND pluginDialog = NULL;
@@ -1369,7 +1381,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		break;
 	}
 
-	// サブクラスで処理しなかったメッセージは、本来のウィンドウプロシージャに処理してもらう
+	// Messages not handled by subclass are processed by the original window procedure
 	return CallWindowProc( (WNDPROC)originalWndProc, hWnd, msg, wp, lp );
 }
 
@@ -1391,7 +1403,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				}
 				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行する");
 				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行しない");
-				// ウインドウ生成時にはじめに表示するデータを指定
+				// Specify data to display initially when window is created
 				LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, -1, (LPARAM)parameter.python_script_name.c_str());
 				SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
 				SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
@@ -1407,7 +1419,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-				case IDOK: // ボタンが押されたとき
+				case IDOK: // Button was pressed
 					{
 						UINT num1 = (UINT)SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
 						if (num1 < parameter.python_script_name_list.size())
@@ -1480,13 +1492,13 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 	return FALSE;
 }
 
-//ウィンドウの乗っ取り
+// Window hijacking
 static void overrideGLWindow()
 {
 	EnumWindows(enumWindowsProc,0);
 	setMyMenu();
 	setMySize();
-	// サブクラス化
+	// Subclassing
 	if(g_hWnd && !originalWndProc){
 		originalWndProc = GetWindowLongPtr(g_hWnd,GWLP_WNDPROC);
 		SetWindowLongPtr(g_hWnd,GWLP_WNDPROC,(_LONG_PTR)overrideWndProc);
@@ -1558,7 +1570,7 @@ static HRESULT WINAPI present(
 static HRESULT WINAPI reset(IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	HRESULT res = (*original_reset)(device, pPresentationParameters);
-	::MessageBox(NULL, _T("MMDBridgeは、3D vision 未対応です"), _T("HOGE"), MB_OK);
+	::MessageBox(NULL, _T("MMDBridge does not support 3D Vision"), _T("HOGE"), MB_OK);
 	return res;
 }
 
@@ -1649,7 +1661,7 @@ static void getTextureParameter(TextureParameter &param)
 	}
 }
 
-// 頂点・法線バッファ・テクスチャをメモリに書き込み
+// Write vertex/normal buffer/texture to memory
 static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 {
 	const int currentTechnic = ExpGetCurrentTechnic();
@@ -1668,7 +1680,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 			RenderBufferMap& renderedBuffers = BridgeParameter::mutable_instance().render_buffer_map;
 			pStreamData->lpVtbl->Lock(pStreamData, 0, 0, (void**)&pVertexBuf, D3DLOCK_READONLY);
 
-			// FVF取得
+			// Get FVF
 			DWORD fvf;
 			device->lpVtbl->GetFVF(device, &fvf);
 			if (renderData.fvf != fvf)
@@ -1722,7 +1734,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				}
 			}
 
-			// 頂点
+			// Vertices
 			if (renderData.pos_xyz)
 			{
 				int initialVertexSize = renderedBuffer.vertecies.size();
@@ -1746,9 +1758,9 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				bytePos += (sizeof(DWORD) * 3);
 			}
 
-			// ウェイト（略）
+			// Weight (skip)
 
-			// 法線
+			// Normals
 			if (renderData.normal)
 			{
 				for (size_t i = bytePos; i < vit->second; i += renderData.stride)
@@ -1760,7 +1772,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				bytePos += (sizeof(DWORD) * 3);
 			}
 
-			// 頂点カラー
+			// Vertex color
 			if (renderData.diffuse)
 			{
 				for (size_t i = 0; i < vit->second; i += renderData.stride)
@@ -1791,7 +1803,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 
 			pStreamData->lpVtbl->Unlock(pStreamData);
 
-			// メモリに保存
+			// Save to memory
 			finishBuffers.push_back(pStreamData);
 			renderedBuffers[pStreamData] = renderedBuffer;
 		}
@@ -1815,7 +1827,7 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 	bool notFoundObjectMaterial = (renderedMaterials.find(currentObject) == renderedMaterials.end());
 	if (notFoundObjectMaterial || renderedMaterials[currentObject].find(currentMaterial) == renderedMaterials[currentObject].end())
 	{
-		// D3DMATERIAL9 取得
+		// Get D3DMATERIAL9
 		D3DMATERIAL9 material = ExpGetPmdMaterial(currentObject, currentMaterial);
 		//p_device->lpVtbl->GetMaterial(p_device, &material);
 
@@ -1835,7 +1847,7 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 		mat->emissive.z = material.Emissive.b;
 		mat->power = material.Power;
 
-		// シェーダー時
+		// Shader time
 		if (currentTechnic == 2) {
 			LPD3DXEFFECT* effect =  UMGetEffect();
 
@@ -1989,7 +2001,7 @@ static void writeLightToMemory(IDirect3DDevice9 *device, RenderedBuffer &rendere
 		D3DXVECTOR3 v(light.Direction.x, light.Direction.y, light.Direction.z);
 		D3DXVECTOR4 dst;
 		//D3DXVec3Transform(&dst, &v, &renderedBuffer.world);
-		// NOTE: 平行移動成分を潰さなくても、回転するだけの関数がありそうな気がする。
+		// NOTE: There might be a function that only rotates without crushing the parallel translation component.
 		D3DXMATRIX m = renderedBuffer.world_inv;
 		// ugly hack.
 		m._41 = m._42 = m._43 = 0; m._14 = m._24 = m._34 = m._44 = 0;
@@ -2000,8 +2012,8 @@ static void writeLightToMemory(IDirect3DDevice9 *device, RenderedBuffer &rendere
 		umlight.z = dst.z;
 
 
-		// SpecularがMMDのUIで設定した値に一番近い。
-		// ただし col * 256.0 / 255.0しないと0～1の範囲にならない。
+		// Specular is closest to the value set in MMD UI.
+		// But you need to col * 256.0 / 255.0 to be in the range 0~1.
 		// see: http://ch.nicovideo.jp/sovoro_mmd/blomaga/ar319862
 		FLOAT s = 256.0f / 255.0f;
 		renderedBuffer.light_color.x = light.Specular.r * s;
@@ -2041,14 +2053,14 @@ static HRESULT WINAPI drawIndexedPrimitive(
 
 	if (validBuffer && validCallSetting && validFrame && validTechniq && type == D3DPT_TRIANGLELIST)
 	{
-		// レンダリング開始
+		// Start rendering
 		if (renderData.pIndexData && renderData.pStreamData && renderData.pos_xyz)
 		{
-			// テクスチャ情報取得
+			// Get texture information
 			TextureParameter textureParameter;
 			getTextureParameter(textureParameter);
 
-			// テクスチャをメモリに保存
+			// Save texture to memory
 			if (textureParameter.texture)
 			{
 				if (!textureParameter.textureName.empty())
@@ -2061,20 +2073,20 @@ static HRESULT WINAPI drawIndexedPrimitive(
 				}
 			}
 
-			// 頂点バッファ・法線バッファ・テクスチャバッファをメモリに書き込み
+			// Write vertex buffer/normal buffer/texture buffer to memory
 			if (!writeBuffersToMemory(device))
 			{
 				return (*original_draw_indexed_primitive)(device, type, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
 			}
 
-			// マテリアルをメモリに書き込み
+			// Write material to memory
 			if (!writeMaterialsToMemory(textureParameter))
 			{
 				return  (*original_draw_indexed_primitive)(device, type, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
 			}
 
-			// インデックスバッファをメモリに書き込み
-			// 法線がない場合法線を計算
+			// Write index buffer to memory
+			// Calculate normal if no normal
 			IDirect3DVertexBuffer9 *pStreamData = renderData.pStreamData;
 			IDirect3DIndexBuffer9 *pIndexData = renderData.pIndexData;
 
@@ -2089,14 +2101,14 @@ static HRESULT WINAPI drawIndexedPrimitive(
 					RenderedSurface &renderedSurface = renderedBuffer.material_map[currentMaterial]->surface;
 					renderedSurface.faces.clear();
 
-					// 変換行列をメモリに書き込み
+					// Write transformation matrix to memory
 					writeMatrixToMemory(device, renderedBuffer);
 
-					// ライトをメモリに書き込み
+					// Write light to memory
 					writeLightToMemory(device, renderedBuffer);
 
-					// インデックスバッファをメモリに書き込み
-					// 法線を修正
+					// Write index buffer to memory
+					// Fix normals
 					for (size_t i = 0, size = primitiveCount * 3; i < size; i += 3)
 					{
 						UMVec3i face;
@@ -2265,7 +2277,7 @@ static HRESULT WINAPI setIndices(IDirect3DDevice9 *device, IDirect3DIndexBuffer9
 }
 
 // IDirect3DDevice9::BeginStateBlock
-// この関数で、lpVtblが修正されるので、lpVtbl書き換えなおす
+// This function modifies lpVtbl, so we need to restore lpVtbl
 static HRESULT WINAPI beginStateBlock(IDirect3DDevice9 *device)
 {
 	originalDevice();
@@ -2278,7 +2290,7 @@ static HRESULT WINAPI beginStateBlock(IDirect3DDevice9 *device)
 }
 
 // IDirect3DDevice9::EndStateBlock
-// この関数で、lpVtblが修正されるので、lpVtbl書き換えなおす
+// This function modifies lpVtbl, so we need to restore lpVtbl
 static HRESULT WINAPI endStateBlock(IDirect3DDevice9 *device, IDirect3DStateBlock9 **ppSB)
 {
 	originalDevice();
@@ -2294,7 +2306,7 @@ static void hookDevice()
 {
 	if (p_device)
 	{
-		// 書き込み属性付与
+		// Grant write attribute
 		DWORD old_protect;
 		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
@@ -2314,7 +2326,7 @@ static void hookDevice()
 		p_device->lpVtbl->CreateTexture = createTexture;
 		//p_device->lpVtbl->SetTextureStageState = setTextureStageState;
 
-		// 書き込み属性元に戻す
+		// Restore original write attribute
 		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), old_protect, &old_protect);
 	}
 }
@@ -2323,7 +2335,7 @@ static void originalDevice()
 {
 	if (p_device)
 	{
-		// 書き込み属性付与
+		// Grant write attribute
 		DWORD old_protect;
 		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
@@ -2343,7 +2355,7 @@ static void originalDevice()
 		p_device->lpVtbl->CreateTexture = original_create_texture;
 		//p_device->lpVtbl->SetTextureStageState = setTextureStageState;
 
-		// 書き込み属性元に戻す
+		// Restore original write attribute
 		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), old_protect, &old_protect);
 	}
 }
@@ -2417,18 +2429,18 @@ static HRESULT WINAPI createDeviceEx(
 }
 
 extern "C" {
-	// 偽Direct3DCreate9
+	// Fake Direct3DCreate9
 	IDirect3D9 * WINAPI Direct3DCreate9(UINT SDKVersion) {
 		IDirect3D9 *direct3d((*original_direct3d_create)(SDKVersion));
 		original_create_device = direct3d->lpVtbl->CreateDevice;
 
-		// 書き込み属性付与
+		// Grant write attribute
 		DWORD old_protect;
 		VirtualProtect(reinterpret_cast<void *>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
 		direct3d->lpVtbl->CreateDevice = createDevice;
 
-		// 書き込み属性元に戻す
+		// Restore original write attribute
 		VirtualProtect(reinterpret_cast<void *>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), old_protect, &old_protect);
 
 		return direct3d;
@@ -2443,13 +2455,13 @@ extern "C" {
 			original_create_deviceex = direct3d9ex->lpVtbl->CreateDeviceEx;
 			if (original_create_deviceex)
 			{
-				// 書き込み属性付与
+				// Grant write attribute
 				DWORD old_protect;
 				VirtualProtect(reinterpret_cast<void *>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
 				direct3d9ex->lpVtbl->CreateDeviceEx = createDeviceEx;
 
-				// 書き込み属性元に戻す
+				// Restore original write attribute
 				VirtualProtect(reinterpret_cast<void *>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), old_protect, &old_protect);
 
 				*ppD3D = direct3d9ex;
@@ -2463,7 +2475,7 @@ extern "C" {
 
 bool d3d9_initialize()
 {
-	// MMDフルパスの取得.
+	// Get MMD full path.
 	{
 		TCHAR app_full_path[MAX_PATH] = { 0 };
 		GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
@@ -2475,20 +2487,20 @@ bool d3d9_initialize()
 	reload_python_file_paths();
 	relaod_python_script();
 
-	// システムパス保存用
+	// System path storage
 	TCHAR system_path_buffer[MAX_PATH] = { 0 };
 	GetSystemDirectory(system_path_buffer, sizeof(system_path_buffer) / sizeof(TCHAR));
 	std::wstring d3d9_path(system_path_buffer);
 	replace(d3d9_path.begin(), d3d9_path.end(), '\\', '/');
 	d3d9_path.append(L"/D3D9.DLL");
-	// オリジナルのD3D9.DLLのモジュール
+	// Original D3D9.DLL module
 	HMODULE d3d9_module(LoadLibrary(d3d9_path.c_str()));
 
 	if (!d3d9_module) {
 		return FALSE;
 	}
 
-	// オリジナルDirect3DCreate9の関数ポインタを取得
+	// Get original Direct3DCreate9 function pointer
 	original_direct3d_create = reinterpret_cast<IDirect3D9 *(WINAPI*)(UINT)>(GetProcAddress(d3d9_module, "Direct3DCreate9"));
 	if (!original_direct3d_create) {
 		return FALSE;
@@ -2509,7 +2521,7 @@ void d3d9_dispose()
 	DisposeAlembic();
 }
 
-// DLLエントリポイント
+// DLL entry point
 BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 {
 	switch (reason)
@@ -2524,4 +2536,3 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 	}
 	return TRUE;
 }
-
