@@ -19,7 +19,7 @@ VCPKG_DIR> .\vcpkg.exe install alembic[hdf5]:x64-windows pybind11:x64-windows
 The following packages will be built and installed:
     alembic:x64-windows
   * hdf5:x64-windows
-  * ilmbase:x64-windows
+  * imath:x64-windows
   * msmpi:x64-windows
     pybind11:x64-windows
   * python312:x64-windows
@@ -44,12 +44,24 @@ ERROR
 VCPKG_DIR
     installed
         x64-windows
-            bin
-                alembic.dll
-                python312.dll
             include
                 pybind11
             lib
+                Alembic.lib
+                hdf5.lib
+                hdf5_hl.lib
+                Imath-3_1.lib
+                zlib.lib
+                szip.lib
+                python312.lib
+            bin
+                Alembic.dll
+                hdf5.dll
+                hdf5_hl.dll
+                Imath-3_*.dll
+                zlib1.dll
+                szip.dll
+                python312.dll
 ```
 
 ``VCPKG_DIR/installed/x64-windows``以下にビルド成果物が格納されるので以降の手順でこれを利用します。
@@ -60,25 +72,6 @@ VCPKG_DIR
 ```
 VCPKG_DIR="C:\vcpkg"
 ```
-
-# DirectX SDKの準備
-昔のD3D9が必要なのでSDKをインストールする必要があります。
-
-* https://www.microsoft.com/en-us/download/details.aspx?id=6812
-
-インストールパスを環境変数``DXSDK_DIR``に設定してください。
-
-例。
-
-```
-DXSDK_DIR=C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)
-```
-
-あとで、mmdbridgeをビルドするときにエラーが出るのですが下記を参考に修正してください。
-
-
-
-ドキュメントを整理して、「DirectX SDKの準備」セクションから「MikuMikuDance_x64\Data\MMDExport.h」の部分を独立させるということですね。以下のような構成にすることをお勧めします：
 
 ## DirectX SDKの準備
 昔のD3D9が必要なのでSDKをインストールする必要があります。
