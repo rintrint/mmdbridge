@@ -1,6 +1,4 @@
-@echo off
 FOR /F "TOKENS=1,2,*" %%A IN ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\App Paths\devenv.exe"') DO SET VSPATH=%%~dC%%~pC
-@echo on
 
 set CMAKE="%VSPATH%CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe"
 set BUILD_DIR="build_vs2022_64"
