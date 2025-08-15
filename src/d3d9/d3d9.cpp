@@ -1030,8 +1030,7 @@ void run_python_script()
 			}
 			PyErr_Clear();
 		} else {
-			error_report << "No Python traceback available (PyErr_Occurred() returned false).\n"
-						<< "The error likely occurred in the C++/Python conversion layer.\n";
+			error_report << "No Python traceback available (PyErr_Occurred() returned false).\n";
 		}
 		std::string error_report_utf8 = error_report.str();
 
