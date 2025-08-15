@@ -95,4 +95,3 @@ INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts
 INSTALL(DIRECTORY
     DESTINATION ${MMD_DIR}/out
 )
-
