@@ -18,10 +18,6 @@ INCLUDE_DIRECTORIES(
     MikuMikuFormats
     ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/include
-    ${ilmbase_INCLUDE_DIRS}
-    ${Alembic_INCLUDE_DIRS}
-    ${pybind11_INCLUDE_DIRS}
-    ${Imath_INCLUDE_DIRS}
 )
 LINK_DIRECTORIES(
     ${MMD_DIR}/Data
@@ -35,20 +31,18 @@ ADD_DEFINITIONS(
     -DWITH_PMX
     -DWITH_ALEMBIC
 )
-
-ADD_COMPILE_OPTIONS(/utf-8)
-
 ADD_LIBRARY(d3d9 SHARED
     ${d3d9_sources}
 )
 TARGET_LINK_LIBRARIES(d3d9
-    ${PYTHON_LIBRARIES}
     Shlwapi
     WinMM
     d3dx9_43
     MMDExport
     MikuMikuFormats
-    ${ALEMBIC_LIBRARIES}
+    Alembic::Alembic
+    pybind11::embed
+    Python3::Python
 )
 INSTALL(TARGETS d3d9
     RUNTIME DESTINATION ${MMD_DIR}

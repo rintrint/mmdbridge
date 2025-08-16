@@ -10,3 +10,4 @@ if "%VCPKG_TARGET_TRIPLET%"=="" (
 )
 %CMAKE% -D CMAKE_INSTALL_PREFIX=%VCPKG_DIR%/installed/%VCPKG_TARGET_TRIPLET% -DCMAKE_TOOLCHAIN_FILE=%VCPKG_DIR%/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 17 2022" ..
 popd
+cmd /k

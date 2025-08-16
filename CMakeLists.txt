@@ -13,89 +13,76 @@ ADD_COMPILE_OPTIONS(
     # /W0
     # /W1
     # /W2
-    /W4
-    # /W4 # High warning level (NOT /Wall)
-    # /WX # Warnings as errors
-    /analyze # Static analysis
-    /external:W0 # Disable warnings for external headers
+    # /W3
+    /W4 # high warning level (NOT /Wall)
+    # /Wall
+    # /WX # warnings as errors
+    /analyze # static analysis
+    /external:W0 # disable warnings for external headers
     /external:I${CMAKE_INSTALL_PREFIX}/include # Mark external include directories
-    /analyze:external- # Disable static analysis for external headers
-    /wd4267 # Disable "conversion from size_t to int, possible loss of data"
-    /wd6326 # Disable "potential comparison of constant with constant"
+    /analyze:external- # disable static analysis for external headers
+    /wd4267 # disable "conversion from size_t to int, possible loss of data"
+    /wd6326 # disable "potential comparison of constant with constant"
 
-    # unreferenced
+    # unreferenced warnings
     /wd4100
     /wd4189
     /wd4505
+    /wd4514
+    /wd5245
+
+    /wd5045 # disable Spectre mitigation warnings
 )
 # Suppress C++17 codecvt deprecation warnings
 ADD_COMPILE_DEFINITIONS(
     _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 )
 
-# embeded pdb
+# embedded pdb
 ADD_COMPILE_OPTIONS(
     /Z7
 )
 
-# path settings
-#FIND_PACKAGE(PythonLibs REQUIRED)
-SET(PYTHON_INCLUDE_DIRS
-    ${CMAKE_INSTALL_PREFIX}/include/python3.12)
-SET(PYTHON_LIBRARIES
-    ${CMAKE_INSTALL_PREFIX}/lib/python312.lib)
+# find dependencies
+SET(PYBIND11_FINDPYTHON ON)
+FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
+FIND_PACKAGE(pybind11 CONFIG REQUIRED)
+FIND_PACKAGE(Alembic CONFIG REQUIRED)
 
-#FIND_PACKAGE(pybind11 REQUIRED)
-SET(pybind11_INCLUDE_DIRS
-    ${CMAKE_INSTALL_PREFIX}/include
-    ${PYTHON_INCLUDE_DIRS}
-)
+# set paths
 GET_FILENAME_COMPONENT(MMD_DIR
     ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_x64
     ABSOLUTE
 )
-#FIND_PACKAGE(ilmbase REQUIRED)
-SET(ilmbase_INCLUDE_DIRS
-    ${CMAKE_INSTALL_PREFIX}/include/OpenEXR)
-SET(Imath_INCLUDE_DIRS
-    ${CMAKE_INSTALL_PREFIX}/include/Imath)
-#FIND_PACKAGE(Alembic REQUIRED)
-SET(ALEMBIC_INCLUDE_DIRS
-    ${CMAKE_INSTALL_PREFIX}/include)
-FILE(GLOB IMATH_LIBS "${CMAKE_INSTALL_PREFIX}/lib/Imath-3_*.lib")
-LIST(SORT IMATH_LIBS)
-LIST(GET IMATH_LIBS -1 IMATH_LIB)
-SET(ALEMBIC_LIBRARIES
-    ${CMAKE_INSTALL_PREFIX}/lib/Alembic.lib
-    ${CMAKE_INSTALL_PREFIX}/lib/hdf5.lib
-    ${CMAKE_INSTALL_PREFIX}/lib/hdf5_hl.lib
-    ${IMATH_LIB}
-    ${CMAKE_INSTALL_PREFIX}/lib/zlib.lib
-    ${CMAKE_INSTALL_PREFIX}/lib/szip.lib
-)
-# projects
+
+# build targets
 ADD_SUBDIRECTORY(src)
 
-FILE(GLOB IMATH_DLLS "${CMAKE_INSTALL_PREFIX}/bin/Imath-3_*.dll")
-LIST(SORT IMATH_DLLS)
-LIST(GET IMATH_DLLS -1 IMATH_DLL)
-INSTALL(FILES
-    ${CMAKE_INSTALL_PREFIX}/bin/Alembic.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/hdf5_hl.dll
-    ${IMATH_DLL}
-    ${CMAKE_INSTALL_PREFIX}/bin/zlib1.dll
-    ${CMAKE_INSTALL_PREFIX}/bin/szip.dll
+# install runtime dependencies
+# Release
+INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Release/
     DESTINATION ${MMD_DIR}
+    CONFIGURATIONS Release RelWithDebInfo MinSizeRel
+    FILES_MATCHING
+    PATTERN "*.dll"
 )
+# Debug
+INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Debug/
+    DESTINATION ${MMD_DIR}
+    CONFIGURATIONS Debug
+    FILES_MATCHING
+    PATTERN "*.dll"
+    PATTERN "*.pdb"
+)
+
+# install Python scripts
 FILE(GLOB python_scripts Release/Win32/*.py
 )
 INSTALL(FILES ${python_scripts}
     DESTINATION ${MMD_DIR}
 )
 
-FILE(INSTALL ${CMAKE_INSTALL_PREFIX}/lib/python312.lib DESTINATION ${MMD_DIR})
-
+# install Python runtime
 INSTALL(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     DESTINATION ${MMD_DIR}
     PATTERN "test*" EXCLUDE
@@ -122,6 +109,8 @@ INSTALL(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     PATTERN "dbm*" EXCLUDE
     PATTERN "__phello__*" EXCLUDE
 )
+
+# install additional resources
 INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts
     DESTINATION ${MMD_DIR}
 )

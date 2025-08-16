@@ -13,55 +13,9 @@ mmdbridgeのビルドが依存しているalembic, pybind11のセットアップ
 
 ``chcp 65001``が必要なのに注意。
 
-```powershell
-VCPKG_DIR> chcp 65001
-VCPKG_DIR> .\vcpkg.exe install alembic[hdf5]:x64-windows pybind11:x64-windows
-The following packages will be built and installed:
-    alembic:x64-windows
-  * hdf5:x64-windows
-  * imath:x64-windows
-  * msmpi:x64-windows
-    pybind11:x64-windows
-  * python312:x64-windows
-  * szip:x64-windows
-  * zlib:x64-windows
-Additional packages (*) will be installed to complete this operation.
-```
-
-MSMPIがインストールされていない環境だとmsmpiビルドの途中でエラーになります。
-
-ERROR
-```
-    Please install the MSMPI redistributable package before trying to install this port.
-    The appropriate installer has been downloaded to:
-      D:/vcpkg/downloads/MSMpiSetup-8.0.exe
-```
-
-メッセージに書いてある ``VCPKG_DIR/downloads/MSMpiSetup-8.0exe``を手動実行してコマンドを再実行すればインストールできました。権限の問題かと思われます。
-ビルドが完了すると以下のようなディレクトリ構成が出力されます。
-
-```
-VCPKG_DIR
-    installed
-        x64-windows
-            include
-                pybind11
-            lib
-                Alembic.lib
-                hdf5.lib
-                hdf5_hl.lib
-                Imath-3_1.lib
-                zlib.lib
-                szip.lib
-                python312.lib
-            bin
-                Alembic.dll
-                hdf5.dll
-                hdf5_hl.dll
-                Imath-3_*.dll
-                zlib1.dll
-                szip.dll
-                python312.dll
+```cmd
+chcp 65001
+vcpkg install alembic[hdf5]:x64-windows pybind11:x64-windows
 ```
 
 ``VCPKG_DIR/installed/x64-windows``以下にビルド成果物が格納されるので以降の手順でこれを利用します。
@@ -136,4 +90,3 @@ mmdbridge
 
 # mmdbridgeのデバッグ実行
 INSTALLプロジェクトのプロパティ - デバッグ - コマンド - 参照で``MikuMikuDance_x64/MikuMikuDance.exe``を指定して``F5``実行するとデバッガをアタッチできます。デバッグビルドには、``/Z7``コンパイルオプションでpdbを埋め込んであります。
-
