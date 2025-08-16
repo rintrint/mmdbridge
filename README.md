@@ -19,4 +19,4 @@ See [Build Instructions](how_to_build.md)
 This project is licensed under the MIT License. Please refer to [LICENSE.txt](LICENSE.txt).
 
 ## Contributors
-[MMDBridge is open source and anyone can participate in development](graphs/contributors)
+[MMDBridge is open source and anyone can participate in development.](https://github.com/rintrint/mmdbridge/graphs/contributors)
