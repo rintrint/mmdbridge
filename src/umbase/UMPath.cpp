@@ -124,7 +124,7 @@ umstring UMPath::module_absolute_path()
 	umstring none;
 	return none;
 #else
-	TCHAR path[1024];
+	TCHAR path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path) / sizeof(TCHAR));
 	return UMStringUtil::wstring_to_utf16(path);
 #endif // WITH_EMSCRIPTEN
@@ -135,19 +135,19 @@ umstring UMPath::resource_absolute_path(const umstring& file_name)
 #ifdef WITH_EMSCRIPTEN
 	return umstring("resource/") + file_name;
 #else
-	TCHAR path[1024];
+	TCHAR path[MAX_PATH];
 	GetModuleFileName(NULL, path, sizeof(path) / sizeof(TCHAR));
 	PathRemoveFileSpec(path);
 	SetCurrentDirectory(path);
 	SetCurrentDirectory(_T("../../../resource/"));
-	GetCurrentDirectory(1024, path);
+	GetCurrentDirectory(MAX_PATH, path);
 	std::wstring inpath = path + std::wstring(_T("\\")) + UMStringUtil::utf16_to_wstring(file_name);
 	// honban you kozaiku
 	if (! ::PathFileExistsW(inpath.c_str()))
 	{
 		SetCurrentDirectory(path);
 		SetCurrentDirectory(_T("./resource/"));
-		GetCurrentDirectory(1024, path);
+		GetCurrentDirectory(MAX_PATH, path);
 		inpath = path + std::wstring(_T("\\")) + UMStringUtil::utf16_to_wstring(file_name);
 	}
 	return UMStringUtil::wstring_to_utf16(inpath);

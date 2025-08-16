@@ -1250,8 +1250,8 @@ static HRESULT WINAPI endScene(IDirect3DDevice9 *device)
 
 }
 
-HWND g_hWnd=NULL;	// Window handle
-HMENU g_hMenu=NULL;	// Menu
+HWND g_hWnd=NULL; // Window handle
+HMENU g_hMenu=NULL; // Menu
 HWND g_hFrame = NULL; // Frame number
 
 
@@ -1280,7 +1280,7 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 	{
 		return FALSE;
 	}
-	return TRUE;	// continue
+	return TRUE; // continue
 }
 
 // Search for target window to hijack
@@ -1302,10 +1302,10 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd,LPARAM lParam)
 		if (name == "Polygon Movie Maker"){
 			g_hWnd = hWnd;
 			EnumChildWindows(hWnd, enumChildWindowsProc, 0);
-			return FALSE;	// break
+			return FALSE; // break
 		}
 	}
-	return TRUE;	// continue
+	return TRUE; // continue
 }
 
 static void setMyMenu()
@@ -2471,8 +2471,11 @@ bool d3d9_initialize()
 	{
 		TCHAR app_full_path[MAX_PATH] = { 0 };
 		GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
+		PathRemoveFileSpec(app_full_path);
+		PathAddBackslash(app_full_path);
+
 		std::wstring path(app_full_path);
-		BridgeParameter::mutable_instance().base_path = path.substr(0, path.rfind(L"MikuMikuDance.exe"));
+		BridgeParameter::mutable_instance().base_path = path;
 		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), '\\', '/');
 	}
 

@@ -8,8 +8,8 @@
 #define __MMDEXPORT_H__
 
 /////////////// _EXPORT定義  //////////////////
-#define		_EXPORT	__declspec(dllexport)			// MMD本体用	(dll側ではコメントアウトする事)
-//#define	_EXPORT	__declspec(dllimport)			// dll用		(dll側ではコメントアウトを外す事)
+//#define	_EXPORT	__declspec(dllexport)			// MMD本体用	(dll側ではコメントアウトする事)
+#define		_EXPORT	__declspec(dllimport)			// dll用		(dll側ではコメントアウトを外す事)
 
 
 ///////////// エクスポート関数 ////////////////

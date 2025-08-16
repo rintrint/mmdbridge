@@ -6427,24 +6427,12 @@ extern "C" {
 BOOL init()
 {
 
-	TCHAR app_full_path[1024];	// アプリフルパス
+	TCHAR app_full_path[MAX_PATH]; // アプリフルパス
 
 	GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
 
-	//std::wstring pythonScript(app_full_path);
-	//pythonScript = pythonScript.substr(0, pythonScript.find_last_of(_T("MikuMikuDance.exe")) -16);
-	//pythonScript.append(_T("mmdbridge.py"));
-
-	//std::ifstream ifs(pythonScript.c_str());
-	//if (!ifs) return false;
-	//char buf[2048];
-	//while (ifs.getline( buf, sizeof(buf))) {
-	//	mmdbridge_python_script.append(buf);
-	//	mmdbridge_python_script.append("\r\n");
-	//}
-
 	//::MessageBoxA(NULL, "Loading d3dx9_43.dll...", "hoge",MB_OK);
-	TCHAR system_path_buffer[1024]; // システムパス保存用
+	TCHAR system_path_buffer[MAX_PATH]; // システムパス保存用
 	GetSystemDirectory(system_path_buffer, MAX_PATH );
 	std::wstring d3d9x_path(system_path_buffer);
 	d3d9x_path.append(_T("\\d3dx9_43.dll"));
