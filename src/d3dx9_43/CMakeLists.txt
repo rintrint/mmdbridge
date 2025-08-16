@@ -1,22 +1,22 @@
-INCLUDE_DIRECTORIES(
+include_directories(
     $ENV{DXSDK_DIR}/include
 )
-ADD_DEFINITIONS(
+add_definitions(
     -DNOMINMAX
     -DUNICODE
     -D_UNICODE
 )
-LINK_DIRECTORIES(
+link_directories(
     $ENV{DXSDK_DIR}/lib/x64
 )
-ADD_LIBRARY(d3dx9_43 SHARED
+add_library(d3dx9_43 SHARED
     d3dx9.cpp
     d3dx9.h
     hook64.def
 )
-TARGET_LINK_LIBRARIES(d3dx9_43
+target_link_libraries(d3dx9_43
     Shlwapi
 )
-INSTALL(TARGETS d3dx9_43
+install(TARGETS d3dx9_43
     RUNTIME DESTINATION ${MMD_DIR}
 )

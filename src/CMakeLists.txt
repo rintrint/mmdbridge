@@ -1,10 +1,10 @@
-ADD_SUBDIRECTORY(MikuMikuFormats)
-ADD_SUBDIRECTORY(d3dx9_43)
+add_subdirectory(MikuMikuFormats)
+add_subdirectory(d3dx9_43)
 
 ##############################################################################
 # d3d9
 ##############################################################################
-FILE(GLOB d3d9_sources
+file(GLOB d3d9_sources
     d3d9/*.cpp
     d3d9/*.h
     d3d9/d3d9.rc
@@ -12,18 +12,18 @@ FILE(GLOB d3d9_sources
     umbase/*.cpp
     umbase/*.h
 )
-INCLUDE_DIRECTORIES(
+include_directories(
     umbase
     d3dx9_43
     MikuMikuFormats
     ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/include
 )
-LINK_DIRECTORIES(
+link_directories(
     ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/lib/x64
 )
-ADD_DEFINITIONS(
+add_definitions(
     -DNOMINMAX
     -DUNICODE
     -D_UNICODE
@@ -31,10 +31,10 @@ ADD_DEFINITIONS(
     -DWITH_PMX
     -DWITH_ALEMBIC
 )
-ADD_LIBRARY(d3d9 SHARED
+add_library(d3d9 SHARED
     ${d3d9_sources}
 )
-TARGET_LINK_LIBRARIES(d3d9
+target_link_libraries(d3d9
     Shlwapi
     WinMM
     d3dx9_43
@@ -44,6 +44,6 @@ TARGET_LINK_LIBRARIES(d3d9
     pybind11::embed
     Python3::Python
 )
-INSTALL(TARGETS d3d9
+install(TARGETS d3d9
     RUNTIME DESTINATION ${MMD_DIR}
 )

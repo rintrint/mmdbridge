@@ -1,7 +1,7 @@
-FILE(GLOB MikuMikuFormatsSources
+file(GLOB MikuMikuFormatsSources
     *.cpp
     *.h
 )
-ADD_LIBRARY(MikuMikuFormats
+add_library(MikuMikuFormats
     ${MikuMikuFormatsSources}
 )

@@ -1,14 +1,14 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.20)
-PROJECT(mmdbridge) # .sln
+cmake_minimum_required(VERSION 3.20)
+project(mmdbridge) # .sln
 
-SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-ADD_COMPILE_OPTIONS(/utf-8)
+add_compile_options(/utf-8)
 
 # shared compiler options
-ADD_COMPILE_OPTIONS(
+add_compile_options(
     /EHsc
     # /W0
     # /W1
@@ -34,46 +34,46 @@ ADD_COMPILE_OPTIONS(
     /wd5045 # disable Spectre mitigation warnings
 )
 # Suppress C++17 codecvt deprecation warnings
-ADD_COMPILE_DEFINITIONS(
+add_compile_definitions(
     _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
 )
 
 # embedded pdb
-ADD_COMPILE_OPTIONS(
+add_compile_options(
     /Z7
 )
 
 # find dependencies
-SET(PYBIND11_FINDPYTHON ON)
-FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
-FIND_PACKAGE(pybind11 CONFIG REQUIRED)
-FIND_PACKAGE(Alembic CONFIG REQUIRED)
+set(PYBIND11_FINDPYTHON ON)
+find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+find_package(pybind11 CONFIG REQUIRED)
+find_package(Alembic CONFIG REQUIRED)
 
 # set paths
-GET_FILENAME_COMPONENT(MMD_DIR
+get_filename_component(MMD_DIR
     ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_v932x64
     ABSOLUTE
 )
 # replace MMDExport.h with utf8 version
-ADD_CUSTOM_TARGET(copy_utf8_mmd_header ALL
+add_custom_target(copy_utf8_mmd_header ALL
     COMMAND ${CMAKE_COMMAND} -E copy
         "${CMAKE_CURRENT_SOURCE_DIR}/externals/MMDExport.h"
         "${MMD_DIR}/Data/MMDExport.h"
 )
 
 # build targets
-ADD_SUBDIRECTORY(src)
+add_subdirectory(src)
 
 # install runtime dependencies
 # Release
-INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Release/
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Release/
     DESTINATION ${MMD_DIR}
     CONFIGURATIONS Release RelWithDebInfo MinSizeRel
     FILES_MATCHING
     PATTERN "*.dll"
 )
 # Debug
-INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Debug/
+install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Debug/
     DESTINATION ${MMD_DIR}
     CONFIGURATIONS Debug
     FILES_MATCHING
@@ -82,14 +82,14 @@ INSTALL(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Debug/
 )
 
 # install Python scripts
-FILE(GLOB python_scripts Release/Win32/*.py
+file(GLOB python_scripts Release/Win32/*.py
 )
-INSTALL(FILES ${python_scripts}
+install(FILES ${python_scripts}
     DESTINATION ${MMD_DIR}
 )
 
 # install Python runtime
-INSTALL(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
+install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     DESTINATION ${MMD_DIR}
     PATTERN "test*" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
@@ -117,9 +117,9 @@ INSTALL(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
 )
 
 # install additional resources
-INSTALL(DIRECTORY Release/Win32/alembic_assign_scripts
+install(DIRECTORY Release/Win32/alembic_assign_scripts
     DESTINATION ${MMD_DIR}
 )
-INSTALL(DIRECTORY
+install(DIRECTORY
     DESTINATION ${MMD_DIR}/out
 )
