@@ -91,8 +91,6 @@ jobs:
          rm -f _MikuMikuDance_.zip
          mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_x64
          mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_x64/
-         iconv -f CP932 -t UTF-8 $GITHUB_WORKSPACE/MikuMikuDance_x64/Data/MMDExport.h > $GITHUB_WORKSPACE/MikuMikuDance_x64/Data/_MMDExport.h
-         mv $GITHUB_WORKSPACE/MikuMikuDance_x64/Data/_MMDExport.h $GITHUB_WORKSPACE/MikuMikuDance_x64/Data/MMDExport.h
          rm -fR _MikuMikuDance_
          ls -l $GITHUB_WORKSPACE/MikuMikuDance_x64/Data
          find "$GITHUB_WORKSPACE" -name "MMDExport.h" -type f -print

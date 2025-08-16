@@ -54,6 +54,12 @@ GET_FILENAME_COMPONENT(MMD_DIR
     ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_x64
     ABSOLUTE
 )
+# replace MMDExport.h with utf8 version
+ADD_CUSTOM_TARGET(copy_utf8_mmd_header ALL
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_SOURCE_DIR}/externals/MMDExport.h"
+        "${MMD_DIR}/Data/MMDExport.h"
+)
 
 # build targets
 ADD_SUBDIRECTORY(src)

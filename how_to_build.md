@@ -69,10 +69,6 @@ to
 #endif
 ```
 
-### Modifying MMDExport.h
-
-Please change the code page of `MikuMikuDance_x64\Data\MMDExport.h` to UTF-8 and save.
-
 # Preparing the MikuMikuDance_x64 folder
 Extract the 64-bit version of MMD into the MikuMikuDance_x64 folder.
 
