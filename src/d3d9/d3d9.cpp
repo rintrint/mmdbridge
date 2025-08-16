@@ -2516,13 +2516,31 @@ void d3d9_dispose()
 	DisposeAlembic();
 }
 
+// Verify executable name to prevent crashes caused by renaming MikuMikuDance.exe
+static bool CheckMMDExecutable()
+{
+	TCHAR exe_path[MAX_PATH] = { 0 };
+	if (GetModuleFileName(NULL, exe_path, MAX_PATH) == 0)
+	{
+		return false;
+	}
+
+	LPCTSTR exe_name = PathFindFileName(exe_path);
+	return (_tcsicmp(exe_name, _T("MikuMikuDance.exe")) == 0);
+}
+
 // DLL entry point
 BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 {
 	switch (reason)
 	{
 		case DLL_PROCESS_ATTACH:
-			hInstance=hinst;
+			if (!CheckMMDExecutable())
+			{
+				return FALSE;
+			}
+
+			hInstance = hinst;
 			d3d9_initialize();
 			break;
 		case DLL_PROCESS_DETACH:
