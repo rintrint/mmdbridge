@@ -11,9 +11,9 @@ See [Build Instructions](how_to_build.md)
 * vcpkg (for building)
 * DirectX SDK (June 2010)
 * MikuMikuFormats
-* python3
-* pybind11
 * alembic
+* pybind11
+* python3
 
 ## Licensing
 This project is licensed under the MIT License. Please refer to [LICENSE.txt](LICENSE.txt).
