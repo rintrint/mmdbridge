@@ -69,12 +69,12 @@ to
 #endif
 ```
 
-# Preparing the MikuMikuDance_x64 folder
-Extract the 64-bit version of MMD into the MikuMikuDance_x64 folder.
+# Preparing the MikuMikuDance_v932x64 folder
+Extract the 64-bit version of MMD into the MikuMikuDance_v932x64 folder.
 
 ```
 mmdbridge
-    MikuMikuDance_x64
+    MikuMikuDance_v932x64
         MikuMikuDance.exe
         Data
             MMDExport.h
@@ -82,7 +82,7 @@ mmdbridge
 ```
 
 # Building mmdbridge
-Execute `cmake_vs2022_64.bat` and build the generated `build_vs2022_64/mmdbridge.sln`. Building `INSTALL` will copy the necessary dll and py files for execution to MikuMikuDance_x64.
+Execute `cmake_vs2022_64.bat` and build the generated `build_vs2022_64/mmdbridge.sln`. Building `INSTALL` will copy the necessary dll and py files for execution to MikuMikuDance_v932x64.
 
 # Debug execution of mmdbridge
-You can attach the debugger by specifying `MikuMikuDance_x64/MikuMikuDance.exe` in INSTALL project properties - Debug - Command - Browse and running with `F5`. In debug builds, pdb is embedded with the `/Z7` compile option.
+You can attach the debugger by specifying `MikuMikuDance_v932x64/MikuMikuDance.exe` in INSTALL project properties - Debug - Command - Browse and running with `F5`. In debug builds, pdb is embedded with the `/Z7` compile option.

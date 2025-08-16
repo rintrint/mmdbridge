@@ -51,7 +51,7 @@ FIND_PACKAGE(Alembic CONFIG REQUIRED)
 
 # set paths
 GET_FILENAME_COMPONENT(MMD_DIR
-    ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_x64
+    ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_v932x64
     ABSOLUTE
 )
 # replace MMDExport.h with utf8 version

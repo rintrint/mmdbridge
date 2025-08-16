@@ -79,7 +79,7 @@ jobs:
     - name: Add MMD_DIR to ENV
       run: |
         winworkspace=`cygpath -w $GITHUB_WORKSPACE`
-        echo MMD_DIR=$winworkspace/MikuMikuDance_x64/ >> $GITHUB_ENV
+        echo MMD_DIR=$winworkspace/MikuMikuDance_v932x64/ >> $GITHUB_ENV
       shell: bash
 
     - name: Copy MMD
@@ -89,10 +89,10 @@ jobs:
          cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_v932x64.zip" _MikuMikuDance_.zip
          7z x _MikuMikuDance_.zip -o_MikuMikuDance_
          rm -f _MikuMikuDance_.zip
-         mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_x64
-         mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_x64/
+         mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_v932x64
+         mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_v932x64/
          rm -fR _MikuMikuDance_
-         ls -l $GITHUB_WORKSPACE/MikuMikuDance_x64/Data
+         ls -l $GITHUB_WORKSPACE/MikuMikuDance_v932x64/Data
          find "$GITHUB_WORKSPACE" -name "MMDExport.h" -type f -print
       shell: bash
 
@@ -129,5 +129,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: MMDBridge_artifact_${{github.run_number}}
-        path: ${{github.workspace}}/MikuMikuDance_x64/
+        path: ${{github.workspace}}/MikuMikuDance_v932x64/
 
