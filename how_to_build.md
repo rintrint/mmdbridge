@@ -1,52 +1,52 @@
-# how to build
-vcpkgに依存パッケージのビルドを任せて簡単にビルドする手順です。
-以下、手順。
+# How to Build
+This is a procedure to easily build by delegating the build of dependent packages to vcpkg.
+The procedure is as follows.
 
-# vcpkgをsetupする
+# Setup vcpkg
 
-mmdbridgeのビルドが依存しているalembic, pybind11のセットアップができる。
+This allows you to set up alembic and pybind11, which mmdbridge's build depends on.
 
-* [vcpkg](https://github.com/Microsoft/vcpkg)をcloneする。
-* bootstrap-vcpkg.batを実行してvcpkgをビルドする。
+* Clone [vcpkg](https://github.com/Microsoft/vcpkg).
+* Execute bootstrap-vcpkg.bat to build vcpkg.
 
-# vcpkgで依存ライブラリをインストールする
+# Install dependent libraries with vcpkg
 
-``chcp 65001``が必要なのに注意。
+Note that `chcp 65001` is required.
 
 ```cmd
 chcp 65001
 vcpkg install alembic[hdf5]:x64-windows pybind11:x64-windows
 ```
 
-``VCPKG_DIR/installed/x64-windows``以下にビルド成果物が格納されるので以降の手順でこれを利用します。
-環境変数``VCPKG_DIR``にvcpkgのトップレベルのディレクトリを設定してください。
+Build artifacts are stored under `VCPKG_DIR/installed/x64-windows`, which will be used in subsequent steps.
+Please set the environment variable `VCPKG_DIR` to the top-level directory of vcpkg.
 
-例。
+Example:
 
 ```
 VCPKG_DIR="C:\vcpkg"
 ```
 
-## DirectX SDKの準備
-昔のD3D9が必要なのでSDKをインストールする必要があります。
+## Preparing DirectX SDK
+Since old D3D9 is required, you need to install the SDK.
 
 * https://www.microsoft.com/en-us/download/details.aspx?id=6812
 
-インストールパスを環境変数``DXSDK_DIR``に設定してください。
+Please set the installation path to the environment variable `DXSDK_DIR`.
 
-例。
+Example:
 
 ```
 DXSDK_DIR=C:/Program Files (x86)/Microsoft DirectX SDK (June 2010)
 ```
 
-## ビルド前の修正作業
+## Pre-build modification work
 
-mmdbridgeをビルドする前に、以下のファイルを修正する必要があります。
+Before building mmdbridge, you need to modify the following files.
 
-### d3dx9core.hの修正
+### Modifying d3dx9core.h
 
-https://gist.github.com/t-mat/1540248#d3dx9corehを参考に修正してください。
+Please modify according to https://gist.github.com/t-mat/1540248#d3dx9corehを参考に修正してください.
 
 Change
 ```cpp
@@ -69,12 +69,12 @@ to
 #endif
 ```
 
-### MMDExport.hの修正
+### Modifying MMDExport.h
 
-``MikuMikuDance_x64\Data\MMDExport.h``のコードページをUTF-8に変更して保存してください。
+Please change the code page of `MikuMikuDance_x64\Data\MMDExport.h` to UTF-8 and save.
 
-# MikuMikuDance_x64フォルダの準備
-64bit版のMMDをMikuMikuDance_x64フォルダに展開します。
+# Preparing the MikuMikuDance_x64 folder
+Extract the 64-bit version of MMD into the MikuMikuDance_x64 folder.
 
 ```
 mmdbridge
@@ -85,8 +85,8 @@ mmdbridge
             MMDExport.lib
 ```
 
-# mmdbridgeのビルド
-``cmake_vs2022_64.bat``を実行して生成された``build_vs2022_64/mmdbridge.sln``をビルドしてください。``INSTALL``をビルドすると実行に必要なdllとpyをMikuMikuDance_x64にコピーします。
+# Building mmdbridge
+Execute `cmake_vs2022_64.bat` and build the generated `build_vs2022_64/mmdbridge.sln`. Building `INSTALL` will copy the necessary dll and py files for execution to MikuMikuDance_x64.
 
-# mmdbridgeのデバッグ実行
-INSTALLプロジェクトのプロパティ - デバッグ - コマンド - 参照で``MikuMikuDance_x64/MikuMikuDance.exe``を指定して``F5``実行するとデバッガをアタッチできます。デバッグビルドには、``/Z7``コンパイルオプションでpdbを埋め込んであります。
+# Debug execution of mmdbridge
+You can attach the debugger by specifying `MikuMikuDance_x64/MikuMikuDance.exe` in INSTALL project properties - Debug - Command - Browse and running with `F5`. In debug builds, pdb is embedded with the `/Z7` compile option.
