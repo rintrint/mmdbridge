@@ -7,7 +7,6 @@
 #include <Windows.h>
 #include <memory>
 #include <vector>
-#include <codecvt>
 
 namespace oguna
 {

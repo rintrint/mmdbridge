@@ -33,10 +33,6 @@ add_compile_options(
 
     /wd5045 # disable Spectre mitigation warnings
 )
-# Suppress C++17 codecvt deprecation warnings
-add_compile_definitions(
-    _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
-)
 
 # embedded pdb
 add_compile_options(
