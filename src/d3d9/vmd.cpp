@@ -46,6 +46,8 @@ public:
 	std::map<int, int> ik_frame_bone_map;
 	std::map<int, int> fuyo_bone_map;
 	std::map<int, int> fuyo_target_map;
+	// morph (face)
+	std::map<int, std::string> morph_name_map;
 
 	FileDataForVMD(const FileDataForVMD& data) {
 		this->vmd = data.vmd;
@@ -58,6 +60,8 @@ public:
 		this->ik_frame_bone_map = data.ik_frame_bone_map;
 		this->fuyo_bone_map = data.fuyo_bone_map;
 		this->fuyo_target_map = data.fuyo_target_map;
+		// morph (face)
+		this->morph_name_map = data.morph_name_map;
 	}
 };
 
@@ -242,6 +246,13 @@ static void init_file_data(FileDataForVMD& data)
 				data.ik_frame_bone_map[i] = 1;
 			}
 		}
+		// morph (face)
+		const std::vector<pmd::PmdFace>& faces = data.pmd->faces;
+		for (int i = 0, isize = static_cast<int>(faces.size()); i < isize; ++i)
+		{
+			const pmd::PmdFace& face = faces[i];
+			data.morph_name_map[i] = face.name;
+		}
 
 		for (int i = 0, isize = static_cast<int>(rigids.size()); i < isize; ++i)
 		{
@@ -362,6 +373,16 @@ static void init_file_data(FileDataForVMD& data)
 					data.physics_bone_map[parent_bone] = 0;
 				}
 			}
+		}
+		// morph (face)
+		const int morph_count = static_cast<int>(data.pmx->morphs.size());
+		for (int i = 0; i < morph_count; ++i)
+		{
+			const pmx::PmxMorph& morph = data.pmx->morphs[i];
+			std::string morph_name;
+			oguna::EncodingConverter::Utf16ToCp932(morph.morph_name.c_str(),
+				static_cast<int>(morph.morph_name.length()), &morph_name);
+			data.morph_name_map[i] = morph_name;
 		}
 	}
 }
@@ -522,6 +543,37 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	return bone_frame;
 }
 
+// Helper function: Calculate VMD face frame based on morph index
+static vmd::VmdFaceFrame calculate_face_frame(
+	int model_index,				// Model index (i)
+	int morph_index,				// Morph index (m)
+	int current_frame,				// Current frame number
+	const FileDataForVMD& file_data	// File data
+)
+{
+	vmd::VmdFaceFrame face_frame;
+	face_frame.frame = static_cast<uint32_t>(current_frame);
+
+	// Get morph name
+	const char* morph_name = ExpGetPmdMorphName(model_index, morph_index);
+	face_frame.face_name = morph_name;
+
+	// Validate morph name mapping
+	if (file_data.morph_name_map.find(morph_index) == file_data.morph_name_map.end() ||
+		file_data.morph_name_map.at(morph_index) != morph_name) {
+		// If validation fails, return default face_frame with 0 weight
+		face_frame.weight = 0.0f;
+		return face_frame;
+	}
+
+	// Get morph value from MMD
+	face_frame.weight = ExpGetPmdMorphValue(model_index, morph_index);
+
+	return face_frame;
+}
+
+static std::map<std::string, float> previous_morph_values;
+
 static bool execute_vmd_export(const int currentframe)
 {
 	VMDArchive &archive = VMDArchive::instance();
@@ -681,6 +733,59 @@ static bool execute_vmd_export(const int currentframe)
 				}
 			}
 			file_data.vmd->ik_frames.push_back(ik_frame);
+		}
+
+		// morph (face)
+		const int morph_num = ExpGetPmdMorphNum(i);
+		for (int m = 0; m < morph_num; ++m)
+		{
+			const char* morph_name = ExpGetPmdMorphName(i, m);
+
+			// Validate morph name mapping
+			if (file_data.morph_name_map.find(m) == file_data.morph_name_map.end()) {
+				continue;
+			}
+			if (file_data.morph_name_map[m] != morph_name) {
+				continue;
+			}
+
+			// Get current morph value
+			float morph_value = ExpGetPmdMorphValue(i, m);
+
+			// Create unique key for this morph
+			std::string morph_key = std::string(filename) + "_" + morph_name;
+
+			// Get previous value (default to 0.0 if not found)
+			float previous_value = previous_morph_values.count(morph_key) ?
+								previous_morph_values[morph_key] : 0.0f;
+
+			// Define threshold for float comparison
+			const float threshold = 0.001f;
+
+			// Determine if we should export this frame
+			bool should_export = false;
+
+			// Always export first frame to establish initial state
+			if (currentframe == parameter.start_frame) {
+				should_export = true;
+			}
+			// Export if current value is significantly non-zero
+			else if (std::abs(morph_value) > threshold) {
+				should_export = true;
+			}
+			// Export if value changed significantly from previous frame
+			else if (std::abs(previous_value - morph_value) > threshold) {
+				should_export = true;
+			}
+
+			if (should_export) {
+				// Use helper function to calculate face frame
+				vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
+				file_data.vmd->face_frames.push_back(face_frame);
+
+				// Update previous value only when we actually export
+				previous_morph_values[morph_key] = morph_value;
+			}
 		}
 	}
 
