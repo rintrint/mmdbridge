@@ -93,77 +93,77 @@ bool (*ExpGetEnglishMode)() = nullptr;
 
 // Implementation of initialization function
 bool InitializeMMDExports() {
-    // Check if already attempted initialization
-    if (g_mmd_exports_init_attempted) {
-        return g_mmd_exports_initialized;
-    }
+	// Check if already attempted initialization
+	if (g_mmd_exports_init_attempted) {
+		return g_mmd_exports_initialized;
+	}
 
-    // Mark that we've attempted initialization
-    g_mmd_exports_init_attempted = true;
+	// Mark that we've attempted initialization
+	g_mmd_exports_init_attempted = true;
 
-    HMODULE hExe = GetModuleHandle(NULL);
-    if (!hExe) {
-        ::MessageBoxA(NULL, "Failed to get EXE module handle", "MMD Export Init Error", MB_OK);
-        g_mmd_exports_initialized = false;
-        return false;
-    }
+	HMODULE hExe = GetModuleHandle(NULL);
+	if (!hExe) {
+		::MessageBoxA(NULL, "Failed to get EXE module handle", "MMD Export Init Error", MB_OK);
+		g_mmd_exports_initialized = false;
+		return false;
+	}
 
-    // Load all function pointers
-    #define LOAD_FUNC(name) \
-        name = (decltype(name))GetProcAddress(hExe, #name); \
-        if (!name) { \
-            ::MessageBoxA(NULL, "Failed to load function: " #name, "MMD Export Init Error", MB_OK); \
-            g_mmd_exports_initialized = false; \
-            return false; \
-        }
+	// Load all function pointers
+	#define LOAD_FUNC(name) \
+		name = (decltype(name))GetProcAddress(hExe, #name); \
+		if (!name) { \
+			::MessageBoxA(NULL, "Failed to load function: " #name, "MMD Export Init Error", MB_OK); \
+			g_mmd_exports_initialized = false; \
+			return false; \
+		}
 
-    // PMD related functions
-    LOAD_FUNC(ExpGetFrameTime);
-    LOAD_FUNC(ExpGetPmdNum);
-    LOAD_FUNC(ExpGetPmdFilename);
-    LOAD_FUNC(ExpGetPmdOrder);
-    LOAD_FUNC(ExpGetPmdMatNum);
-    LOAD_FUNC(ExpGetPmdMaterial);
-    LOAD_FUNC(ExpGetPmdBoneNum);
-    LOAD_FUNC(ExpGetPmdBoneName);
-    LOAD_FUNC(ExpGetPmdBoneWorldMat);
-    LOAD_FUNC(ExpGetPmdMorphNum);
-    LOAD_FUNC(ExpGetPmdMorphName);
-    LOAD_FUNC(ExpGetPmdMorphValue);
-    LOAD_FUNC(ExpGetPmdDisp);
-    LOAD_FUNC(ExpGetPmdID);
+	// PMD related functions
+	LOAD_FUNC(ExpGetFrameTime);
+	LOAD_FUNC(ExpGetPmdNum);
+	LOAD_FUNC(ExpGetPmdFilename);
+	LOAD_FUNC(ExpGetPmdOrder);
+	LOAD_FUNC(ExpGetPmdMatNum);
+	LOAD_FUNC(ExpGetPmdMaterial);
+	LOAD_FUNC(ExpGetPmdBoneNum);
+	LOAD_FUNC(ExpGetPmdBoneName);
+	LOAD_FUNC(ExpGetPmdBoneWorldMat);
+	LOAD_FUNC(ExpGetPmdMorphNum);
+	LOAD_FUNC(ExpGetPmdMorphName);
+	LOAD_FUNC(ExpGetPmdMorphValue);
+	LOAD_FUNC(ExpGetPmdDisp);
+	LOAD_FUNC(ExpGetPmdID);
 
-    // Accessory related functions
-    LOAD_FUNC(ExpGetAcsNum);
-    LOAD_FUNC(ExpGetPreAcsNum);
-    LOAD_FUNC(ExpGetAcsFilename);
-    LOAD_FUNC(ExpGetAcsOrder);
-    LOAD_FUNC(ExpGetAcsWorldMat);
-    LOAD_FUNC(ExpGetAcsX);
-    LOAD_FUNC(ExpGetAcsY);
-    LOAD_FUNC(ExpGetAcsZ);
-    LOAD_FUNC(ExpGetAcsRx);
-    LOAD_FUNC(ExpGetAcsRy);
-    LOAD_FUNC(ExpGetAcsRz);
-    LOAD_FUNC(ExpGetAcsSi);
-    LOAD_FUNC(ExpGetAcsTr);
-    LOAD_FUNC(ExpGetAcsDisp);
-    LOAD_FUNC(ExpGetAcsID);
-    LOAD_FUNC(ExpGetAcsMatNum);
-    LOAD_FUNC(ExpGetAcsMaterial);
+	// Accessory related functions
+	LOAD_FUNC(ExpGetAcsNum);
+	LOAD_FUNC(ExpGetPreAcsNum);
+	LOAD_FUNC(ExpGetAcsFilename);
+	LOAD_FUNC(ExpGetAcsOrder);
+	LOAD_FUNC(ExpGetAcsWorldMat);
+	LOAD_FUNC(ExpGetAcsX);
+	LOAD_FUNC(ExpGetAcsY);
+	LOAD_FUNC(ExpGetAcsZ);
+	LOAD_FUNC(ExpGetAcsRx);
+	LOAD_FUNC(ExpGetAcsRy);
+	LOAD_FUNC(ExpGetAcsRz);
+	LOAD_FUNC(ExpGetAcsSi);
+	LOAD_FUNC(ExpGetAcsTr);
+	LOAD_FUNC(ExpGetAcsDisp);
+	LOAD_FUNC(ExpGetAcsID);
+	LOAD_FUNC(ExpGetAcsMatNum);
+	LOAD_FUNC(ExpGetAcsMaterial);
 
-    // Current state functions
-    LOAD_FUNC(ExpGetCurrentObject);
-    LOAD_FUNC(ExpGetCurrentMaterial);
-    LOAD_FUNC(ExpGetCurrentTechnic);
-    LOAD_FUNC(ExpSetRenderRepeatCount);
-    LOAD_FUNC(ExpGetRenderRepeatCount);
-    LOAD_FUNC(ExpGetEnglishMode);
+	// Current state functions
+	LOAD_FUNC(ExpGetCurrentObject);
+	LOAD_FUNC(ExpGetCurrentMaterial);
+	LOAD_FUNC(ExpGetCurrentTechnic);
+	LOAD_FUNC(ExpSetRenderRepeatCount);
+	LOAD_FUNC(ExpGetRenderRepeatCount);
+	LOAD_FUNC(ExpGetEnglishMode);
 
-    #undef LOAD_FUNC
+	#undef LOAD_FUNC
 
-    g_mmd_exports_initialized = true;
-    return true;
+	g_mmd_exports_initialized = true;
+	return true;
 }
 
 ///////////////////////////////////////////////////////////////////////////
@@ -655,7 +655,7 @@ namespace
 	{
 		D3DXVECTOR4 v;
 		UMGetCameraFovLH(&v);
-		return  v.x;
+		return v.x;
 	}
 
 	float get_camera_aspect()
@@ -973,77 +973,77 @@ PYBIND11_MAKE_OPAQUE(std::vector<float>);
 PYBIND11_MAKE_OPAQUE(std::vector<int>);
 
 PYBIND11_MODULE(mmdbridge, m) {
-    m.doc() = "MMD Bridge main module";
+	m.doc() = "MMD Bridge main module";
 
-    m.def("get_vertex_buffer_size", get_vertex_buffer_size);
-    m.def("get_vertex_size", get_vertex_size);
-    m.def("get_vertex", get_vertex);
-    m.def("get_normal_size", get_normal_size);
-    m.def("get_normal", get_normal);
-    m.def("get_uv_size", get_uv_size);
-    m.def("get_uv", get_uv);
-    m.def("get_material_size", get_material_size);
-    m.def("is_accessory", is_accessory);
-    m.def("get_pre_accessory_count", get_pre_accessory_count);
-    m.def("get_ambient", get_ambient);
-    m.def("get_diffuse", get_diffuse);
-    m.def("get_specular", get_specular);
-    m.def("get_emissive", get_emissive);
-    m.def("get_power", get_power);
-    m.def("get_texture", get_texture);
-    m.def("get_exported_texture", get_exported_texture);
-    m.def("get_face_size", get_face_size);
-    m.def("get_face", get_face);
-    m.def("get_texture_buffer_size", get_texture_buffer_size);
-    m.def("get_texture_size", get_texture_size);
-    m.def("get_texture_name", get_texture_name);
-    m.def("get_texture_pixel", get_texture_pixel);
-    m.def("get_camera_up", get_camera_up);
-    m.def("get_camera_up_org", get_camera_up_org);
-    m.def("get_camera_at", get_camera_at);
-    m.def("get_camera_eye", get_camera_eye);
-    m.def("get_camera_eye_org", get_camera_eye_org);
-    m.def("get_camera_fovy", get_camera_fovy);
-    m.def("get_camera_aspect", get_camera_aspect);
-    m.def("get_camera_near", get_camera_near);
-    m.def("get_camera_far", get_camera_far);
-    m.def("messagebox", message);
-    m.def("export_texture", export_texture);
-    m.def("export_textures", export_textures);
-    m.def("export_uncopied_textures", export_textures);
-    m.def("copy_textures", copy_textures);
-    m.def("get_frame_number", get_frame_number);
-    m.def("get_start_frame", get_start_frame);
-    m.def("get_end_frame", get_end_frame);
-    m.def("get_frame_width", get_frame_width);
-    m.def("get_frame_height", get_frame_height);
-    m.def("get_export_fps", get_export_fps);
-    m.def("get_base_path", get_base_path);
-    m.def("get_light", get_light);
-    m.def("get_light_color", get_light_color);
-    m.def("get_buffer_filename", get_buffer_filename);
-    m.def("get_accessory_size", get_accessory_size);
-    m.def("get_accessory_filename", get_accessory_filename);
-    m.def("get_object_size", get_object_size);
-    m.def("get_object_filename", get_object_filename);
-    m.def("get_bone_size", get_bone_size);
-    m.def("get_bone_name", get_bone_name);
-    m.def("get_bone_matrix", get_bone_matrix);
-    m.def("get_world", get_world);
-    m.def("get_world_inv", get_world_inv);
-    m.def("get_view", get_view);
-    m.def("get_projection", get_projection);
-    m.def("set_texture_buffer_enabled", set_texture_buffer_enabled);
-    m.def("set_int_value", set_int_value);
-    m.def("set_float_value", set_float_value);
-    m.def("get_int_value", get_int_value);
-    m.def("get_float_value", get_float_value);
-    m.def("extract_xyz_degree", extract_xyz_degree);
-    m.def("invert_matrix", invert_matrix);
-    m.def("d3dx_vec3_normalize", d3dx_vec3_normalize);
+	m.def("get_vertex_buffer_size", get_vertex_buffer_size);
+	m.def("get_vertex_size", get_vertex_size);
+	m.def("get_vertex", get_vertex);
+	m.def("get_normal_size", get_normal_size);
+	m.def("get_normal", get_normal);
+	m.def("get_uv_size", get_uv_size);
+	m.def("get_uv", get_uv);
+	m.def("get_material_size", get_material_size);
+	m.def("is_accessory", is_accessory);
+	m.def("get_pre_accessory_count", get_pre_accessory_count);
+	m.def("get_ambient", get_ambient);
+	m.def("get_diffuse", get_diffuse);
+	m.def("get_specular", get_specular);
+	m.def("get_emissive", get_emissive);
+	m.def("get_power", get_power);
+	m.def("get_texture", get_texture);
+	m.def("get_exported_texture", get_exported_texture);
+	m.def("get_face_size", get_face_size);
+	m.def("get_face", get_face);
+	m.def("get_texture_buffer_size", get_texture_buffer_size);
+	m.def("get_texture_size", get_texture_size);
+	m.def("get_texture_name", get_texture_name);
+	m.def("get_texture_pixel", get_texture_pixel);
+	m.def("get_camera_up", get_camera_up);
+	m.def("get_camera_up_org", get_camera_up_org);
+	m.def("get_camera_at", get_camera_at);
+	m.def("get_camera_eye", get_camera_eye);
+	m.def("get_camera_eye_org", get_camera_eye_org);
+	m.def("get_camera_fovy", get_camera_fovy);
+	m.def("get_camera_aspect", get_camera_aspect);
+	m.def("get_camera_near", get_camera_near);
+	m.def("get_camera_far", get_camera_far);
+	m.def("messagebox", message);
+	m.def("export_texture", export_texture);
+	m.def("export_textures", export_textures);
+	m.def("export_uncopied_textures", export_textures);
+	m.def("copy_textures", copy_textures);
+	m.def("get_frame_number", get_frame_number);
+	m.def("get_start_frame", get_start_frame);
+	m.def("get_end_frame", get_end_frame);
+	m.def("get_frame_width", get_frame_width);
+	m.def("get_frame_height", get_frame_height);
+	m.def("get_export_fps", get_export_fps);
+	m.def("get_base_path", get_base_path);
+	m.def("get_light", get_light);
+	m.def("get_light_color", get_light_color);
+	m.def("get_buffer_filename", get_buffer_filename);
+	m.def("get_accessory_size", get_accessory_size);
+	m.def("get_accessory_filename", get_accessory_filename);
+	m.def("get_object_size", get_object_size);
+	m.def("get_object_filename", get_object_filename);
+	m.def("get_bone_size", get_bone_size);
+	m.def("get_bone_name", get_bone_name);
+	m.def("get_bone_matrix", get_bone_matrix);
+	m.def("get_world", get_world);
+	m.def("get_world_inv", get_world_inv);
+	m.def("get_view", get_view);
+	m.def("get_projection", get_projection);
+	m.def("set_texture_buffer_enabled", set_texture_buffer_enabled);
+	m.def("set_int_value", set_int_value);
+	m.def("set_float_value", set_float_value);
+	m.def("get_int_value", get_int_value);
+	m.def("get_float_value", get_float_value);
+	m.def("extract_xyz_degree", extract_xyz_degree);
+	m.def("invert_matrix", invert_matrix);
+	m.def("d3dx_vec3_normalize", d3dx_vec3_normalize);
 
-    py::bind_vector<std::vector<float>>(m, "VectorFloat");
-    py::bind_vector<std::vector<int>>(m, "VectorInt");
+	py::bind_vector<std::vector<float>>(m, "VectorFloat");
+	py::bind_vector<std::vector<int>>(m, "VectorInt");
 }
 
 void run_python_script()
@@ -1254,7 +1254,7 @@ static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstr
 	wcscpy_s(dir, MAX_PATH, texturePath.c_str());
 	PathRemoveFileSpecW(dir);
 
-	for (size_t i = 0; i <  finishTextureBuffers.size(); ++i)
+	for (size_t i = 0; i < finishTextureBuffers.size(); ++i)
 	{
 		IDirect3DTexture9* texture = finishTextureBuffers[i].first;
 		bool copied = finishTextureBuffers[i].second;
@@ -1292,7 +1292,7 @@ static bool copyTextureToFiles(const std::wstring &texturePath)
 	if (!PathIsDirectory(path.c_str())) { return false; }
 
 	bool res = true;
-	for (size_t i = 0; i <  finishTextureBuffers.size(); ++i)
+	for (size_t i = 0; i < finishTextureBuffers.size(); ++i)
 	{
 		IDirect3DTexture9* texture = finishTextureBuffers[i].first;
 		if (texture) {
@@ -1471,7 +1471,7 @@ static void setMySize() {
 		SetWindowPos(g_hWnd, HWND_TOP, 0, 0, 1920, 1080, NULL);
 }
 
-LONG_PTR originalWndProc  =NULL;
+LONG_PTR originalWndProc =NULL;
 // Function declarations for this code module:
 static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE hInstance= NULL;
@@ -1489,7 +1489,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				if(hInstance)
 				{
 					pluginDialog = hWnd;
-					::DialogBoxW(hInstance, L"IDD_DIALOG1", NULL,  DialogProc);
+					::DialogBoxW(hInstance, L"IDD_DIALOG1", NULL, DialogProc);
 				}
 				break;
 			}
@@ -1859,7 +1859,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				int initialVertexSize = renderedBuffer.vertecies.size();
 				const int size = (vit->second - bytePos) / renderData.stride;
 				renderedBuffer.vertecies.resize(size);
-				for (size_t i =  bytePos, n = 0; i < vit->second; i += renderData.stride, ++n)
+				for (size_t i = bytePos, n = 0; i < vit->second; i += renderData.stride, ++n)
 				{
 					D3DXVECTOR3 v;
 					memcpy(&v, &pVertexBuf[i], sizeof( D3DXVECTOR3 ));
@@ -1968,7 +1968,7 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 
 		// Shader time
 		if (currentTechnic == 2) {
-			LPD3DXEFFECT* effect =  UMGetEffect();
+			LPD3DXEFFECT* effect = UMGetEffect();
 
 			if (effect) {
 				D3DXHANDLE current = (*effect)->lpVtbl->GetCurrentTechnique(*effect);
@@ -2114,7 +2114,7 @@ static void writeLightToMemory(IDirect3DDevice9 *device, RenderedBuffer &rendere
 	 p_device->lpVtbl->GetLightEnable(p_device, lightNumber, &isLight);
 	 if (isLight)
 	 {
-		D3DLIGHT9  light;
+		D3DLIGHT9 light;
 		p_device->lpVtbl->GetLight(p_device, lightNumber, &light);
 		UMVec3f& umlight = renderedBuffer.light;
 		D3DXVECTOR3 v(light.Direction.x, light.Direction.y, light.Direction.z);
@@ -2201,7 +2201,7 @@ static HRESULT WINAPI drawIndexedPrimitive(
 			// Write material to memory
 			if (!writeMaterialsToMemory(textureParameter))
 			{
-				return  (*original_draw_indexed_primitive)(device, type, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
+				return (*original_draw_indexed_primitive)(device, type, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
 			}
 
 			// Write index buffer to memory
@@ -2386,7 +2386,7 @@ static HRESULT WINAPI setIndices(IDirect3DDevice9 *device, IDirect3DIndexBuffer9
 
 	const bool validCallSetting = IsValidCallSetting();
 	const bool validFrame = IsValidFrame();
-	const bool validTechniq =  IsValidTechniq() || currentTechnic == 5;
+	const bool validTechniq = IsValidTechniq() || currentTechnic == 5;
 	if (validCallSetting && validFrame && validTechniq)
 	{
 		renderData.pIndexData = pIndexData;
@@ -2646,21 +2646,21 @@ void d3d9_dispose()
 // DLL entry point
 BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 {
-    switch (reason)
-    {
-        case DLL_PROCESS_ATTACH:
-            // Initialize MMD export function pointers
-            if (!InitializeMMDExports()) {
-                ::MessageBoxA(NULL, "Failed to initialize MMD export functions", "Initialization Error", MB_OK);
-                return FALSE;
-            }
+	switch (reason)
+	{
+		case DLL_PROCESS_ATTACH:
+			// Initialize MMD export function pointers
+			if (!InitializeMMDExports()) {
+				::MessageBoxA(NULL, "Failed to initialize MMD export functions", "Initialization Error", MB_OK);
+				return FALSE;
+			}
 
-            hInstance = hinst;
-            d3d9_initialize();
-            break;
-        case DLL_PROCESS_DETACH:
-            d3d9_dispose();
-            break;
-    }
-    return TRUE;
+			hInstance = hinst;
+			d3d9_initialize();
+			break;
+		case DLL_PROCESS_DETACH:
+			d3d9_dispose();
+			break;
+	}
+	return TRUE;
 }
