@@ -21,8 +21,6 @@ namespace py = pybind11;
 #include <Pmx.h>
 #include <Vmd.h>
 
-#include "MMDExport.h"
-
 template <class T> std::string to_string(T value)
 {
 	return umbase::UMStringUtil::number_to_string(value);

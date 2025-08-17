@@ -21,13 +21,12 @@ namespace py = pybind11;
 #include <richedit.h>
 
 #include <process.h>
-#include  <direct.h>
+#include <direct.h>
 #include "bridge_parameter.h"
 #include "alembic.h"
 #include "vmd.h"
 #include "pmx.h"
 #include "resource.h"
-#include "MMDExport.h"
 #include "UMStringUtil.h"
 #include "UMPath.h"
 #include "EncodingHelper.h"
@@ -42,6 +41,134 @@ namespace py = pybind11;
 #else
 #define _LONG_PTR LONG
 #endif
+
+///////////////////////////////////////////////////////////////////////////
+// MMD Export Function Pointers - Definitions and Implementation
+///////////////////////////////////////////////////////////////////////////
+
+// Add initialization state tracking
+static bool g_mmd_exports_initialized = false;
+static bool g_mmd_exports_init_attempted = false;
+
+// Define function pointers
+float (*ExpGetFrameTime)() = nullptr;
+int (*ExpGetPmdNum)() = nullptr;
+char* (*ExpGetPmdFilename)(int) = nullptr;
+int (*ExpGetPmdOrder)(int) = nullptr;
+int (*ExpGetPmdMatNum)(int) = nullptr;
+D3DMATERIAL9 (*ExpGetPmdMaterial)(int, int) = nullptr;
+int (*ExpGetPmdBoneNum)(int) = nullptr;
+char* (*ExpGetPmdBoneName)(int, int) = nullptr;
+D3DMATRIX (*ExpGetPmdBoneWorldMat)(int, int) = nullptr;
+int (*ExpGetPmdMorphNum)(int) = nullptr;
+char* (*ExpGetPmdMorphName)(int, int) = nullptr;
+float (*ExpGetPmdMorphValue)(int, int) = nullptr;
+bool (*ExpGetPmdDisp)(int) = nullptr;
+int (*ExpGetPmdID)(int) = nullptr;
+
+int (*ExpGetAcsNum)() = nullptr;
+int (*ExpGetPreAcsNum)() = nullptr;
+char* (*ExpGetAcsFilename)(int) = nullptr;
+int (*ExpGetAcsOrder)(int) = nullptr;
+D3DMATRIX (*ExpGetAcsWorldMat)(int) = nullptr;
+float (*ExpGetAcsX)(int) = nullptr;
+float (*ExpGetAcsY)(int) = nullptr;
+float (*ExpGetAcsZ)(int) = nullptr;
+float (*ExpGetAcsRx)(int) = nullptr;
+float (*ExpGetAcsRy)(int) = nullptr;
+float (*ExpGetAcsRz)(int) = nullptr;
+float (*ExpGetAcsSi)(int) = nullptr;
+float (*ExpGetAcsTr)(int) = nullptr;
+bool (*ExpGetAcsDisp)(int) = nullptr;
+int (*ExpGetAcsID)(int) = nullptr;
+int (*ExpGetAcsMatNum)(int) = nullptr;
+D3DMATERIAL9 (*ExpGetAcsMaterial)(int, int) = nullptr;
+
+int (*ExpGetCurrentObject)() = nullptr;
+int (*ExpGetCurrentMaterial)() = nullptr;
+int (*ExpGetCurrentTechnic)() = nullptr;
+void (*ExpSetRenderRepeatCount)(int) = nullptr;
+int (*ExpGetRenderRepeatCount)() = nullptr;
+bool (*ExpGetEnglishMode)() = nullptr;
+
+// Implementation of initialization function
+bool InitializeMMDExports() {
+    // Check if already attempted initialization
+    if (g_mmd_exports_init_attempted) {
+        return g_mmd_exports_initialized;
+    }
+
+    // Mark that we've attempted initialization
+    g_mmd_exports_init_attempted = true;
+
+    HMODULE hExe = GetModuleHandle(NULL);
+    if (!hExe) {
+        ::MessageBoxA(NULL, "Failed to get EXE module handle", "MMD Export Init Error", MB_OK);
+        g_mmd_exports_initialized = false;
+        return false;
+    }
+
+    // Load all function pointers
+    #define LOAD_FUNC(name) \
+        name = (decltype(name))GetProcAddress(hExe, #name); \
+        if (!name) { \
+            ::MessageBoxA(NULL, "Failed to load function: " #name, "MMD Export Init Error", MB_OK); \
+            g_mmd_exports_initialized = false; \
+            return false; \
+        }
+
+    // PMD related functions
+    LOAD_FUNC(ExpGetFrameTime);
+    LOAD_FUNC(ExpGetPmdNum);
+    LOAD_FUNC(ExpGetPmdFilename);
+    LOAD_FUNC(ExpGetPmdOrder);
+    LOAD_FUNC(ExpGetPmdMatNum);
+    LOAD_FUNC(ExpGetPmdMaterial);
+    LOAD_FUNC(ExpGetPmdBoneNum);
+    LOAD_FUNC(ExpGetPmdBoneName);
+    LOAD_FUNC(ExpGetPmdBoneWorldMat);
+    LOAD_FUNC(ExpGetPmdMorphNum);
+    LOAD_FUNC(ExpGetPmdMorphName);
+    LOAD_FUNC(ExpGetPmdMorphValue);
+    LOAD_FUNC(ExpGetPmdDisp);
+    LOAD_FUNC(ExpGetPmdID);
+
+    // Accessory related functions
+    LOAD_FUNC(ExpGetAcsNum);
+    LOAD_FUNC(ExpGetPreAcsNum);
+    LOAD_FUNC(ExpGetAcsFilename);
+    LOAD_FUNC(ExpGetAcsOrder);
+    LOAD_FUNC(ExpGetAcsWorldMat);
+    LOAD_FUNC(ExpGetAcsX);
+    LOAD_FUNC(ExpGetAcsY);
+    LOAD_FUNC(ExpGetAcsZ);
+    LOAD_FUNC(ExpGetAcsRx);
+    LOAD_FUNC(ExpGetAcsRy);
+    LOAD_FUNC(ExpGetAcsRz);
+    LOAD_FUNC(ExpGetAcsSi);
+    LOAD_FUNC(ExpGetAcsTr);
+    LOAD_FUNC(ExpGetAcsDisp);
+    LOAD_FUNC(ExpGetAcsID);
+    LOAD_FUNC(ExpGetAcsMatNum);
+    LOAD_FUNC(ExpGetAcsMaterial);
+
+    // Current state functions
+    LOAD_FUNC(ExpGetCurrentObject);
+    LOAD_FUNC(ExpGetCurrentMaterial);
+    LOAD_FUNC(ExpGetCurrentTechnic);
+    LOAD_FUNC(ExpSetRenderRepeatCount);
+    LOAD_FUNC(ExpGetRenderRepeatCount);
+    LOAD_FUNC(ExpGetEnglishMode);
+
+    #undef LOAD_FUNC
+
+    g_mmd_exports_initialized = true;
+    return true;
+}
+
+///////////////////////////////////////////////////////////////////////////
+// End of MMD Export Function Pointers
+///////////////////////////////////////////////////////////////////////////
 
 template <class T> std::string to_string(T value)
 {
@@ -2516,36 +2643,24 @@ void d3d9_dispose()
 	DisposeAlembic();
 }
 
-// Verify executable name to prevent crashes caused by renaming MikuMikuDance.exe
-static bool CheckMMDExecutable()
-{
-	TCHAR exe_path[MAX_PATH] = { 0 };
-	if (GetModuleFileName(NULL, exe_path, MAX_PATH) == 0)
-	{
-		return false;
-	}
-
-	LPCTSTR exe_name = PathFindFileName(exe_path);
-	return (_tcsicmp(exe_name, _T("MikuMikuDance.exe")) == 0);
-}
-
 // DLL entry point
 BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 {
-	switch (reason)
-	{
-		case DLL_PROCESS_ATTACH:
-			if (!CheckMMDExecutable())
-			{
-				return FALSE;
-			}
+    switch (reason)
+    {
+        case DLL_PROCESS_ATTACH:
+            // Initialize MMD export function pointers
+            if (!InitializeMMDExports()) {
+                ::MessageBoxA(NULL, "Failed to initialize MMD export functions", "Initialization Error", MB_OK);
+                return FALSE;
+            }
 
-			hInstance = hinst;
-			d3d9_initialize();
-			break;
-		case DLL_PROCESS_DETACH:
-			d3d9_dispose();
-			break;
-	}
-	return TRUE;
+            hInstance = hinst;
+            d3d9_initialize();
+            break;
+        case DLL_PROCESS_DETACH:
+            d3d9_dispose();
+            break;
+    }
+    return TRUE;
 }

@@ -76,9 +76,6 @@ Extract the 64-bit version of MMD into the MikuMikuDance_v932x64 folder.
 mmdbridge
     MikuMikuDance_v932x64
         MikuMikuDance.exe
-        Data
-            MMDExport.h
-            MMDExport.lib
 ```
 
 # Building mmdbridge

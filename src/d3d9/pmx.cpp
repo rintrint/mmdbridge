@@ -18,8 +18,6 @@ namespace py = pybind11;
 #include <Pmx.h>
 #include <Vmd.h>
 
-#include "MMDExport.h"
-
 typedef std::shared_ptr<pmx::PmxModel> PMXPtr;
 typedef std::shared_ptr<vmd::VmdMotion> VMDPtr;
 typedef std::shared_ptr<pmx::PmxMorph> PmxMorphPtr;

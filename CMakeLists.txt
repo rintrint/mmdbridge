@@ -54,12 +54,6 @@ get_filename_component(MMD_DIR
     ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_v932x64
     ABSOLUTE
 )
-# replace MMDExport.h with modified version
-add_custom_target(copy_modified_mmd_header ALL
-    COMMAND ${CMAKE_COMMAND} -E copy
-        "${CMAKE_CURRENT_SOURCE_DIR}/externals/MMDExport.h"
-        "${MMD_DIR}/Data/MMDExport.h"
-)
 
 # build targets
 add_subdirectory(src)

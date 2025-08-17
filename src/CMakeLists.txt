@@ -16,11 +16,9 @@ include_directories(
     umbase
     d3dx9_43
     MikuMikuFormats
-    ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/include
 )
 link_directories(
-    ${MMD_DIR}/Data
     $ENV{DXSDK_DIR}/lib/x64
 )
 add_definitions(
@@ -38,7 +36,6 @@ target_link_libraries(d3d9
     Shlwapi
     WinMM
     d3dx9_43
-    MMDExport
     MikuMikuFormats
     Alembic::Alembic
     pybind11::embed

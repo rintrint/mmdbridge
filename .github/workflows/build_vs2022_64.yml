@@ -92,8 +92,6 @@ jobs:
          mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_v932x64
          mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_v932x64/
          rm -fR _MikuMikuDance_
-         ls -l $GITHUB_WORKSPACE/MikuMikuDance_v932x64/Data
-         find "$GITHUB_WORKSPACE" -name "MMDExport.h" -type f -print
       shell: bash
 
     - name: Setup NuGet for vcpkg binary caching

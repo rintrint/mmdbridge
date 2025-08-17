@@ -19,12 +19,64 @@
 #include "UMMath.h"
 #include "UMVector.h"
 
+///////////////////////////////////////////////////////////////////////////
+// MMD Export Functions - Dynamic Loading Declarations
+///////////////////////////////////////////////////////////////////////////
+
+// Function pointer declarations
+extern float (*ExpGetFrameTime)();
+extern int (*ExpGetPmdNum)();
+extern char* (*ExpGetPmdFilename)(int);
+extern int (*ExpGetPmdOrder)(int);
+extern int (*ExpGetPmdMatNum)(int);
+extern D3DMATERIAL9 (*ExpGetPmdMaterial)(int, int);
+extern int (*ExpGetPmdBoneNum)(int);
+extern char* (*ExpGetPmdBoneName)(int, int);
+extern D3DMATRIX (*ExpGetPmdBoneWorldMat)(int, int);
+extern int (*ExpGetPmdMorphNum)(int);
+extern char* (*ExpGetPmdMorphName)(int, int);
+extern float (*ExpGetPmdMorphValue)(int, int);
+extern bool (*ExpGetPmdDisp)(int);
+extern int (*ExpGetPmdID)(int);
+
+extern int (*ExpGetAcsNum)();
+extern int (*ExpGetPreAcsNum)();
+extern char* (*ExpGetAcsFilename)(int);
+extern int (*ExpGetAcsOrder)(int);
+extern D3DMATRIX (*ExpGetAcsWorldMat)(int);
+extern float (*ExpGetAcsX)(int);
+extern float (*ExpGetAcsY)(int);
+extern float (*ExpGetAcsZ)(int);
+extern float (*ExpGetAcsRx)(int);
+extern float (*ExpGetAcsRy)(int);
+extern float (*ExpGetAcsRz)(int);
+extern float (*ExpGetAcsSi)(int);
+extern float (*ExpGetAcsTr)(int);
+extern bool (*ExpGetAcsDisp)(int);
+extern int (*ExpGetAcsID)(int);
+extern int (*ExpGetAcsMatNum)(int);
+extern D3DMATERIAL9 (*ExpGetAcsMaterial)(int, int);
+
+extern int (*ExpGetCurrentObject)();
+extern int (*ExpGetCurrentMaterial)();
+extern int (*ExpGetCurrentTechnic)();
+extern void (*ExpSetRenderRepeatCount)(int);
+extern int (*ExpGetRenderRepeatCount)();
+extern bool (*ExpGetEnglishMode)();
+
+// Utility functions
+extern bool InitializeMMDExports();
+extern bool AreMMDExportsReady();
+
+///////////////////////////////////////////////////////////////////////////
+// End of MMD Export Functions
+///////////////////////////////////////////////////////////////////////////
+
 typedef struct TextureInfo
 {
 	UMVec2i wh;
 	D3DFORMAT format;
 } TextureInfo;
-
 
 typedef std::map<IDirect3DVertexBuffer9*, UINT > VertexBuffers;
 typedef std::map<IDirect3DTexture9*, TextureInfo > TextureBuffers;
