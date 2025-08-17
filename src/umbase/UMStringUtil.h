@@ -4,7 +4,7 @@
  * @author tori31001 at gmail.com
  *
  * Copyright (C) 2013 Kazuma Hatta
- * Licensed  under the MIT license.
+ * Licensed under the MIT license.
  *
  */
 #pragma once
@@ -34,7 +34,7 @@ public:
 	static std::wstring number_to_wstring(T value)
 	{
 		std::wstringstream converter;
-		std::wstring  wstr;
+		std::wstring wstr;
 		converter << value;
 		converter >> wstr;
 		return wstr;
@@ -44,7 +44,7 @@ public:
 	static std::string number_to_string(T value)
 	{
 		std::stringstream converter;
-		std::string  str;
+		std::string str;
 		converter << value;
 		converter >> str;
 		return str;
@@ -54,7 +54,7 @@ public:
 	static std::string number_to_sequence_string(T value, int n)
 	{
 		std::stringstream converter;
-		std::string  str;
+		std::string str;
 		converter << std::setw(n) << std::setfill('0') << value;
 		converter >> str;
 		return str;
@@ -140,21 +140,21 @@ public:
 	}
 
 #if !defined (WITH_EMSCRIPTEN)
-		/**
-		 * convert utf8 to utf32 string
-		 */
-		static std::u32string utf8_to_utf32(const std::string& str)
-		{
-	#if defined _WIN32
-			std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> convert;
-			std::u32string u32str = convert.from_bytes(str);
-	#else
-			// not implemented
-			umstring u32str;
-	#endif
-			return u32str;
-		}
-#endif //  !defined (WITH_EMSCRIPTEN)
+	/**
+	 * convert utf8 to utf32 string
+	 */
+	static std::u32string utf8_to_utf32(const std::string& str)
+	{
+#if defined _WIN32
+		std::wstring_convert<std::codecvt_utf8<char32_t>,char32_t> convert;
+		std::u32string u32str = convert.from_bytes(str);
+#else
+		// not implemented
+		umstring u32str;
+#endif
+		return u32str;
+	}
+#endif // !defined (WITH_EMSCRIPTEN)
 
 };
 
