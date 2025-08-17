@@ -622,7 +622,10 @@ public:
 			dst.z = z * b;
 			dst.w = w * b;
 		} else {
-			dst.x = dst.y = dst.z = dst.w = static_cast<T>(0);
+			dst.x = static_cast<T>(0);
+			dst.y = static_cast<T>(0);
+			dst.z = static_cast<T>(0);
+			dst.w = static_cast<T>(1);
 		}
 		return dst;
 	}
