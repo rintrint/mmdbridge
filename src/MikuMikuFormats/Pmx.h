@@ -13,6 +13,7 @@ namespace pmx
 #else
 #define utfstring std::string
 #endif
+
 	/// インデックス設定
 	class PmxSetting
 	{
@@ -72,7 +73,7 @@ namespace pmx
 		{}
 
 		int bone_index;
-		void Read(std::istream *stresam, PmxSetting *setting);
+		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
 	class PmxVertexSkinningBDEF2 : public PmxVertexSkinning
@@ -87,7 +88,7 @@ namespace pmx
 		int bone_index1;
 		int bone_index2;
 		float bone_weight;
-		void Read(std::istream *stresam, PmxSetting *setting);
+		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
 	class PmxVertexSkinningBDEF4 : public PmxVertexSkinning
@@ -112,7 +113,7 @@ namespace pmx
 		float bone_weight2;
 		float bone_weight3;
 		float bone_weight4;
-		void Read(std::istream *stresam, PmxSetting *setting);
+		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
 	class PmxVertexSkinningSDEF : public PmxVertexSkinning
@@ -136,7 +137,7 @@ namespace pmx
 		float sdef_c[3];
 		float sdef_r0[3];
 		float sdef_r1[3];
-		void Read(std::istream *stresam, PmxSetting *setting);
+		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
 	class PmxVertexSkinningQDEF : public PmxVertexSkinning
@@ -161,7 +162,7 @@ namespace pmx
 		float bone_weight2;
 		float bone_weight3;
 		float bone_weight4;
-		void Read(std::istream *stresam, PmxSetting *setting);
+		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
 	/// 頂点
@@ -282,7 +283,7 @@ namespace pmx
 		float max_radian[3];
 		/// 最小制限角度
 		float min_radian[3];
-		void Read(std::istream *stream, PmxSetting *settingn);
+		void Read(std::istream *stream, PmxSetting *setting);
 	};
 
 	/// ボーン
@@ -364,7 +365,7 @@ namespace pmx
 		AdditionalUV4 = 7,
 		Matrial = 8,
 		Flip = 9,
-		Implus = 10,
+		Impulse = 10,
 	};
 
 	enum class MorphCategory : uint8_t
@@ -379,7 +380,8 @@ namespace pmx
 	class PmxMorphOffset
 	{
 	public:
-		void virtual Read(std::istream *stream, PmxSetting *setting) = 0;
+		virtual void Read(std::istream *stream, PmxSetting *setting) = 0;
+		virtual ~PmxMorphOffset() = default;
 	};
 
 	class PmxMorphVertexOffset : public PmxMorphOffset
@@ -435,7 +437,9 @@ namespace pmx
 	{
 	public:
 		PmxMorphMaterialOffset()
-			: specularity(0.0f)
+			: material_index(0)
+			, offset_operation(0)
+			, specularity(0.0f)
 			, edge_size(0.0f)
 		{
 			for (int i = 0; i < 3; ++i) {
@@ -488,10 +492,10 @@ namespace pmx
 		void Read(std::istream *stream, PmxSetting *setting) override;
 	};
 
-	class PmxMorphImplusOffset : public PmxMorphOffset
+	class PmxMorphImpulseOffset : public PmxMorphOffset
 	{
 	public:
-		PmxMorphImplusOffset()
+		PmxMorphImpulseOffset()
 			: rigid_body_index(0)
 			, is_local(0)
 		{
@@ -511,7 +515,11 @@ namespace pmx
 	class PmxMorph
 	{
 	public:
+		PmxMorph() = default;
+
+		/// モーフ名
 		utfstring morph_name;
+		/// モーフ英名
 		utfstring morph_english_name;
 		/// カテゴリ
 		MorphCategory category;
@@ -524,7 +532,7 @@ namespace pmx
 		std::vector<PmxMorphMaterialOffset> material_offsets;
 		std::vector<PmxMorphGroupOffset> group_offsets;
 		std::vector<PmxMorphFlipOffset> flip_offsets;
-		std::vector<PmxMorphImplusOffset> implus_offsets;
+		std::vector<PmxMorphImpulseOffset> impulse_offsets;
 
 		void Read(std::istream *stream, PmxSetting *setting);
 	};
@@ -589,9 +597,9 @@ namespace pmx
 			}
 		}
 		/// 剛体名
-		utfstring girid_body_name;
+		utfstring rigid_body_name;
 		/// 剛体英名
-		utfstring girid_body_english_name;
+		utfstring rigid_body_english_name;
 		/// 関連ボーンインデックス
 		int target_bone;
 		/// グループ
@@ -631,7 +639,7 @@ namespace pmx
 		{
 			for (int i = 0; i < 3; ++i) {
 				position[i] = 0.0f;
-				orientaiton[i] = 0.0f;
+				orientation[i] = 0.0f;
 				move_limitation_min[i] = 0.0f;
 				move_limitation_max[i] = 0.0f;
 				rotation_limitation_min[i] = 0.0f;
@@ -643,7 +651,7 @@ namespace pmx
 		int rigid_body1;
 		int rigid_body2;
 		float position[3];
-		float orientaiton[3];
+		float orientation[3];
 		float move_limitation_min[3];
 		float move_limitation_max[3];
 		float rotation_limitation_min[3];
@@ -670,10 +678,10 @@ namespace pmx
 		Link = 0x04
 	};
 
-	class PmxAncherRigidBody
+	class PmxAnchorRigidBody
 	{
 	public:
-		PmxAncherRigidBody()
+		PmxAnchorRigidBody()
 			: related_rigid_body(0)
 			, related_vertex(0)
 			, is_near(false)
@@ -763,12 +771,11 @@ namespace pmx
 		float AST;
 		float VST;
 		int anchor_count;
-		std::unique_ptr<PmxAncherRigidBody []> anchers;
+		std::unique_ptr<PmxAnchorRigidBody []> anchors;
 		int pin_vertex_count;
 		std::unique_ptr<int []> pin_vertices;
 		void Read(std::istream *stream, PmxSetting *setting);
 	};
-
 
 	class PmxModel
 	{
@@ -799,7 +806,6 @@ namespace pmx
 		void Init();
 
 		void Read(std::istream *stream);
-        void Write(std::ostream &os);
+		void Write(std::ostream &os);
 	};
 }
-

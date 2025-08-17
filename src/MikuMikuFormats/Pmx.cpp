@@ -321,7 +321,7 @@ namespace pmx
 		stream->read((char*) &this->morph_value, sizeof(float));
 	}
 
-	void PmxMorphImplusOffset::Read(std::istream *stream, PmxSetting *setting)
+	void PmxMorphImpulseOffset::Read(std::istream *stream, PmxSetting *setting)
 	{
 		this->rigid_body_index = ReadIndex(stream, setting->rigidbody_index_size);
 		stream->read((char*) &this->is_local, sizeof(uint8_t));
@@ -379,8 +379,22 @@ namespace pmx
 				uv_offsets[i].Read(stream, setting);
 			}
 			break;
+		case MorphType::Flip:
+			flip_offsets.resize(offset_count);
+			for (int i = 0; i < offset_count; i++)
+			{
+				flip_offsets[i].Read(stream, setting);
+			}
+			break;
+		case MorphType::Impulse:
+			impulse_offsets.resize(offset_count);
+			for (int i = 0; i < offset_count; i++)
+			{
+				impulse_offsets[i].Read(stream, setting);
+			}
+			break;
 		default:
-			throw;
+			throw ("unknown morph type:" + std::to_string(static_cast<int>(morph_type)));
 		}
 	}
 
@@ -411,8 +425,8 @@ namespace pmx
 
 	void PmxRigidBody::Read(std::istream *stream, PmxSetting *setting)
 	{
-		this->girid_body_name = ReadString(stream, setting->encoding);
-		this->girid_body_english_name = ReadString(stream, setting->encoding);
+		this->rigid_body_name = ReadString(stream, setting->encoding);
+		this->rigid_body_english_name = ReadString(stream, setting->encoding);
 		this->target_bone = ReadIndex(stream, setting->bone_index_size);
 		stream->read((char*) &this->group, sizeof(uint8_t));
 		stream->read((char*) &this->mask, sizeof(uint16_t));
@@ -433,7 +447,7 @@ namespace pmx
 		this->rigid_body1 = ReadIndex(stream, setting->rigidbody_index_size);
 		this->rigid_body2 = ReadIndex(stream, setting->rigidbody_index_size);
 		stream->read((char*) this->position, sizeof(float) * 3);
-		stream->read((char*) this->orientaiton, sizeof(float) * 3);
+		stream->read((char*) this->orientation, sizeof(float) * 3);
 		stream->read((char*) this->move_limitation_min, sizeof(float) * 3);
 		stream->read((char*) this->move_limitation_max, sizeof(float) * 3);
 		stream->read((char*) this->rotation_limitation_min, sizeof(float) * 3);
@@ -450,7 +464,7 @@ namespace pmx
 		this->param.Read(stream, setting);
 	}
 
-	void PmxAncherRigidBody::Read(std::istream *stream, PmxSetting *setting)
+	void PmxAnchorRigidBody::Read(std::istream *stream, PmxSetting *setting)
 	{
 		this->related_rigid_body = ReadIndex(stream, setting->rigidbody_index_size);
 		this->related_vertex = ReadIndex(stream, setting->vertex_index_size);
@@ -608,11 +622,23 @@ namespace pmx
 				this->joints[i].Read(stream, &setting);
 			}
 		}
+
+		// ソフトボディ
+		// if (version == 2.1f)
+		// {
+		//     int soft_body_count;
+		//     stream->read((char*)&soft_body_count, sizeof(int));
+		//     this->soft_bodies.resize(soft_body_count);
+		//     for (int i = 0; i < soft_body_count; i++)
+		//     {
+		//         this->soft_bodies[i].Read(stream, &setting);
+		//     }
+		// }
 	}
 
-    void PmxModel::Write(std::ostream &os)
-    {
-        // ToDo
-    }
+	void PmxModel::Write(std::ostream &os)
+	{
+		// ToDo
+		std::cerr << "PmxModel::Write not implemented yet." << std::endl;
+	}
 }
-
