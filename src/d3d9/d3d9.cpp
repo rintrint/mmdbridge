@@ -1614,7 +1614,6 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 // Window hijacking
 static void overrideGLWindow()
 {
-	EnumWindows(enumWindowsProc,0);
 	setMyMenu();
 	setMySize();
 	// Subclassing
@@ -1629,9 +1628,42 @@ static bool IsValidCallSetting() {
 	return (script_call_setting == 0) || (script_call_setting == 1);
 }
 
+// Helper struct for the EnumWindows callback, passing a PID and returning a HWND.
+struct FindWindowData {
+	DWORD process_id;
+	HWND found_hwnd;
+};
+
+// EnumWindows callback that finds "RecWindow" belonging to a specific process.
+BOOL CALLBACK FindRecWindowProc(HWND hWnd, LPARAM lParam) {
+	FindWindowData* pData = (FindWindowData*)lParam;
+
+	// Check if the window's class name is "RecWindow".
+	char className[256];
+	if (GetClassNameA(hWnd, className, sizeof(className)) > 0) {
+		if (strcmp(className, "RecWindow") == 0) {
+			DWORD windowProcessId;
+			GetWindowThreadProcessId(hWnd, &windowProcessId);
+
+			if (windowProcessId == pData->process_id) {
+				pData->found_hwnd = hWnd;
+				return FALSE; // Returning FALSE stops the EnumWindows loop.
+			}
+		}
+	}
+
+	// Continue enumerating windows.
+	return TRUE;
+}
+
 static bool IsValidFrame() {
-	HWND recWindow = FindWindowA("RecWindow", NULL);
-	return (recWindow != NULL);
+	FindWindowData data;
+	data.process_id = GetCurrentProcessId();
+	data.found_hwnd = NULL;
+
+	EnumWindows(FindRecWindowProc, (LPARAM)&data);
+
+	return (data.found_hwnd != NULL);
 }
 
 static bool IsValidTechniq() {
@@ -2488,6 +2520,11 @@ static HRESULT WINAPI createDevice(
 	D3DPRESENT_PARAMETERS *param,
 	IDirect3DDevice9 **device)
 {
+	if (g_hWnd == NULL)
+	{
+		g_hWnd = window;
+	}
+
 	HRESULT res = (*original_create_device)(direct3d, adapter, type, window, flag, param, device);
 	p_device = (*device);
 
@@ -2523,6 +2560,11 @@ static HRESULT WINAPI createDeviceEx(
 	D3DDISPLAYMODEEX* displayMode,
 	IDirect3DDevice9Ex **device)
 {
+	if (g_hWnd == NULL)
+	{
+		g_hWnd = window;
+	}
+
 	HRESULT res = (*original_create_deviceex)(direct3dex, adapter, type, window, flag, param, displayMode, device);
 	p_device = reinterpret_cast<IDirect3DDevice9*>(*device);
 
