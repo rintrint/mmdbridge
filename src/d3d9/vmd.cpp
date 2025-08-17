@@ -383,7 +383,7 @@ static UMMat44d to_ummat(const D3DMATRIX& mat)
 static UMVec4d extractQuat(const UMMat44d &mat)
 {
 	double s;
-	UMVec4d   quat;
+	UMVec4d quat;
 	constexpr int nxt[3] = { 1, 2, 0 };
 
 	// check the diagonal
@@ -426,6 +426,102 @@ static UMVec4d extractQuat(const UMMat44d &mat)
 	return quat;
 }
 
+// Helper function: Calculate VMD bone frame based on bone index
+static vmd::VmdBoneFrame calculate_bone_frame(
+	int model_index,				// Model index (i)
+	int bone_index,					// Bone index (k)
+	int current_frame,				// Current frame number
+	const FileDataForVMD& file_data	// File data
+)
+{
+	vmd::VmdBoneFrame bone_frame;
+	bone_frame.frame = current_frame;
+	bone_frame.name = ExpGetPmdBoneName(model_index, bone_index);
+
+	// Get bone name for validation
+	const char* bone_name = ExpGetPmdBoneName(model_index, bone_index);
+
+	// Validate bone name mapping
+	if (file_data.bone_name_map.find(bone_index) == file_data.bone_name_map.end() ||
+		file_data.bone_name_map.at(bone_index) != bone_name) {
+		// If validation fails, return default bone_frame
+		return bone_frame;
+	}
+
+	// Get initial position
+	UMVec3f initial_trans;
+	if (file_data.pmd) {
+		const pmd::PmdBone& bone = file_data.pmd->bones[bone_index];
+		if (bone.bone_type == pmd::BoneType::Invisible) {
+			return bone_frame; // Return default values
+		}
+		initial_trans[0] = bone.bone_head_pos[0];
+		initial_trans[1] = bone.bone_head_pos[1];
+		initial_trans[2] = bone.bone_head_pos[2];
+	}
+	else if (file_data.pmx) {
+		const pmx::PmxBone& bone = file_data.pmx->bones[bone_index];
+		initial_trans[0] = bone.position[0];
+		initial_trans[1] = bone.position[1];
+		initial_trans[2] = bone.position[2];
+	}
+
+	// Get transformation matrices
+	UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(model_index, bone_index));
+	UMMat44d local = world;
+	int parent_index = file_data.parent_index_map.count(bone_index) ? file_data.parent_index_map.at(bone_index) : -1;
+
+	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
+		UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(model_index, parent_index));
+		local = world * parent_world.inverted();
+	}
+
+	// Calculate VMD position
+	// Step 1: Subtract own initial position
+	bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans[0];
+	bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
+	bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
+	// Step 2: Add parent bone's initial position
+	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
+		if (file_data.pmd && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmd->bones.size())) {
+			const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
+			bone_frame.position[0] += parent_bone.bone_head_pos[0];
+			bone_frame.position[1] += parent_bone.bone_head_pos[1];
+			bone_frame.position[2] += parent_bone.bone_head_pos[2];
+		}
+		else if (file_data.pmx && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmx->bones.size())) {
+			const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
+			bone_frame.position[0] += parent_bone.position[0];
+			bone_frame.position[1] += parent_bone.position[1];
+			bone_frame.position[2] += parent_bone.position[2];
+		}
+	}
+
+	// Calculate rotation
+	UMMat44d rotation_matrix = local;
+	rotation_matrix[3][0] = rotation_matrix[3][1] = rotation_matrix[3][2] = 0.0;
+	UMVec4d quat = extractQuat(rotation_matrix);
+
+	bone_frame.orientation[0] = static_cast<float>(quat[0]);
+	bone_frame.orientation[1] = static_cast<float>(quat[1]);
+	bone_frame.orientation[2] = static_cast<float>(quat[2]);
+	bone_frame.orientation[3] = static_cast<float>(quat[3]);
+
+	// Set interpolation parameters
+	for (auto& n : bone_frame.interpolation) {
+		for (int m = 0; m < 4; ++m) {
+			n[0][m] = 20;
+			n[1][m] = 20;
+		}
+		for (int m = 0; m < 4; ++m) {
+			n[2][m] = 107;
+			n[3][m] = 107;
+		}
+	}
+
+	return bone_frame;
+}
+
 static bool execute_vmd_export(const int currentframe)
 {
 	VMDArchive &archive = VMDArchive::instance();
@@ -462,17 +558,17 @@ static bool execute_vmd_export(const int currentframe)
 		const int bone_num = ExpGetPmdBoneNum(i);
 		for (int k = 0; k < bone_num; ++k)
 		{
-			UMVec3f initial_trans;
 			const char* bone_name = ExpGetPmdBoneName(i, k);
+
+			// Validate bone name mapping
 			if (file_data.bone_name_map.find(k) == file_data.bone_name_map.end()) {
 				continue;
 			}
-
 			if (file_data.bone_name_map[k] != bone_name) {
 				continue;
 			}
 
-			// export mode
+			// Export mode filtering
 			const bool is_ik_effector_bone = file_data.ik_frame_bone_map.count(k) > 0;
 			const bool is_affected_by_ik = file_data.ik_bone_map.count(k) > 0;
 			const bool is_fuyo_effector_bone = file_data.fuyo_target_map.find(k) != file_data.fuyo_target_map.end();
@@ -487,10 +583,13 @@ static bool execute_vmd_export(const int currentframe)
 					is_simulated_physics_bone = true;
 				}
 			}
+
 			// Since IK is baked to FK, skip exporting IK bone motion keyframes
 			if (is_ik_effector_bone) {
 				continue;
 			}
+
+			// Export mode filter
 			if (archive.export_mode == 0) {
 				// physics + ik + fuyo
 				if (!is_simulated_physics_bone && !is_affected_by_ik && !is_affected_by_fuyo) {
@@ -507,90 +606,65 @@ static bool execute_vmd_export(const int currentframe)
 				// all
 			}
 
-			// get initial world position
-			if (file_data.pmd)
-			{
-				const pmd::PmdBone& bone = file_data.pmd->bones[k];
-				if (bone.bone_type == pmd::BoneType::Invisible)
-				{
-					continue;
-				}
-				initial_trans[0] = bone.bone_head_pos[0];
-				initial_trans[1] = bone.bone_head_pos[1];
-				initial_trans[2] = bone.bone_head_pos[2];
-			}
-			else if (file_data.pmx)
-			{
-				const pmx::PmxBone& bone = file_data.pmx->bones[k];
-				initial_trans[0] = bone.position[0];
-				initial_trans[1] = bone.position[1];
-				initial_trans[2] = bone.position[2];
-			}
+			// Use helper function to calculate bone frame
+			vmd::VmdBoneFrame bone_frame = calculate_bone_frame(i, k, currentframe, file_data);
 
-			UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(i, k));
-			UMMat44d local = world;
-			int parent_index = file_data.parent_index_map[k];
-			if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
-				UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(i, parent_index));
-				local = world * parent_world.inverted();
-			}
+			// Remove grant parent influence if this is a grant child bone
+			if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size())) {
+				const pmx::PmxBone& current_bone = file_data.pmx->bones[k];
+				const uint16_t grant_flags = current_bone.bone_flag & 0x0300; // 0x0100 | 0x0200
 
-			vmd::VmdBoneFrame bone_frame;
-			bone_frame.frame = currentframe;
-			bone_frame.name = ExpGetPmdBoneName(i, k);
+				if (grant_flags && current_bone.grant_parent_index >= 0 &&
+					current_bone.grant_parent_index < static_cast<int>(file_data.pmx->bones.size())) {
 
-            // Calculate VMD position
-            // Step 1: Subtract own initial position
-            bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans[0];
-            bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
-            bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
-            // Step 2: Add parent bone's initial position
-			if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
-				if (file_data.pmd)
-				{
-					if (parent_index >= 0 && parent_index < file_data.pmd->bones.size()){
-						const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
-						bone_frame.position[0] += parent_bone.bone_head_pos[0];
-						bone_frame.position[1] += parent_bone.bone_head_pos[1];
-						bone_frame.position[2] += parent_bone.bone_head_pos[2];
-					} else {
-						std::cerr << "invalid parent index: " << parent_index << std::endl;
+					// Calculate grant parent bone frame
+					vmd::VmdBoneFrame grant_parent_frame = calculate_bone_frame(
+						i, current_bone.grant_parent_index, currentframe, file_data
+					);
+
+					const float grant_weight = current_bone.grant_weight;
+
+					// Remove position grant influence
+					if (grant_flags & 0x0200) { // Position grant
+						bone_frame.position[0] -= grant_parent_frame.position[0] * grant_weight;
+						bone_frame.position[1] -= grant_parent_frame.position[1] * grant_weight;
+						bone_frame.position[2] -= grant_parent_frame.position[2] * grant_weight;
 					}
-				}
-				else if (file_data.pmx)
-				{
-					if (parent_index >= 0 && parent_index < file_data.pmx->bones.size()){
-						const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
-						bone_frame.position[0] += parent_bone.position[0];
-						bone_frame.position[1] += parent_bone.position[1];
-						bone_frame.position[2] += parent_bone.position[2];
-					} else {
-						std::cerr << "invalid parent index: " << parent_index << std::endl;
-					}
-				}
-            }
 
-			local[3][0] = local[3][1] = local[3][2] = 0.0;
-			UMVec4d quat = extractQuat(local);
-			bone_frame.orientation[0] = static_cast<float>(quat[0]);
-			bone_frame.orientation[1] = static_cast<float>(quat[1]);
-			bone_frame.orientation[2] = static_cast<float>(quat[2]);
-			bone_frame.orientation[3] = static_cast<float>(quat[3]);
-			for (auto& n : bone_frame.interpolation)
-			{
-				for (int m = 0; m < 4; ++m) {
-					n[0][m] = 20;
-					n[1][m] = 20;
-				}
-				for (int m = 0; m < 4; ++m) {
-					n[2][m] = 107;
-					n[3][m] = 107;
+					// Remove rotation grant influence - using Imath::Quat
+					if (grant_flags & 0x0100) { // Rotation grant
+						// Create Imath quaternion objects
+						Imath::Quatf current_quat(bone_frame.orientation[3], bone_frame.orientation[0],
+												 bone_frame.orientation[1], bone_frame.orientation[2]);
+						Imath::Quatf parent_quat(grant_parent_frame.orientation[3], grant_parent_frame.orientation[0],
+												grant_parent_frame.orientation[1], grant_parent_frame.orientation[2]);
+
+						// Create identity quaternion for interpolation
+						Imath::Quatf identity = Imath::Quatf::identity();
+
+						// Use slerp to calculate scaled parent quaternion
+						// scaled_parent_quat = slerp(identity, parent_quat, grant_weight)
+						Imath::Quatf scaled_parent_quat = slerpShortestArc(identity, parent_quat, grant_weight);
+
+						// Remove grant influence: current_pure = current * scaled_parent_quat^(-1)
+						Imath::Quatf pure_quat = current_quat * scaled_parent_quat.inverse();
+
+						// Normalize result
+						pure_quat.normalize();
+
+						// Convert back to VMD format (x, y, z, w)
+						bone_frame.orientation[0] = pure_quat.v.x;
+						bone_frame.orientation[1] = pure_quat.v.y;
+						bone_frame.orientation[2] = pure_quat.v.z;
+						bone_frame.orientation[3] = pure_quat.r;
+					}
 				}
 			}
 
 			file_data.vmd->bone_frames.push_back(bone_frame);
 		}
 
+		// Handle IK frames for the first frame
 		if (currentframe == parameter.start_frame)
 		{
 			vmd::VmdIkFrame ik_frame;
@@ -615,10 +689,10 @@ static bool execute_vmd_export(const int currentframe)
 
 // ---------------------------------------------------------------------------
 PYBIND11_MODULE(mmdbridge_vmd, m) {
-    m.doc() = "MMD Bridge VMD export module";
-    m.def("start_vmd_export", start_vmd_export);
-    m.def("end_vmd_export", end_vmd_export);
-    m.def("execute_vmd_export", execute_vmd_export);
+	m.doc() = "MMD Bridge VMD export module";
+	m.def("start_vmd_export", start_vmd_export);
+	m.def("end_vmd_export", end_vmd_export);
+	m.def("execute_vmd_export", execute_vmd_export);
 }
 
 #endif //WITH_VMD
