@@ -1,0 +1,63 @@
+
+====== DEBUGGING '両目' (BONE 10) at FRAME 0 ======
+DEBUG: Is in bone_name_map? Yes
+DEBUG: Name in map: '両目', Name from Exp: '両目'
+DEBUG: Map name matches Exp name? Yes
+DEBUG: Is IK effector (ik_frame_bone_map)? No
+DEBUG: Is physics bone (physics_bone_map)? No
+DEBUG: Is IK bone (ik_bone_map)? No
+DEBUG: Is Fuyo bone (fuyo_bone_map)? No
+DEBUG: Current export_mode: 2
+FRAME:0,BONE:10,NAME:両目
+INIT_POS:-0.000,18.760,-0.602
+INIT_ROT:0.000,0.357,0.000,0.934
+WORLD_MAT:0.745,0.000,-0.667,0.000,0.000,1.000,0.000,0.000,0.667,0.000,0.745,0.000,-0.000,18.760,-0.602,1.000
+PARENT_MAT:1.000,0.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,0.000,1.000,0.000,0.000,16.750,0.217,1.000
+LOCAL_TRANS:-0.000,2.010,-0.819
+VMD_POS_TEMP:-0.000,-16.750,-0.217
+VMD_POS:0.000,0.000,-0.000
+VMD_ROT:0.000,0.357,0.000,0.934
+FINAL_POS:0.000,0.000,0.000
+FINAL_ROT:0.000,0.000,0.000,1.000
+
+====== DEBUGGING '左目' (BONE 11) at FRAME 0 ======
+DEBUG: Is in bone_name_map? Yes
+DEBUG: Name in map: '左目', Name from Exp: '左目'
+DEBUG: Map name matches Exp name? Yes
+DEBUG: Is IK effector (ik_frame_bone_map)? No
+DEBUG: Is physics bone (physics_bone_map)? No
+DEBUG: Is IK bone (ik_bone_map)? No
+DEBUG: Is Fuyo bone (fuyo_bone_map)? Yes
+DEBUG: Current export_mode: 2
+FRAME:0,BONE:11,NAME:左目
+INIT_POS:0.277,17.297,-0.210
+INIT_ROT:0.000,0.270,0.000,0.963
+WORLD_MAT:0.854,0.000,-0.521,0.000,0.000,1.000,0.000,0.000,0.521,0.000,0.854,0.000,0.277,17.297,-0.210,1.000
+PARENT_MAT:1.000,0.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,0.000,1.000,0.000,0.000,16.750,0.217,1.000
+LOCAL_TRANS:0.277,0.547,-0.427
+VMD_POS_TEMP:0.000,-16.750,-0.217
+VMD_POS:0.000,0.000,0.000
+VMD_ROT:0.000,0.270,0.000,0.963
+FINAL_POS:0.000,0.000,0.000
+FINAL_ROT:0.000,0.270,0.000,0.963
+
+====== DEBUGGING '右目' (BONE 12) at FRAME 0 ======
+DEBUG: Is in bone_name_map? Yes
+DEBUG: Name in map: '右目', Name from Exp: '右目'
+DEBUG: Map name matches Exp name? Yes
+DEBUG: Is IK effector (ik_frame_bone_map)? No
+DEBUG: Is physics bone (physics_bone_map)? No
+DEBUG: Is IK bone (ik_bone_map)? No
+DEBUG: Is Fuyo bone (fuyo_bone_map)? Yes
+DEBUG: Current export_mode: 2
+FRAME:0,BONE:12,NAME:右目
+INIT_POS:-0.277,17.297,-0.210
+INIT_ROT:0.000,0.270,0.000,0.963
+WORLD_MAT:0.854,0.000,-0.521,0.000,0.000,1.000,0.000,0.000,0.521,0.000,0.854,0.000,-0.277,17.297,-0.210,1.000
+PARENT_MAT:1.000,0.000,0.000,0.000,0.000,1.000,0.000,0.000,0.000,0.000,1.000,0.000,0.000,16.750,0.217,1.000
+LOCAL_TRANS:-0.277,0.547,-0.427
+VMD_POS_TEMP:0.000,-16.750,-0.217
+VMD_POS:0.000,0.000,0.000
+VMD_ROT:0.000,0.270,0.000,0.963
+FINAL_POS:0.000,0.000,0.000
+FINAL_ROT:0.000,0.270,0.000,0.963
