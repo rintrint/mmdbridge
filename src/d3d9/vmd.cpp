@@ -642,75 +642,72 @@ static bool execute_vmd_export(const int currentframe)
 			}
 
 			// Export mode filter
-			if (archive.export_mode == 0) {
-				// physics + ik + fuyo
-				if (!is_simulated_physics_bone && !is_affected_by_ik && !is_affected_by_fuyo) {
-					continue;
-				}
-			}
-			else if (archive.export_mode == 1) {
-				// physics only
+			if (archive.export_mode == 0) { // simulated physics bones only
 				if (!is_simulated_physics_bone) {
 					continue;
 				}
-			}
-			else {
-				// all
 			}
 
 			// Use helper function to calculate bone frame
 			vmd::VmdBoneFrame bone_frame = calculate_bone_frame(i, k, currentframe, file_data);
 
-			// Remove grant parent influence if this is a grant child bone
-			if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size())) {
-				const pmx::PmxBone& current_bone = file_data.pmx->bones[k];
-				const uint16_t grant_flags = current_bone.bone_flag & 0x0300; // 0x0100 | 0x0200
+			if (archive.export_mode == 1) { // all bones except IK, keep 付与親 constraint (MMD compatible, MMD Tools)
+				// Remove grant parent influence if this is a grant child bone
+				if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size())) {
+					const pmx::PmxBone& current_bone = file_data.pmx->bones[k];
+					const uint16_t grant_flags = current_bone.bone_flag & 0x0300; // 0x0100 | 0x0200
 
-				if (grant_flags && current_bone.grant_parent_index >= 0 &&
-					current_bone.grant_parent_index < static_cast<int>(file_data.pmx->bones.size())) {
+					if (grant_flags && current_bone.grant_parent_index >= 0 &&
+						current_bone.grant_parent_index < static_cast<int>(file_data.pmx->bones.size())) {
 
-					// Calculate grant parent bone frame
-					vmd::VmdBoneFrame grant_parent_frame = calculate_bone_frame(
-						i, current_bone.grant_parent_index, currentframe, file_data
-					);
+						// Calculate grant parent bone frame
+						vmd::VmdBoneFrame grant_parent_frame = calculate_bone_frame(
+							i, current_bone.grant_parent_index, currentframe, file_data
+						);
 
-					const float grant_weight = current_bone.grant_weight;
+						const float grant_weight = current_bone.grant_weight;
 
-					// Remove position grant influence
-					if (grant_flags & 0x0200) { // Position grant
-						bone_frame.position[0] -= grant_parent_frame.position[0] * grant_weight;
-						bone_frame.position[1] -= grant_parent_frame.position[1] * grant_weight;
-						bone_frame.position[2] -= grant_parent_frame.position[2] * grant_weight;
-					}
+						// Remove position grant influence
+						if (grant_flags & 0x0200) { // Position grant
+							bone_frame.position[0] -= grant_parent_frame.position[0] * grant_weight;
+							bone_frame.position[1] -= grant_parent_frame.position[1] * grant_weight;
+							bone_frame.position[2] -= grant_parent_frame.position[2] * grant_weight;
+						}
 
-					// Remove rotation grant influence - using Imath::Quat
-					if (grant_flags & 0x0100) { // Rotation grant
-						// Create Imath quaternion objects
-						Imath::Quatf current_quat(bone_frame.orientation[3], bone_frame.orientation[0],
-												 bone_frame.orientation[1], bone_frame.orientation[2]);
-						Imath::Quatf parent_quat(grant_parent_frame.orientation[3], grant_parent_frame.orientation[0],
-												grant_parent_frame.orientation[1], grant_parent_frame.orientation[2]);
+						// Remove rotation grant influence - using Imath::Quat
+						if (grant_flags & 0x0100) { // Rotation grant
+							// Create Imath quaternion objects
+							Imath::Quatf current_quat(bone_frame.orientation[3], bone_frame.orientation[0],
+													bone_frame.orientation[1], bone_frame.orientation[2]);
+							Imath::Quatf parent_quat(grant_parent_frame.orientation[3], grant_parent_frame.orientation[0],
+													grant_parent_frame.orientation[1], grant_parent_frame.orientation[2]);
 
-						// Create identity quaternion for interpolation
-						Imath::Quatf identity = Imath::Quatf::identity();
+							// Create identity quaternion for interpolation
+							Imath::Quatf identity = Imath::Quatf::identity();
 
-						// Use slerp to calculate scaled parent quaternion
-						// scaled_parent_quat = slerp(identity, parent_quat, grant_weight)
-						Imath::Quatf scaled_parent_quat = slerpShortestArc(identity, parent_quat, grant_weight);
+							// Use slerp to calculate scaled parent quaternion
+							// scaled_parent_quat = slerp(identity, parent_quat, grant_weight)
+							Imath::Quatf scaled_parent_quat = slerpShortestArc(identity, parent_quat, grant_weight);
 
-						// Remove grant influence: current_pure = current * scaled_parent_quat^(-1)
-						Imath::Quatf pure_quat = current_quat * scaled_parent_quat.inverse();
+							// Remove grant influence: current_pure = current * scaled_parent_quat^(-1)
+							Imath::Quatf pure_quat = current_quat * scaled_parent_quat.inverse();
 
-						// Normalize result
-						pure_quat.normalize();
+							// Normalize result
+							pure_quat.normalize();
 
-						// Convert back to VMD format (x, y, z, w)
-						bone_frame.orientation[0] = pure_quat.v.x;
-						bone_frame.orientation[1] = pure_quat.v.y;
-						bone_frame.orientation[2] = pure_quat.v.z;
-						bone_frame.orientation[3] = pure_quat.r;
+							// Convert back to VMD format (x, y, z, w)
+							bone_frame.orientation[0] = pure_quat.v.x;
+							bone_frame.orientation[1] = pure_quat.v.y;
+							bone_frame.orientation[2] = pure_quat.v.z;
+							bone_frame.orientation[3] = pure_quat.r;
+						}
 					}
 				}
+			}
+			else // all bones except IK, bake 付与親 constraint to FK
+			{
+				// Keep grant parent influence
+				// The FK animation is already baked, do nothing
 			}
 
 			file_data.vmd->bone_frames.push_back(bone_frame);
