@@ -110,6 +110,19 @@ static bool start_vmd_export(
 	{
 		VMDArchive::instance().output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + ("out/");
 	}
+	else
+	{
+		VMDArchive::instance().output_path = directory_path;
+	}
+
+	// Make sure the output folder exists.
+	auto wide_output_path = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(VMDArchive::instance().output_path));
+	if (!CreateDirectoryW(wide_output_path.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
+	{
+		std::wstring error_message = L"Cannot create output folder: " + wide_output_path;
+		::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+		return false;
+	}
 
 	archive.export_mode = export_mode;
 	const int pmd_num = ExpGetPmdNum();
