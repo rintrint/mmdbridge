@@ -95,7 +95,9 @@ install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     DESTINATION ${MMD_DIR}
     PATTERN "test*" EXCLUDE
     PATTERN "__pycache__" EXCLUDE
+    PATTERN "__phello__*" EXCLUDE
     PATTERN "*.pyc" EXCLUDE
+    PATTERN "_freeze_module.exe" EXCLUDE
     PATTERN "tkinter*" EXCLUDE
     PATTERN "idlelib*" EXCLUDE
     PATTERN "turtle*" EXCLUDE
@@ -115,7 +117,6 @@ install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     PATTERN "venv*" EXCLUDE
     PATTERN "curses*" EXCLUDE
     PATTERN "dbm*" EXCLUDE
-    PATTERN "__phello__*" EXCLUDE
 )
 
 # install additional resources
