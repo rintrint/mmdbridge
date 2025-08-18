@@ -55,20 +55,32 @@ get_filename_component(MMD_DIR
 add_subdirectory(src)
 
 # install runtime dependencies
-# Release
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Release/
+install(TARGETS d3d9 d3dx9_43 RUNTIME DESTINATION ${MMD_DIR})
+install(FILES $<TARGET_RUNTIME_DLLS:d3d9> DESTINATION ${MMD_DIR})
+# install(FILES $<TARGET_RUNTIME_DLLS:Alembic::Alembic> DESTINATION ${MMD_DIR})
+# The automatic approach using $<TARGET_RUNTIME_DLLS:Alembic::Alembic> fails.
+# Manually install Alembic's runtime dependencies (e.g., hdf5.dll).
+# release build
+set(MISSING_DLLS_RELEASE
+    "${CMAKE_INSTALL_PREFIX}/bin/hdf5.dll"
+    "${CMAKE_INSTALL_PREFIX}/bin/szip.dll"
+    "${CMAKE_INSTALL_PREFIX}/bin/zlib1.dll"
+)
+install(
+    FILES ${MISSING_DLLS_RELEASE}
     DESTINATION ${MMD_DIR}
     CONFIGURATIONS Release RelWithDebInfo MinSizeRel
-    FILES_MATCHING
-    PATTERN "*.dll"
 )
-# Debug
-install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/src/Debug/
+# debug build
+set(MISSING_DLLS_DEBUG
+    "${CMAKE_INSTALL_PREFIX}/debug/bin/hdf5_D.dll"
+    "${CMAKE_INSTALL_PREFIX}/debug/bin/szip.dll"
+    "${CMAKE_INSTALL_PREFIX}/debug/bin/zlibd1.dll"
+)
+install(
+    FILES ${MISSING_DLLS_DEBUG}
     DESTINATION ${MMD_DIR}
     CONFIGURATIONS Debug
-    FILES_MATCHING
-    PATTERN "*.dll"
-    PATTERN "*.pdb"
 )
 
 # install Python scripts
