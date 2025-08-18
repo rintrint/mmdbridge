@@ -1448,15 +1448,16 @@ static void setMyMenu()
 		minfo.cbSize = sizeof(MENUITEMINFO);
 		minfo.fMask = MIIM_ID | MIIM_TYPE | MIIM_SUBMENU;
 		minfo.fType = MFT_STRING;
-		minfo.dwTypeData = L"MMDBridge";
+		wchar_t bridgeMenuText[] = L"MMDBridge";
+		minfo.dwTypeData = bridgeMenuText;
 		minfo.hSubMenu = hsubs;
 
 		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
 		minfo.fMask = MIIM_ID | MIIM_TYPE;
-		minfo.dwTypeData = L"プラグイン設定";
+		wchar_t settingsMenuText[] = L"プラグイン設定";
+		minfo.dwTypeData = settingsMenuText;
 		minfo.wID = 1020;
 		InsertMenuItem(hsubs, 1, TRUE, &minfo);
-
 
 		SetMenu(g_hWnd, hmenu);
 		g_hMenu = hmenu;
