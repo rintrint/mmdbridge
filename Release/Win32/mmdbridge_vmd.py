@@ -7,15 +7,13 @@ from mmdbridge_vmd import *
 # 2 = all bones except IK, bake 付与親 constraint to FK
 export_mode = 1
 
-outpath = get_base_path().replace("\\", "/") + "out/"
-texture_export_dir = outpath
 start_frame = get_start_frame()
 end_frame = get_end_frame()
 
 framenumber = get_frame_number()
 if framenumber == start_frame:
     messagebox("vmd export started")
-    start_vmd_export("", export_mode)
+    start_vmd_export(export_mode)
 
 if framenumber >= start_frame and framenumber <= end_frame:
     execute_vmd_export(framenumber)

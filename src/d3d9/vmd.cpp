@@ -95,9 +95,7 @@ private:
 
 static std::map<std::string, float> previous_morph_values;
 
-static bool start_vmd_export(
-	const std::string& directory_path,
-	int export_mode)
+static bool start_vmd_export(const int export_mode)
 {
 	VMDArchive &archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
@@ -106,23 +104,21 @@ static bool start_vmd_export(
 	{
 		return false;
 	}
-	if (const std::string& output_path(directory_path); output_path.empty())
-	{
-		VMDArchive::instance().output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + ("out/");
-	}
-	else
-	{
-		VMDArchive::instance().output_path = directory_path;
-	}
+
+	std::wstring wide_output_path = parameter.base_path + L"out/";
 
 	// Make sure the output folder exists.
-	auto wide_output_path = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(VMDArchive::instance().output_path));
 	if (!CreateDirectoryW(wide_output_path.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
 	{
 		std::wstring error_message = L"Cannot create output folder: " + wide_output_path;
 		::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
-		return false;
 	}
+
+	oguna::EncodingConverter::Utf16ToUtf8(
+		wide_output_path.c_str(),
+		static_cast<int>(wide_output_path.length()),
+		&VMDArchive::instance().output_path
+	);
 
 	archive.export_mode = export_mode;
 	const int pmd_num = ExpGetPmdNum();
