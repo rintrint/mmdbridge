@@ -87,7 +87,7 @@ jobs:
          # curl from Google Drive is unstable, using local zip instead
          # curl -L "https://drive.google.com/uc?id=1Iucxu0tDsD05Siyv8VBGgm9vjD-f-RhM&export=download" -o _MikuMikuDance_.zip
          cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_v932x64.zip" _MikuMikuDance_.zip
-         7z x _MikuMikuDance_.zip -o_MikuMikuDance_
+         7z x -mcp=932 _MikuMikuDance_.zip -o_MikuMikuDance_
          rm -f _MikuMikuDance_.zip
          mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_v932x64
          mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_v932x64/
