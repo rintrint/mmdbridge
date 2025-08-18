@@ -15,8 +15,8 @@ See [Build Instructions](how_to_build.md)
 * pybind11
 * python3
 
-## Licensing
-This project is licensed under the MIT License. Please refer to [LICENSE.txt](LICENSE.txt).
+## License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## Contributors
 [MMDBridge is open source and anyone can participate in development.](https://github.com/rintrint/mmdbridge/graphs/contributors)
