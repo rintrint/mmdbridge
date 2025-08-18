@@ -93,6 +93,8 @@ private:
 	VMDArchive() = default;
 };
 
+static std::map<std::string, float> previous_morph_values;
+
 static bool start_vmd_export(
 	const std::string& directory_path,
 	int export_mode)
@@ -571,8 +573,6 @@ static vmd::VmdFaceFrame calculate_face_frame(
 
 	return face_frame;
 }
-
-static std::map<std::string, float> previous_morph_values;
 
 static bool execute_vmd_export(const int currentframe)
 {
