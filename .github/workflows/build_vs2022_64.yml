@@ -30,102 +30,101 @@ jobs:
       VCPKG_BINARY_SOURCES: "clear;nuget,https://nuget.pkg.github.com/${{github.repository_owner}}/index.json,readwrite"
 
     steps:
-    - name: Add MSBuild to PATH
-      uses: microsoft/setup-msbuild@v1
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1
 
-    - name: Check MSBuild.exe
-      run: MSBuild.exe -version | Out-File -FilePath $env:GITHUB_WORKSPACE\MSBuild_version
+      - name: Check MSBuild.exe
+        run: MSBuild.exe -version | Out-File -FilePath $env:GITHUB_WORKSPACE\MSBuild_version
 
-    - name: Add VCPKG_DIR to ENV
-      run : echo "VCPKG_DIR=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
-      shell: bash
+      - name: Add VCPKG_DIR to ENV
+        run: echo "VCPKG_DIR=$VCPKG_INSTALLATION_ROOT" >> $GITHUB_ENV
+        shell: bash
 
-    # https://stackoverflow.com/questions/61037714/how-to-install-an-old-version-of-the-direct-x-api-in-github-actions
-    - name: Add DXSDK_DIR to ENV
-      run: |
-        winhome=`cygpath -w $HOME`
-        echo DXSDK_DIR=$winhome/dxsdk_dir/ >> $GITHUB_ENV
-      shell: bash
+      # https://stackoverflow.com/questions/61037714/how-to-install-an-old-version-of-the-direct-x-api-in-github-actions
+      - name: Add DXSDK_DIR to ENV
+        run: |
+          winhome=`cygpath -w $HOME`
+          echo DXSDK_DIR=$winhome/dxsdk_dir/ >> $GITHUB_ENV
+        shell: bash
 
-    - name: Download DXSDK
-      run: |
-         curl -L https://download.microsoft.com/download/a/e/7/ae743f1f-632b-4809-87a9-aa1bb3458e31/DXSDK_Jun10.exe -o _DX2010_.exe
-         mkdir -p $HOME/dxsdk_dir
-         mv _DX2010_.exe $HOME/dxsdk_dir/
-         7z x $HOME/dxsdk_dir/_DX2010_.exe DXSDK/Include -o_DX2010_
-         7z x $HOME/dxsdk_dir/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
-         ls -la _DX2010_/DXSDK/
-         mv _DX2010_/DXSDK/* $HOME/dxsdk_dir/
-         ls -la $HOME/dxsdk_dir/
-         rm -fR _DX2010_
-      shell: bash
+      - name: Download DXSDK
+        run: |
+          curl -L https://download.microsoft.com/download/a/e/7/ae743f1f-632b-4809-87a9-aa1bb3458e31/DXSDK_Jun10.exe -o _DX2010_.exe
+          mkdir -p $HOME/dxsdk_dir
+          mv _DX2010_.exe $HOME/dxsdk_dir/
+          7z x $HOME/dxsdk_dir/_DX2010_.exe DXSDK/Include -o_DX2010_
+          7z x $HOME/dxsdk_dir/_DX2010_.exe DXSDK/Lib/x64 -o_DX2010_
+          ls -la _DX2010_/DXSDK/
+          mv _DX2010_/DXSDK/* $HOME/dxsdk_dir/
+          ls -la $HOME/dxsdk_dir/
+          rm -fR _DX2010_
+        shell: bash
 
-    - name: DXSDK comment out some codes
-      run: |
-        sed -i -e "347 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "348 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "349 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "350 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "351 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "352 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "353 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "354 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
-        sed -i -e "355 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
-      shell: bash
+      - name: DXSDK comment out some codes
+        run: |
+          sed -i -e "347 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "348 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "349 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "350 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "351 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "352 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "353 s/HRESULT/\/\/HRESULT/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "354 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+          sed -i -e "355 s/#/\/\/#/g" $HOME/dxsdk_dir/include/d3dx9core.h
+        shell: bash
 
-    - name: Checkout MMDBridge
-      uses: actions/checkout@v4
+      - name: Checkout MMDBridge
+        uses: actions/checkout@v4
 
-    - name: Add MMD_DIR to ENV
-      run: |
-        winworkspace=`cygpath -w $GITHUB_WORKSPACE`
-        echo MMD_DIR=$winworkspace/MikuMikuDance_v932x64/ >> $GITHUB_ENV
-      shell: bash
+      - name: Add MMD_DIR to ENV
+        run: |
+          winworkspace=`cygpath -w $GITHUB_WORKSPACE`
+          echo MMD_DIR=$winworkspace/MikuMikuDance_v932x64/ >> $GITHUB_ENV
+        shell: bash
 
-    - name: Copy MMD
-      run: |
-         # curl from Google Drive is unstable, using local zip instead
-         # curl -L "https://drive.google.com/uc?id=1Iucxu0tDsD05Siyv8VBGgm9vjD-f-RhM&export=download" -o _MikuMikuDance_.zip
-         cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_v932x64.zip" _MikuMikuDance_.zip
-         7z x -mcp=932 _MikuMikuDance_.zip -o_MikuMikuDance_
-         rm -f _MikuMikuDance_.zip
-         mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_v932x64
-         mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_v932x64/
-         rm -fR _MikuMikuDance_
-      shell: bash
+      - name: Copy MMD
+        run: |
+          # curl from Google Drive is unstable, using local zip instead
+          # curl -L "https://drive.google.com/uc?id=1Iucxu0tDsD05Siyv8VBGgm9vjD-f-RhM&export=download" -o _MikuMikuDance_.zip
+          cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_v932x64.zip" _MikuMikuDance_.zip
+          7z x -mcp=932 _MikuMikuDance_.zip -o_MikuMikuDance_
+          rm -f _MikuMikuDance_.zip
+          mkdir -p $GITHUB_WORKSPACE/MikuMikuDance_v932x64
+          mv _MikuMikuDance_/MikuMikuDance_v932x64/* $GITHUB_WORKSPACE/MikuMikuDance_v932x64/
+          rm -fR _MikuMikuDance_
+        shell: bash
 
-    - name: Setup NuGet for vcpkg binary caching
-      run: |
-        dotnet nuget add source --username ${{github.repository_owner}} --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json"
+      - name: Setup NuGet for vcpkg binary caching
+        run: |
+          dotnet nuget add source --username ${{github.repository_owner}} --password ${{secrets.GITHUB_TOKEN}} --store-password-in-clear-text --name github "https://nuget.pkg.github.com/${{github.repository_owner}}/index.json"
 
-    - name: Install dependencies via vcpkg
-      run: vcpkg install alembic[hdf5]:x64-windows-release pybind11:x64-windows-release
-      shell: bash
+      - name: Install dependencies via vcpkg
+        run: vcpkg install alembic[hdf5]:x64-windows-release pybind11:x64-windows-release
+        shell: bash
 
-    - name: cmake
-      shell: cmd
-      run: .\cmake_vs2022_64.bat
+      - name: cmake
+        shell: cmd
+        run: .\cmake_vs2022_64.bat
 
-    - name: Build
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      # Add additional options to the MSBuild command line here (like platform or verbosity level).
-      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
-      run: |
-        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
+      - name: Build
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        # Add additional options to the MSBuild command line here (like platform or verbosity level).
+        # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+        run: |
+          msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.SOLUTION_FILE_PATH}}
 
-    - name: List library files on build failure
-      if: failure()
-      run: ls -la "$VCPKG_INSTALLATION_ROOT/installed/x64-windows-release/lib/"*.lib
-      shell: bash
+      - name: List library files on build failure
+        if: failure()
+        run: ls -la "$VCPKG_INSTALLATION_ROOT/installed/x64-windows-release/lib/"*.lib
+        shell: bash
 
-    - name: Install
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: |
-        msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.INSTALL_PROJECT_PATH}}
+      - name: Install
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: |
+          msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.INSTALL_PROJECT_PATH}}
 
-    - name: Upload
-      uses: actions/upload-artifact@v4
-      with:
-        name: MMDBridge_artifact_${{github.run_number}}
-        path: ${{github.workspace}}/MikuMikuDance_v932x64/
-
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: MMDBridge_artifact_${{github.run_number}}
+          path: ${{github.workspace}}/MikuMikuDance_v932x64/
