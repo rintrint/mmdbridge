@@ -123,8 +123,24 @@ jobs:
         run: |
           msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} /p:Platform=${{env.BUILD_PLATFORM}} ${{env.INSTALL_PROJECT_PATH}}
 
+      - name: Prepare package for upload
+        shell: bash
+        run: |
+          # 0. Pack original
+          7z a -t7z -mx5 _original.7z "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
+          # 1. Delete all .py files except mmdbridge_vmd.py
+          find "$GITHUB_WORKSPACE/MikuMikuDance_v932x64" -maxdepth 1 -type f -name "*.py" ! -name "mmdbridge_vmd.py" -delete
+          # 2. Delete alembic_assign_scripts folder
+          rm -rf "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/alembic_assign_scripts"
+          # 3. Create the 'out' folder
+          mkdir -p "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/out"
+          # 4. Compress the folder with 7z at normal compression level
+          7z a -t7z -mx5 MikuMikuDance_v932x64.7z "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
+
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
           name: MMDBridge_artifact_${{github.run_number}}
-          path: ${{github.workspace}}/MikuMikuDance_v932x64/
+          path: |
+            MikuMikuDance_v932x64.7z
+            _original.7z
