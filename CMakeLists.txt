@@ -18,7 +18,7 @@ add_compile_options(
     # /W3
     /W4 # high warning level (NOT /Wall)
     # /Wall
-    # /WX # warnings as errors
+    /WX # warnings as errors
     /analyze # static analysis
     /external:W0 # disable warnings for external headers
     /external:I${CMAKE_INSTALL_PREFIX}/include # Mark external include directories
