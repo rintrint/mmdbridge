@@ -1105,7 +1105,7 @@ void run_python_script()
 		error_report << "[C++ Exception Info]\n" << ex.what() << "\n\n";
 		error_report << "[Problematic Python Code Line]\n";
 		std::string what_str = ex.what();
-		std::regex re(R"(\((\d+)\):)");
+		std::regex re(R"((?:[\s\S]*)\((\d+)\):)");
 		std::smatch match;
 		if (std::regex_search(what_str, match, re) && match.size() > 1) {
 			try {
