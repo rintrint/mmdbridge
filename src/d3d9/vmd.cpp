@@ -191,7 +191,7 @@ static bool start_vmd_export(const int export_mode)
 }
 
 /**
- * @brief 通用的關鍵幀後處理與過濾輔助函數 (根據使用者新規則修改)
+ * @brief 通用的關鍵幀後處理與過濾輔助函數
  * @tparam T 幀的類型
  * @tparam GetNameFunc 獲取名稱的函式類型
  * @tparam AreEqualFunc 比較相等的函式類型
@@ -208,7 +208,7 @@ std::vector<T> PostProcessKeyframes(
         return {};
     }
 
-    // 步驟 1: 將所有幀按其名稱分組
+    // 將所有幀按其名稱分組
     std::map<std::string, std::vector<T>> grouped_frames;
     for (const auto& frame : all_frames) {
         grouped_frames[get_name_func(frame)].push_back(frame);
@@ -217,15 +217,14 @@ std::vector<T> PostProcessKeyframes(
     std::vector<T> final_frames;
     final_frames.reserve(all_frames.size());
 
-    // 對每一組（每一個骨骼或表情）獨立進行過濾
+    // 對每一組 (每一個骨骼或表情) 獨立進行過濾
     for (auto const& [name, frames] : grouped_frames)
     {
         if (frames.empty()) {
             continue;
         }
 
-        // ------------------------- 新規則實施開始 -------------------------
-
+        // ------------------------- 過濾規則實施開始 -------------------------
         // 規則 1: 先清除相同的中間幀
         std::vector<T> stage1_frames;
         if (frames.size() > 2) {
@@ -256,7 +255,7 @@ std::vector<T> PostProcessKeyframes(
             // 將最終結果合併到 final_frames
             final_frames.insert(final_frames.end(), stage2_frames.begin(), stage2_frames.end());
         }
-        // ------------------------- 新規則實施結束 -------------------------
+        // ------------------------- 過濾規則實施結束 -------------------------
     }
 
     // 最終結果按幀號排序
@@ -283,50 +282,43 @@ static bool end_vmd_export()
 			continue;
 		}
 
-		// =======================================================================
-        //                   使用輔助函數進行後處理
-        // =======================================================================
+        // PostProcess
+		{
+			// morph (face)
+			const float face_threshold = 0.0f;
+			auto get_face_name = [](const vmd::VmdFaceFrame& f) { return f.face_name; };
+			auto are_faces_equal = [&](const vmd::VmdFaceFrame& a, const vmd::VmdFaceFrame& b) {
+				return std::abs(a.weight - b.weight) <= face_threshold;
+			};
+			auto is_face_zero = [&](const vmd::VmdFaceFrame& f) {
+				return std::abs(f.weight) <= face_threshold;
+			};
+			file_data.vmd->face_frames = PostProcessKeyframes(file_data.vmd->face_frames, get_face_name, are_faces_equal, is_face_zero);
 
-		// --- 為表情幀 (Face Frames) 定義 lambda 函式 ---
-		const float face_threshold = 0.0f;
-		auto get_face_name = [](const vmd::VmdFaceFrame& f) { return f.face_name; };
-		auto are_faces_equal = [&](const vmd::VmdFaceFrame& a, const vmd::VmdFaceFrame& b) {
-			return std::abs(a.weight - b.weight) <= face_threshold;
-		};
-        auto is_face_zero = [&](const vmd::VmdFaceFrame& f) {
-            return std::abs(f.weight) <= face_threshold;
-        };
-		// 呼叫輔助函數
-		file_data.vmd->face_frames = PostProcessKeyframes(file_data.vmd->face_frames, get_face_name, are_faces_equal, is_face_zero);
-
-		// --- 為骨骼幀 (Bone Frames) 定義 lambda 函式 ---
-		const float bone_threshold = 0.0f;
-		auto get_bone_name = [](const vmd::VmdBoneFrame& f) { return f.name; };
-		auto are_bones_equal = [&](const vmd::VmdBoneFrame& a, const vmd::VmdBoneFrame& b) {
-			for (int j = 0; j < 3; ++j) {
-				if (std::abs(a.position[j] - b.position[j]) > bone_threshold) return false;
-			}
-			for (int j = 0; j < 4; ++j) {
-				if (std::abs(a.orientation[j] - b.orientation[j]) > bone_threshold) return false;
-			}
-			return true;
-		};
-		auto is_bone_zero = [&](const vmd::VmdBoneFrame& f) {
-			bool position_is_zero = std::abs(f.position[0]) <= bone_threshold &&
-									std::abs(f.position[1]) <= bone_threshold &&
-									std::abs(f.position[2]) <= bone_threshold;
-			bool orientation_is_identity = std::abs(f.orientation[0]) <= bone_threshold &&
-										std::abs(f.orientation[1]) <= bone_threshold &&
-										std::abs(f.orientation[2]) <= bone_threshold &&
-										std::abs(f.orientation[3] - 1.0f) <= bone_threshold;
-			return position_is_zero && orientation_is_identity;
-		};
-		// 呼叫輔助函數
-		file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
-
-        // =======================================================================
-        //                         後處理結束
-        // =======================================================================
+			// bone
+			const float bone_threshold = 0.0f;
+			auto get_bone_name = [](const vmd::VmdBoneFrame& f) { return f.name; };
+			auto are_bones_equal = [&](const vmd::VmdBoneFrame& a, const vmd::VmdBoneFrame& b) {
+				for (int j = 0; j < 3; ++j) {
+					if (std::abs(a.position[j] - b.position[j]) > bone_threshold) return false;
+				}
+				for (int j = 0; j < 4; ++j) {
+					if (std::abs(a.orientation[j] - b.orientation[j]) > bone_threshold) return false;
+				}
+				return true;
+			};
+			auto is_bone_zero = [&](const vmd::VmdBoneFrame& f) {
+				bool position_is_zero = std::abs(f.position[0]) <= bone_threshold &&
+										std::abs(f.position[1]) <= bone_threshold &&
+										std::abs(f.position[2]) <= bone_threshold;
+				bool orientation_is_identity = std::abs(f.orientation[0]) <= bone_threshold &&
+											std::abs(f.orientation[1]) <= bone_threshold &&
+											std::abs(f.orientation[2]) <= bone_threshold &&
+											std::abs(f.orientation[3] - 1.0f) <= bone_threshold;
+				return position_is_zero && orientation_is_identity;
+			};
+			file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
+		}
 
 		std::string dst;
 		oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
