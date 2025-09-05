@@ -409,7 +409,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 {
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
 
-	for (int k = 0, ksize = static_cast<int>(renderedBuffer.materials.size()); k < ksize; ++k)
+	for (size_t k = 0, ksize = renderedBuffer.materials.size(); k < ksize; ++k)
 	{
 		Alembic::AbcGeom::OPolyMesh polyMesh;
 		const int key = renderedBufferIndex * 10000 + k;
@@ -663,7 +663,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 {
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
 
-	for (int k = 0, ksize = static_cast<int>(renderedBuffer.materials.size()); k < ksize; ++k)
+	for (size_t k = 0, ksize = renderedBuffer.materials.size(); k < ksize; ++k)
 	{
 		Alembic::AbcGeom::OPolyMesh polyMesh;
 		const int key = renderedBufferIndex * 10000 + k;
