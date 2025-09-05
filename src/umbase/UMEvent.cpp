@@ -19,8 +19,7 @@ namespace umbase
  */
 void UMEvent::notify()
 {
-	UMListenerList::iterator it = listeners_.begin();
-	for (; it != listeners_.end(); ++it)
+	for (UMListenerList::iterator it = listeners_.begin(); it != listeners_.end(); ++it)
 	{
 		if (UMListenerPtr listener = (*it).lock())
 		{

@@ -34,8 +34,7 @@ public:
 	 */
 	void connect(UMListenerPtr listener) {
 		if (!listener) return;
-		UMEventList::iterator it = event_list_.begin();
-		for (; it != event_list_.end(); ++it)
+		for (UMEventList::iterator it = event_list_.begin(); it != event_list_.end(); ++it)
 		{
 			(*it)->add_listener(listener);
 		}
