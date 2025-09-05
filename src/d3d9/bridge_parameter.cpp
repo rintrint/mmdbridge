@@ -22,7 +22,7 @@ const RenderedBuffer& BridgeParameter::render_buffer(size_t finish_buffer_index)
 const RenderedBuffer& BridgeParameter::first_noaccessory_buffer() const
 {
 	static RenderedBuffer none;
-	for (int i = 0, size = static_cast<int>(finish_buffer_list.size()); i < size; ++i)
+	for (size_t i = 0, size = finish_buffer_list.size(); i < size; ++i)
 	{
 		if (IDirect3DVertexBuffer9* buffer = finish_buffer_list.at(i))
 		{

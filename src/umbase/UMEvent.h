@@ -44,7 +44,7 @@ public:
 
 	void add_listener(UMListenerWeakPtr listener);
 	void delete_listener(UMListenerWeakPtr listener);
-	int listener_count() const { return static_cast<int>(listeners_.size()); }
+	size_t listener_count() const { return listeners_.size(); }
 	void clear_listeners();
 	void notify();
 
