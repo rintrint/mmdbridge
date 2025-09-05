@@ -201,33 +201,34 @@ static bool end_vmd_export()
 	{
 		const char* filename = ExpGetPmdFilename(i);
 		FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
-		if (file_data.vmd)
-		{
-			std::string dst;
-			oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
-			const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(dst);
-			umstring filename_string = umbase::UMPath::get_file_name(umstr);
-			if (filename_string.empty())
-			{
-				std::wstring error_message;
-				error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
-				error_message += L" MMDBridge needs to read the model file to obtain sufficient information to calculate correct bone transformations.";
-				error_message += L" Please ensure the PMX/PMD filepath contains only CP932 characters before importing it into MMD.";
-				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
-				continue;
-			}
-			const umstring extension = umbase::UMStringUtil::utf8_to_utf16(".vmd");
-			if (filename_string.length() >= 4)
-			{
-				filename_string.replace(filename_string.length() - 4, 4, extension);
-			}
-			else
-			{
-				filename_string += extension;
-			}
-			auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename_string);
-			file_data.vmd->SaveToFile(output_filepath);
+		if (!file_data.vmd) {
+			continue;
 		}
+
+		std::string dst;
+		oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
+		const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(dst);
+		umstring filename_string = umbase::UMPath::get_file_name(umstr);
+		if (filename_string.empty())
+		{
+			std::wstring error_message;
+			error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
+			error_message += L" MMDBridge needs to read the model file to obtain sufficient information to calculate correct bone transformations.";
+			error_message += L" Please ensure the PMX/PMD filepath contains only CP932 characters before importing it into MMD.";
+			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+			continue;
+		}
+		const umstring extension = umbase::UMStringUtil::utf8_to_utf16(".vmd");
+		if (filename_string.length() >= 4)
+		{
+			filename_string.replace(filename_string.length() - 4, 4, extension);
+		}
+		else
+		{
+			filename_string += extension;
+		}
+		auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename_string);
+		file_data.vmd->SaveToFile(output_filepath);
 	}
 
 	VMDArchive::instance().end();
