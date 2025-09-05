@@ -2,7 +2,7 @@
 
 BridgeParameter BridgeParameter::parameter;
 
-const RenderedBuffer& BridgeParameter::render_buffer(int finish_buffer_index) const
+const RenderedBuffer& BridgeParameter::render_buffer(size_t finish_buffer_index) const
 {
 	static RenderedBuffer none;
 	if (0 <= finish_buffer_index && finish_buffer_index < finish_buffer_list.size())

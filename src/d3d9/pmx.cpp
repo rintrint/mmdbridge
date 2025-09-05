@@ -150,7 +150,7 @@ static void export_pmx(int currentframe, bool isfirst)
 		PMXPtr pmx = archive.file_data.pmx;
 		pmx->Init();
 
-		int vertex_count = 0;
+		size_t vertex_count = 0;
 		int index_count = 0;
 		int material_count = 0;
 		typedef std::map<std::string, int> TextureMap;
@@ -276,7 +276,7 @@ static void export_pmx(int currentframe, bool isfirst)
 	{
 		PMXPtr pmx = archive.file_data.pmx;
 		PmxMorphPtr morph = PmxMorphPtr(new pmx::PmxMorph);
-		const int vertex_count = static_cast<int>(archive.base_vertex_list.size());
+		const size_t vertex_count = archive.base_vertex_list.size();
 		morph->morph_type = pmx::MorphType::Vertex;
 		morph->category = pmx::MorphCategory::Other;
 		morph->vertex_offsets.resize(vertex_count);
@@ -322,7 +322,7 @@ static bool execute_pmx_export(int currentframe)
 
 	if (currentframe == parameter.start_frame)
 	{
-		int vertex_size = 0;
+		size_t vertex_size = 0;
 		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
 			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);

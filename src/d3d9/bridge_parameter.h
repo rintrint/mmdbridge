@@ -54,7 +54,7 @@ public:
 	VertexBufferList finish_buffer_list;
 	RenderBufferMap render_buffer_map;
 
-	const RenderedBuffer& render_buffer(int finish_buffer_index) const;
+	const RenderedBuffer& render_buffer(size_t finish_buffer_index) const;
 
 	const RenderedBuffer& first_noaccessory_buffer() const;
 

@@ -869,10 +869,10 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	RenderedBuffer::VertexList& temporary_vertex = archive.temporary_vertex_list;
 	temporary_vertex.resize(vertexList.size());
 
-	const int materialSize = static_cast<int>(renderedBuffer.materials.size());
+	const size_t materialSize = renderedBuffer.materials.size();
 
-	int totalFaceCount = 0;
-	for (int k = 0; k < materialSize; ++k)
+	size_t totalFaceCount = 0;
+	for (size_t k = 0; k < materialSize; ++k)
 	{
 		RenderedMaterial* material = renderedBuffer.materials.at(k);
 		totalFaceCount += material->surface.faces.size();
@@ -897,8 +897,8 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	for (int k = 0; k < materialSize; ++k)
 	{
 		RenderedMaterial* material = renderedBuffer.materials.at(k);
-		const int faceSize = material->surface.faces.size();
-		for (int n = 0; n < faceSize; ++n)
+		const size_t faceSize = material->surface.faces.size();
+		for (size_t n = 0; n < faceSize; ++n)
 		{
 			UMVec3i face = material->surface.faces[n];
 			faceList[faceCounter * 3 + 0] = (face.x - 1);
