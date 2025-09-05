@@ -190,6 +190,84 @@ static bool start_vmd_export(const int export_mode)
 	return true;
 }
 
+/**
+ * @brief 通用的關鍵幀後處理與過濾輔助函數 (根據使用者新規則修改)
+ * @tparam T 幀的類型
+ * @tparam GetNameFunc 獲取名稱的函式類型
+ * @tparam AreEqualFunc 比較相等的函式類型
+ * @tparam IsZeroFunc 判斷是否為零值的函式類型
+ */
+template <typename T, typename GetNameFunc, typename AreEqualFunc, typename IsZeroFunc>
+std::vector<T> PostProcessKeyframes(
+    const std::vector<T>& all_frames,
+    GetNameFunc get_name_func,
+    AreEqualFunc are_equal_func,
+    IsZeroFunc is_zero_func)
+{
+    if (all_frames.empty()) {
+        return {};
+    }
+
+    // 步驟 1: 將所有幀按其名稱分組
+    std::map<std::string, std::vector<T>> grouped_frames;
+    for (const auto& frame : all_frames) {
+        grouped_frames[get_name_func(frame)].push_back(frame);
+    }
+
+    std::vector<T> final_frames;
+    final_frames.reserve(all_frames.size());
+
+    // 對每一組（每一個骨骼或表情）獨立進行過濾
+    for (auto const& [name, frames] : grouped_frames)
+    {
+        if (frames.empty()) {
+            continue;
+        }
+
+        // ------------------------- 新規則實施開始 -------------------------
+
+        // 規則 1: 先清除相同的中間幀
+        std::vector<T> stage1_frames;
+        if (frames.size() > 2) {
+            stage1_frames.push_back(frames.front()); // 總是保留第一幀
+            for (int i = 1; i < frames.size() - 1; ++i) {
+                // 如果一個幀和它前後的幀都相等，它就是可移除的中間幀
+                if (!(are_equal_func(frames[i - 1], frames[i]) && are_equal_func(frames[i], frames[i + 1]))) {
+                    stage1_frames.push_back(frames[i]);
+                }
+            }
+            stage1_frames.push_back(frames.back()); // 總是保留最後一幀
+        } else {
+            stage1_frames = frames; // 幀數小於等於2，沒有中間幀
+        }
+
+        // 規則 2: 如果只剩下頭尾且頭尾一樣, 留下頭
+        std::vector<T> stage2_frames;
+        if (stage1_frames.size() == 2 && are_equal_func(stage1_frames[0], stage1_frames[1])) {
+            stage2_frames.push_back(stage1_frames[0]);
+        } else {
+            stage2_frames = stage1_frames;
+        }
+
+        // 規則 3: 如果只剩下頭 且頭為0.0 直接刪除
+        if (stage2_frames.size() == 1 && is_zero_func(stage2_frames[0])) {
+            // 不做任何事，即刪除這個表情的所有關鍵幀
+        } else {
+            // 將最終結果合併到 final_frames
+            final_frames.insert(final_frames.end(), stage2_frames.begin(), stage2_frames.end());
+        }
+        // ------------------------- 新規則實施結束 -------------------------
+    }
+
+    // 最終結果按幀號排序
+    std::sort(final_frames.begin(), final_frames.end(),
+        [](const T& a, const T& b) {
+        return a.frame < b.frame;
+    });
+
+    return final_frames;
+}
+
 static bool end_vmd_export()
 {
 	VMDArchive &archive = VMDArchive::instance();
@@ -204,6 +282,51 @@ static bool end_vmd_export()
 		if (!file_data.vmd) {
 			continue;
 		}
+
+		// =======================================================================
+        //                   使用輔助函數進行後處理
+        // =======================================================================
+
+		// --- 為表情幀 (Face Frames) 定義 lambda 函式 ---
+		const float face_threshold = 0.0f;
+		auto get_face_name = [](const vmd::VmdFaceFrame& f) { return f.face_name; };
+		auto are_faces_equal = [&](const vmd::VmdFaceFrame& a, const vmd::VmdFaceFrame& b) {
+			return std::abs(a.weight - b.weight) <= face_threshold;
+		};
+        auto is_face_zero = [&](const vmd::VmdFaceFrame& f) {
+            return std::abs(f.weight) <= face_threshold;
+        };
+		// 呼叫輔助函數
+		file_data.vmd->face_frames = PostProcessKeyframes(file_data.vmd->face_frames, get_face_name, are_faces_equal, is_face_zero);
+
+		// --- 為骨骼幀 (Bone Frames) 定義 lambda 函式 ---
+		const float bone_threshold = 0.0f;
+		auto get_bone_name = [](const vmd::VmdBoneFrame& f) { return f.name; };
+		auto are_bones_equal = [&](const vmd::VmdBoneFrame& a, const vmd::VmdBoneFrame& b) {
+			for (int j = 0; j < 3; ++j) {
+				if (std::abs(a.position[j] - b.position[j]) > bone_threshold) return false;
+			}
+			for (int j = 0; j < 4; ++j) {
+				if (std::abs(a.orientation[j] - b.orientation[j]) > bone_threshold) return false;
+			}
+			return true;
+		};
+		auto is_bone_zero = [&](const vmd::VmdBoneFrame& f) {
+			bool position_is_zero = std::abs(f.position[0]) <= bone_threshold &&
+									std::abs(f.position[1]) <= bone_threshold &&
+									std::abs(f.position[2]) <= bone_threshold;
+			bool orientation_is_identity = std::abs(f.orientation[0]) <= bone_threshold &&
+										std::abs(f.orientation[1]) <= bone_threshold &&
+										std::abs(f.orientation[2]) <= bone_threshold &&
+										std::abs(f.orientation[3] - 1.0f) <= bone_threshold;
+			return position_is_zero && orientation_is_identity;
+		};
+		// 呼叫輔助函數
+		file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
+
+        // =======================================================================
+        //                         後處理結束
+        // =======================================================================
 
 		std::string dst;
 		oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
