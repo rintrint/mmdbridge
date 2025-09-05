@@ -33,7 +33,7 @@ add_compile_options(
     /wd4514
     /wd5245
 
-    /wd5045 # disable Spectre mitigation warnings
+    # /wd5045 # disable Spectre mitigation warnings
 )
 
 # embedded pdb
