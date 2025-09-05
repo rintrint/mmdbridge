@@ -155,7 +155,7 @@ static void export_pmx(int currentframe, bool isfirst)
 		int material_count = 0;
 		typedef std::map<std::string, int> TextureMap;
 		TextureMap texture_map;
-		for (int i = 0, isize = static_cast<int>(finishBuffers.size()); i < isize; ++i)
+		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
 			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
 			vertex_count += renderedBuffer.vertecies.size();
@@ -167,7 +167,7 @@ static void export_pmx(int currentframe, bool isfirst)
 				index_count += static_cast<int>(material->surface.faces.size() * 3);
 				if (texture_map.find(material->memoryTexture) == texture_map.end())
 				{
-					int index = texture_map.size();
+					size_t index = texture_map.size();
 					texture_map[material->memoryTexture] = index;
 				}
 			}
@@ -203,7 +203,7 @@ static void export_pmx(int currentframe, bool isfirst)
 		int vertex_offset = 0;
 		int index_offset = 0;
 		int material_offset = 0;
-		for (int i = 0, isize = static_cast<int>(finishBuffers.size()); i < isize; ++i)
+		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
 			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
 			const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
@@ -282,7 +282,7 @@ static void export_pmx(int currentframe, bool isfirst)
 		morph->vertex_offsets.resize(vertex_count);
 
 		int vertex_offset = 0;
-		for (int i = 0, isize = static_cast<int>(finishBuffers.size()); i < isize; ++i)
+		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
 			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
 			const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
@@ -323,12 +323,12 @@ static bool execute_pmx_export(int currentframe)
 	if (currentframe == parameter.start_frame)
 	{
 		int vertex_size = 0;
-		for (int i = 0, isize = static_cast<int>(finishBuffers.size()); i < isize; ++i)
+		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
 			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
 			vertex_size += renderedBuffer.vertecies.size();
 		}
-		for (int i = 0, isize = static_cast<int>(finishBuffers.size()); i < isize; ++i)
+		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
 			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
 			archive.base_vertex_list.insert(

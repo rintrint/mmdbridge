@@ -219,7 +219,7 @@ static void convertToQuad(
 	std::vector<Triangle> triList(faceCountList.size());
 	std::vector<Triangle*> triHeadList(faceCountList.size());
 	int vnumber = 0;
-	for (int i = 0, isize = static_cast<int>(faceCountList.size()); i < isize; ++i)
+	for (size_t i = 0, isize = faceCountList.size(); i < isize; ++i)
 	{
 		for (int k = 0; k < 3; ++k) {
 			const int vnumber = i * 3 + k;
@@ -251,7 +251,7 @@ static void convertToQuad(
 	}
 	std::map<std::pair<int, int>, int> edgeHashMap;
 	int count = 0;
-	for (int i = 0, isize = static_cast<int>(faceCountList.size()); i < isize; ++i)
+	for (size_t i = 0, isize = faceCountList.size(); i < isize; ++i)
 	{
 		for (int k = 0, j = 2; k < 2; j = k, ++k) {
 			int vj = faceList[i * 3 + j];
@@ -285,7 +285,7 @@ static void convertToQuad(
 	}
 
 	std::vector<UMVec3f> faceNormalList(faceCountList.size());
-	for (int i = 0, isize = static_cast<int>(faceCountList.size()); i < isize; ++i)
+	for (size_t i = 0, isize = faceCountList.size(); i < isize; ++i)
 	{
 		const D3DXVECTOR3& dxv1 = vertexListByMaterial[faceList[i * 3 + 0]];
 		const D3DXVECTOR3& dxv2 = vertexListByMaterial[faceList[i * 3 + 1]];
@@ -299,7 +299,7 @@ static void convertToQuad(
 	std::vector<int32_t> quadFaceList;
 	std::vector<int32_t> quadFaceCountList;
 	std::map<int, int> exportedFaces;
-	for (int i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
+	for (size_t i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
 		Edge* edge = edgeHeadList[i];
 		if (edge) {
 			const int t1 = edge->triangleIndex[0];
@@ -370,7 +370,7 @@ static void convertToQuad(
 		}
 	}
 
-	for (int i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
+	for (size_t i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
 		Edge* edge = edgeHeadList[i];
 		if (edge) {
 			const int t1 = edge->triangleIndex[0];
@@ -574,7 +574,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		preSurfaceSize = material->surface.faces.size();
 		vertexListByMaterial.resize(fiToVi.size());
 		normalListByMaterial.resize(fiToVi.size());
-		for (int n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
+		for (size_t n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
 		{
 			vertexListByMaterial[n].z = -vertexListByMaterial[n].z;
 		}
@@ -628,7 +628,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		{
 			if (!uvListByMaterial.empty() && archive.is_export_uvs)
 			{
-				for (int n = 0, nsize = uvListByMaterial.size(); n < nsize; ++n)
+				for (size_t n = 0, nsize = uvListByMaterial.size(); n < nsize; ++n)
 				{
 					uvListByMaterial[n].y = 1.0f - uvListByMaterial[n].y;
 				}
@@ -644,7 +644,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		{
 			if (!normalListByMaterial.empty() && archive.is_export_normals)
 			{
-				for (int n = 0, nsize = normalListByMaterial.size(); n < nsize; ++n)
+				for (size_t n = 0, nsize = normalListByMaterial.size(); n < nsize; ++n)
 				{
 					normalListByMaterial[n].z = -normalListByMaterial[n].z;
 				}
@@ -772,7 +772,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 
 		preSurfaceSize = material->surface.faces.size();
 
-		for (int n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
+		for (size_t n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
 		{
 			vertexListByMaterial[n].z = -vertexListByMaterial[n].z;
 		}
@@ -795,7 +795,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		// UVs
 		if (!uvListByMaterial.empty() && archive.is_export_uvs)
 		{
-			for (int n = 0, nsize = uvListByMaterial.size(); n < nsize; ++n)
+			for (size_t n = 0, nsize = uvListByMaterial.size(); n < nsize; ++n)
 			{
 				uvListByMaterial[n].y = 1.0f - uvListByMaterial[n].y;
 			}
@@ -808,7 +808,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		// Normals
 		if (!normalListByMaterial.empty() && archive.is_export_normals)
 		{
-			for (int n = 0, nsize = normalListByMaterial.size(); n < nsize; ++n)
+			for (size_t n = 0, nsize = normalListByMaterial.size(); n < nsize; ++n)
 			{
 				normalListByMaterial[n].z = -normalListByMaterial[n].z;
 			}
@@ -912,7 +912,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 	// vertex
-	for (int n = 0, nsize = vertexList.size(); n < nsize; ++n)
+	for (size_t n = 0, nsize = vertexList.size(); n < nsize; ++n)
 	{
 		temporary_vertex[n].z = -vertexList[n].z;
 	}
@@ -931,7 +931,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	// UVs
 	if (!uvList.empty() && archive.is_export_uvs)
 	{
-		for (int n = 0, nsize = uvList.size(); n < nsize; ++n)
+		for (size_t n = 0, nsize = uvList.size(); n < nsize; ++n)
 		{
 			temporary_uv[n].y = 1.0f - uvList[n].y;
 		}
@@ -944,7 +944,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	// Normals
 	if (!normalList.empty() && archive.is_export_normals)
 	{
-		for (int n = 0, nsize = normalList.size(); n < nsize; ++n)
+		for (size_t n = 0, nsize = normalList.size(); n < nsize; ++n)
 		{
 			temporary_normal[n].z = -normalList[n].z;
 		}
@@ -1201,7 +1201,7 @@ static bool execute_alembic_export(int currentframe)
 		}
 	}
 
-	for (int i = 0, isize = static_cast<int>(finishBuffers.size()); i < isize; ++i)
+	for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 	{
 		const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
 

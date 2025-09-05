@@ -351,12 +351,12 @@ namespace
 	// and make a copy of it.
 	PyObject* main_dict = NULL;
 
-	int get_vertex_buffer_size()
+	size_t get_vertex_buffer_size()
 	{
 		return BridgeParameter::instance().finish_buffer_list.size();
 	}
 
-	int get_vertex_size(int at)
+	size_t get_vertex_size(int at)
 	{
 		return BridgeParameter::instance().render_buffer(at).vertecies.size();
 	}
@@ -374,7 +374,7 @@ namespace
 		return result;
 	}
 
-	int get_normal_size(int at)
+	size_t get_normal_size(int at)
 	{
 		return BridgeParameter::instance().render_buffer(at).normals.size();
 	}
@@ -392,7 +392,7 @@ namespace
 		return result;
 	}
 
-	int get_uv_size(int at)
+	size_t get_uv_size(int at)
 	{
 		return BridgeParameter::instance().render_buffer(at).uvs.size();
 	}
@@ -408,7 +408,7 @@ namespace
 		return result;
 	}
 
-	int get_material_size(int at)
+	size_t get_material_size(int at)
 	{
 		return BridgeParameter::instance().render_buffer(at).materials.size();
 	}
@@ -487,7 +487,7 @@ namespace
 		return mat->memoryTexture;
 	}
 
-	int get_face_size(int at, int mpos)
+	size_t get_face_size(int at, int mpos)
 	{
 		return BridgeParameter::instance().render_buffer(at).materials[mpos]->surface.faces.size();
 	}
@@ -505,7 +505,7 @@ namespace
 		return result;
 	}
 
-	int get_texture_buffer_size()
+	size_t get_texture_buffer_size()
 	{
 		return finishTextureBuffers.size();
 	}
@@ -1889,7 +1889,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 			// Vertices
 			if (renderData.pos_xyz)
 			{
-				int initialVertexSize = renderedBuffer.vertecies.size();
+				size_t initialVertexSize = renderedBuffer.vertecies.size();
 				const int size = (vit->second - bytePos) / renderData.stride;
 				renderedBuffer.vertecies.resize(size);
 				for (size_t i = bytePos, n = 0; i < vit->second; i += renderData.stride, ++n)
@@ -2278,7 +2278,7 @@ static HRESULT WINAPI drawIndexedPrimitive(
 							face.y = static_cast<int>((p[startIndex + i + 1]) + 1);
 							face.z = static_cast<int>((p[startIndex + i + 2]) + 1);
 						}
-						const int vsize = renderedBuffer.vertecies.size();
+						const size_t vsize = renderedBuffer.vertecies.size();
 						if (face.x > vsize || face.y > vsize || face.z > vsize) {
 							continue;
 						}

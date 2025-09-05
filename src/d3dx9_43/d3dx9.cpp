@@ -3487,7 +3487,7 @@ extern "C" {
 
 	}
 
-	int UMGetEffectSize()
+	size_t UMGetEffectSize()
 	{
 		return effects.size();
 	}

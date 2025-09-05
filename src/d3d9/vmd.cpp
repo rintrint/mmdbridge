@@ -240,7 +240,7 @@ static void init_file_data(FileDataForVMD& data)
 		const std::vector<pmd::PmdBone>& bones = data.pmd->bones;
 		const std::vector<pmd::PmdRigidBody>& rigids = data.pmd->rigid_bodies;
 		std::map<int, int> bone_to_rigid_map;
-		for (int i = 0, isize = static_cast<int>(bones.size()); i < isize; ++i)
+		for (size_t i = 0, isize = bones.size(); i < isize; ++i)
 		{
 			const pmd::PmdBone& bone = bones[i];
 			const int parent_bone = bone.parent_bone_index;
@@ -257,13 +257,13 @@ static void init_file_data(FileDataForVMD& data)
 		}
 		// morph (face)
 		const std::vector<pmd::PmdFace>& faces = data.pmd->faces;
-		for (int i = 0, isize = static_cast<int>(faces.size()); i < isize; ++i)
+		for (size_t i = 0, isize = faces.size(); i < isize; ++i)
 		{
 			const pmd::PmdFace& face = faces[i];
 			data.morph_name_map[i] = face.name;
 		}
 
-		for (int i = 0, isize = static_cast<int>(rigids.size()); i < isize; ++i)
+		for (size_t i = 0, isize = rigids.size(); i < isize; ++i)
 		{
 			const pmd::PmdRigidBody& rigid = rigids[i];
 			const uint16_t bone_index = rigid.related_bone_index;
