@@ -93,8 +93,6 @@ private:
 	VMDArchive() = default;
 };
 
-static std::map<std::string, float> previous_morph_values;
-
 static bool start_vmd_export(const int export_mode)
 {
 	VMDArchive &archive = VMDArchive::instance();
@@ -755,43 +753,9 @@ static bool execute_vmd_export(const int currentframe)
 				continue;
 			}
 
-			// Get current morph value
-			float morph_value = ExpGetPmdMorphValue(i, m);
-
-			// Create unique key for this morph
-			std::string morph_key = std::string(filename) + "_" + morph_name;
-
-			// Get previous value (default to 0.0 if not found)
-			float previous_value = previous_morph_values.count(morph_key) ?
-								previous_morph_values[morph_key] : 0.0f;
-
-			// Define threshold for float comparison
-			const float threshold = 0.001f;
-
-			// Determine if we should export this frame
-			bool should_export = false;
-
-			// Always export first frame to establish initial state
-			if (currentframe == parameter.start_frame) {
-				should_export = true;
-			}
-			// Export if current value is significantly non-zero
-			else if (std::abs(morph_value) > threshold) {
-				should_export = true;
-			}
-			// Export if value changed significantly from previous frame
-			else if (std::abs(previous_value - morph_value) > threshold) {
-				should_export = true;
-			}
-
-			if (should_export) {
-				// Use helper function to calculate face frame
-				vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
-				file_data.vmd->face_frames.push_back(face_frame);
-
-				// Update previous value only when we actually export
-				previous_morph_values[morph_key] = morph_value;
-			}
+			// Use helper function to calculate face frame
+			vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
+			file_data.vmd->face_frames.push_back(face_frame);
 		}
 	}
 
