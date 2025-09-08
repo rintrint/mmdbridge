@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
+
 project(mmdbridge) # .sln
 
 set(CMAKE_CXX_STANDARD 17)
@@ -51,6 +52,12 @@ find_package(Alembic CONFIG REQUIRED)
 get_filename_component(MMD_DIR
     ${CMAKE_CURRENT_LIST_DIR}/MikuMikuDance_v932x64
     ABSOLUTE
+)
+
+# build dependencies
+add_subdirectory(third_party/MinHook)
+target_compile_options(minhook PRIVATE
+    /W3
 )
 
 # build targets

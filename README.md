@@ -14,6 +14,7 @@ See [Build Instructions](how_to_build.md)
 * alembic
 * pybind11
 * python3
+* MinHook
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.

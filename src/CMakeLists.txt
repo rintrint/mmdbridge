@@ -17,6 +17,7 @@ include_directories(
     d3dx9_43
     MikuMikuFormats
     $ENV{DXSDK_DIR}/include
+    ${CMAKE_SOURCE_DIR}/third_party/MinHook/include
 )
 link_directories(
     $ENV{DXSDK_DIR}/lib/x64
@@ -40,6 +41,7 @@ target_link_libraries(d3d9
     Alembic::Alembic
     pybind11::embed
     Python3::Python
+    minhook
 )
 install(TARGETS d3d9
     RUNTIME DESTINATION ${MMD_DIR}
