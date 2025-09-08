@@ -4,6 +4,7 @@
 #include "d3d9.h"
 #include "d3dx9.h"
 #include <windows.h>
+#include <intrin.h>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -43,22 +44,101 @@ namespace py = pybind11;
 #endif
 
 // +++++ MINHOOK HOOKING LOGIC START +++++
-#include <MinHook.h> // 1. 引入 MinHook 標頭檔
+#include <MinHook.h>
 
-// 2. 宣告一個函數指標，用來儲存原始 ExpGetPmdFilename 函數的位址
-//    我們之後會透過它來呼叫原始的 MMD 函數 (雖然在這個範例中用不到)
+// 宣告一個函式指標，用來儲存原始 ExpGetPmdFilename 函式的位址
 char* (*fpExpGetPmdFilename_Original)(int) = nullptr;
 
-// 3. 撰寫我們自己的版本 (Detour 函數)
-//    它的函數簽名 (返回類型和參數) 必須和原始函數一模一樣
+// =======================================================================
+// 輔助函數 1：根據逆向的結果，從 modelIndex 獲取真實的 UTF16 路徑
+// =======================================================================
+const wchar_t* GetInternalPathFromModelIndex(int modelIndex) {
+    const uintptr_t MODEL_MANAGER_POINTER_OFFSET = 0x1445F8;
+    const int MODEL_ARRAY_OFFSET = 0xBE8;
+    const int PATH_POINTER_OFFSET = 0x2548;
+
+    uintptr_t mmd_base = (uintptr_t)GetModuleHandle(NULL);
+    if (!mmd_base) return nullptr;
+
+    // 步驟 A: 獲取模型管理物件的指標
+    uintptr_t model_manager_ptr = *(uintptr_t*)(mmd_base + MODEL_MANAGER_POINTER_OFFSET);
+    if (!model_manager_ptr) return nullptr;
+
+    // 步驟 B: 獲取模型陣列的基底位址。
+    uintptr_t* model_array = (uintptr_t*)(model_manager_ptr + MODEL_ARRAY_OFFSET);
+    if (IsBadReadPtr(model_array, sizeof(uintptr_t) * (modelIndex + 1))) return nullptr;
+
+    // 步驟 C: 根據索引直接獲取模型物件指標
+    uintptr_t model_object = model_array[modelIndex];
+    if (!model_object) return nullptr;
+
+    // 步驟 D: 從模型物件中加上偏移量，獲取最終的路徑指標
+    const wchar_t* internalPathPtr = (const wchar_t*)(model_object + PATH_POINTER_OFFSET);
+    if (IsBadReadPtr((void*)internalPathPtr, sizeof(wchar_t))) return nullptr;
+
+    return internalPathPtr;
+}
+
+// =======================================================================
+// 輔助函數 2：判斷呼叫者是否是我們自己的 d3d9.dll
+// =======================================================================
+bool IsCallerFromMMDBridge() {
+    HMODULE hModule = NULL;
+    GetModuleHandleExW(
+        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+        (LPCWSTR)_ReturnAddress(),
+        &hModule
+    );
+
+    wchar_t modulePath[MAX_PATH];
+    if (!hModule || GetModuleFileNameW(hModule, modulePath, MAX_PATH) == 0) {
+        return false;
+    }
+
+	const wchar_t* fileName = PathFindFileNameW(modulePath);
+    return (_wcsicmp(fileName, L"d3d9.dll") == 0);
+}
+
+// 撰寫我們自己的版本 (Detour 函數) - 這是最終的、完整的 Hook 函數
 char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
 {
-    // 為了返回一個 char*，我們需要一個可以持續存在的緩衝區。
-    // thread_local 確保每個執行緒都有自己獨立的緩衝區，比 static 更安全。
-    thread_local char HelloWorldBuffer[] = "Hello World";
+    // 步驟 1: 呼叫我們的逆向邏輯，獲取內部真實的 UTF16 路徑
+    const wchar_t* internalPathPtr = GetInternalPathFromModelIndex(modelIndex);
 
-    // 無論 MMD 請求哪個模型的路徑，我們都返回 "Hello World"
-    return HelloWorldBuffer;
+    // 如果由於某種原因（例如模型正在卸載）獲取失敗，就返回一個空字串，避免崩潰
+    if (!internalPathPtr || internalPathPtr[0] == L'\0') {
+        // 為了安全，我們準備一個靜態空字串來返回
+        static char empty_string[] = "";
+        return empty_string;
+    }
+
+    // 步驟 2: 根據呼叫者是我們的 MMDBridge 還是 MMD 本身，決定目標編碼
+    UINT targetCodePage;
+    if (IsCallerFromMMDBridge()) {
+        // 呼叫者是我們自己，我們想要無損的 UTF8
+        targetCodePage = CP_UTF8;
+    } else {
+        // 呼叫者是 MikuMikuDance.exe 或其他外掛，我們提供它期望的 CP932 來保證相容性
+        targetCodePage = 932;
+    }
+
+    // 步驟 3: 轉換字串並透過 thread_local 緩衝區返回
+    // thread_local 確保每個執行緒都有自己獨立的緩衝區，是執行緒安全的
+    // 緩衝區大小設置為 MAX_PATH * 4 以應對 UTF8 編碼可能需要更多空間的情況
+    thread_local char resultBuffer[MAX_PATH * 4];
+
+    WideCharToMultiByte(
+        targetCodePage,
+        0,
+        internalPathPtr,
+        -1, // -1 表示處理到字串結尾
+        resultBuffer,
+        sizeof(resultBuffer),
+        NULL,
+        NULL
+    );
+
+    return resultBuffer;
 }
 // +++++ MINHOOK HOOKING LOGIC END +++++
 

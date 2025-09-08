@@ -136,7 +136,7 @@ static bool start_vmd_export(const int export_mode)
 		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), [](unsigned char c){ return std::tolower(c); });
 
 		std::wstring filename_wstring;
-		oguna::EncodingConverter::Cp932ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+		oguna::EncodingConverter::Utf8ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
 
 		if (filename_ext == ".pmd")
 		{
@@ -177,9 +177,7 @@ static bool start_vmd_export(const int export_mode)
 		{
 			std::wstring error_message;
 			if (filename_wstring.empty()) {
-				error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
-				error_message += L" MMDBridge needs to read the model file to obtain sufficient information to calculate correct bone transformations.";
-				error_message += L" Please ensure the PMX/PMD filepath contains only CP932 characters before importing it into MMD.";
+				error_message = L"Unable to get pmd/pmx filepath.";
 			} else {
 				error_message = L"This is not a pmd/pmx file: " + filename_wstring;
 			}
@@ -320,16 +318,12 @@ static bool end_vmd_export()
 			file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
 		}
 
-		std::string dst;
-		oguna::EncodingConverter::Cp932ToUtf8(filename, static_cast<int>(strnlen(filename, 4096)), &dst);
-		const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(dst);
+		const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(filename);
 		umstring filename_string = umbase::UMPath::get_file_name(umstr);
 		if (filename_string.empty())
 		{
 			std::wstring error_message;
-			error_message = L"Unable to get pmd/pmx filepath. The filepath may contain non-CP932 characters, so MMD returns it as an empty string.";
-			error_message += L" MMDBridge needs to read the model file to obtain sufficient information to calculate correct bone transformations.";
-			error_message += L" Please ensure the PMX/PMD filepath contains only CP932 characters before importing it into MMD.";
+			error_message = L"Unable to get pmd/pmx filepath.";
 			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			continue;
 		}
