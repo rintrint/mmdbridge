@@ -42,6 +42,26 @@ namespace py = pybind11;
 #define _LONG_PTR LONG
 #endif
 
+// +++++ MINHOOK HOOKING LOGIC START +++++
+#include <MinHook.h> // 1. 引入 MinHook 標頭檔
+
+// 2. 宣告一個函數指標，用來儲存原始 ExpGetPmdFilename 函數的位址
+//    我們之後會透過它來呼叫原始的 MMD 函數 (雖然在這個範例中用不到)
+char* (*fpExpGetPmdFilename_Original)(int) = nullptr;
+
+// 3. 撰寫我們自己的版本 (Detour 函數)
+//    它的函數簽名 (返回類型和參數) 必須和原始函數一模一樣
+char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
+{
+    // 為了返回一個 char*，我們需要一個可以持續存在的緩衝區。
+    // thread_local 確保每個執行緒都有自己獨立的緩衝區，比 static 更安全。
+    thread_local char HelloWorldBuffer[] = "Hello World";
+
+    // 無論 MMD 請求哪個模型的路徑，我們都返回 "Hello World"
+    return HelloWorldBuffer;
+}
+// +++++ MINHOOK HOOKING LOGIC END +++++
+
 ///////////////////////////////////////////////////////////////////////////
 // MMD Export Function Pointers - Definitions and Implementation
 ///////////////////////////////////////////////////////////////////////////
@@ -2652,6 +2672,42 @@ bool d3d9_initialize()
 	reload_python_file_paths();
 	relaod_python_script();
 
+    // +++++ MINHOOK HOOKING LOGIC START +++++
+    // 初始化 MinHook 函式庫
+    if (MH_Initialize() != MH_OK)
+    {
+        ::MessageBoxA(NULL, "MH_Initialize failed!", "MinHook Error", MB_OK);
+        return false;
+    }
+
+    // 取得 MMD 主程式的模組控制代碼
+    HMODULE hMMD = GetModuleHandle(NULL);
+    if (hMMD)
+    {
+        // 從 MMD 中找到原始 ExpGetPmdFilename 函數的位址
+        void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
+        if (pTarget)
+        {
+            // 建立 Hook：
+            // 1. pTarget: 要 Hook 的目標函數
+            // 2. &Detour_ExpGetPmdFilename: 我們自己的替代函數
+            // 3. (LPVOID*)&fpExpGetPmdFilename_Original: 用來儲存原始函數位址的指標
+            if (MH_CreateHook(pTarget, &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original) != MH_OK)
+            {
+                ::MessageBoxA(NULL, "MH_CreateHook failed!", "MinHook Error", MB_OK);
+                return false;
+            }
+
+            // 啟用剛剛建立的 Hook
+            if (MH_EnableHook(pTarget) != MH_OK)
+            {
+                ::MessageBoxA(NULL, "MH_EnableHook failed!", "MinHook Error", MB_OK);
+                return false;
+            }
+        }
+    }
+    // +++++ MINHOOK HOOKING LOGIC END +++++
+
 	// System path storage
 	TCHAR system_path_buffer[MAX_PATH] = { 0 };
 	GetSystemDirectory(system_path_buffer, sizeof(system_path_buffer) / sizeof(TCHAR));
@@ -2680,6 +2736,23 @@ bool d3d9_initialize()
 
 void d3d9_dispose()
 {
+    // +++++ MINHOOK HOOKING LOGIC START +++++
+    // 取得目標函數位址以便停用
+    HMODULE hMMD = GetModuleHandle(NULL);
+    if (hMMD)
+    {
+        void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
+        if (pTarget)
+        {
+            // 停用 Hook
+            MH_DisableHook(pTarget);
+        }
+    }
+
+    // 反初始化 MinHook
+    MH_Uninitialize();
+    // +++++ MINHOOK HOOKING LOGIC END +++++
+
 	renderData.dispose();
 	DisposePMX();
 	DisposeVMD();
