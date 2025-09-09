@@ -2080,8 +2080,8 @@ static void getTextureParameter(TextureParameter& param)
 // Write vertex/normal buffer/texture to memory
 static bool writeBuffersToMemory(IDirect3DDevice9* device)
 {
-	const int currentTechnic = ExpGetCurrentTechnic();
-	const int currentMaterial = ExpGetCurrentMaterial();
+	// const int currentTechnic = ExpGetCurrentTechnic();
+	// const int currentMaterial = ExpGetCurrentMaterial();
 	const int currentObject = ExpGetCurrentObject();
 
 	BYTE* pVertexBuf;
@@ -2153,7 +2153,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9* device)
 			// Vertices
 			if (renderData.pos_xyz)
 			{
-				size_t initialVertexSize = renderedBuffer.vertecies.size();
+				// size_t initialVertexSize = renderedBuffer.vertecies.size();
 				const int size = (vit->second - bytePos) / renderData.stride;
 				renderedBuffer.vertecies.resize(size);
 				for (size_t i = bytePos, n = 0; i < vit->second; i += renderData.stride, ++n)
@@ -2467,7 +2467,7 @@ static HRESULT WINAPI drawIndexedPrimitive(
 	UINT primitiveCount)
 {
 	const int currentMaterial = ExpGetCurrentMaterial();
-	const int currentObject = ExpGetCurrentObject();
+	// const int currentObject = ExpGetCurrentObject();
 
 	const bool validCallSetting = IsValidCallSetting();
 	const bool validFrame = IsValidFrame();

@@ -299,8 +299,8 @@ UMVector3<T> um_matrix_to_euler_xyz(const UMMatrix44<T> &src)
 	const T &r11 = src[1][1];
 	const T &r12 = src[1][2];
 
-	const T &r20 = src[2][0];
-	const T &r21 = src[2][1];
+	// const T &r20 = src[2][0];
+	// const T &r21 = src[2][1];
 	const T &r22 = src[2][2];
 
 	if (r02 < +1)

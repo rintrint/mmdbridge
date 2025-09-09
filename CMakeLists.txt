@@ -27,12 +27,11 @@ add_compile_options(
     /wd4267 # disable "conversion from size_t to int, possible loss of data"
     /wd6326 # disable "potential comparison of constant with constant"
 
-    # unreferenced warnings
-    /wd4100
-    /wd4189
-    /wd4505
-    /wd4514
-    /wd5245
+    /wd4100 # unreferenced formal parameter
+    # /wd4189 # unreferenced local variable
+    /wd4505 # unreferenced local function has been removed
+    # /wd4514 # unreferenced inline function has been removed
+    # /wd5245 # unreferenced function with internal linkage has been removed
 
     # /wd5045 # disable Spectre mitigation warnings
 )

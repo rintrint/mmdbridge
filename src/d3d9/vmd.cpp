@@ -803,9 +803,9 @@ static bool execute_vmd_export(const int currentframe)
 
 			// Export mode filtering
 			const bool is_ik_effector_bone = file_data.ik_frame_bone_map.count(k) > 0;
-			const bool is_affected_by_ik = file_data.ik_bone_map.count(k) > 0;
-			const bool is_fuyo_effector_bone = file_data.fuyo_target_map.find(k) != file_data.fuyo_target_map.end();
-			const bool is_affected_by_fuyo = file_data.fuyo_bone_map.count(k) > 0;
+			// const bool is_affected_by_ik = file_data.ik_bone_map.count(k) > 0;
+			// const bool is_fuyo_effector_bone = file_data.fuyo_target_map.find(k) != file_data.fuyo_target_map.end();
+			// const bool is_affected_by_fuyo = file_data.fuyo_bone_map.count(k) > 0;
 			const bool is_physics_bone = file_data.physics_bone_map.count(k) > 0;
 			bool is_simulated_physics_bone = false;
 			bool is_non_simulated_physics_bone = false;
