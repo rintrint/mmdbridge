@@ -34,7 +34,7 @@ namespace py = pybind11;
 
 // Require Python 3.11 or higher
 #if PY_VERSION_HEX < 0x030B0000
-	#error "This code requires Python 3.11 or higher"
+#error "This code requires Python 3.11 or higher"
 #endif
 
 #ifdef _WIN64
@@ -52,93 +52,103 @@ char* (*fpExpGetPmdFilename_Original)(int) = nullptr;
 // =======================================================================
 // 輔助函數 1：根據逆向的結果，從 modelIndex 獲取真實的 UTF16 路徑
 // =======================================================================
-const wchar_t* GetInternalPathFromModelIndex(int modelIndex) {
-    const uintptr_t MODEL_MANAGER_POINTER_OFFSET = 0x1445F8;
-    const int MODEL_ARRAY_OFFSET = 0xBE8;
-    const int PATH_POINTER_OFFSET = 0x2548;
+const wchar_t* GetInternalPathFromModelIndex(int modelIndex)
+{
+	const uintptr_t MODEL_MANAGER_POINTER_OFFSET = 0x1445F8;
+	const int MODEL_ARRAY_OFFSET = 0xBE8;
+	const int PATH_POINTER_OFFSET = 0x2548;
 
-    uintptr_t mmd_base = (uintptr_t)GetModuleHandle(NULL);
-    if (!mmd_base) return nullptr;
+	uintptr_t mmd_base = (uintptr_t)GetModuleHandle(NULL);
+	if (!mmd_base)
+		return nullptr;
 
-    // 步驟 A: 獲取模型管理物件的指標
-    uintptr_t model_manager_ptr = *(uintptr_t*)(mmd_base + MODEL_MANAGER_POINTER_OFFSET);
-    if (!model_manager_ptr) return nullptr;
+	// 步驟 A: 獲取模型管理物件的指標
+	uintptr_t model_manager_ptr = *(uintptr_t*)(mmd_base + MODEL_MANAGER_POINTER_OFFSET);
+	if (!model_manager_ptr)
+		return nullptr;
 
-    // 步驟 B: 獲取模型陣列的基底位址。
-    uintptr_t* model_array = (uintptr_t*)(model_manager_ptr + MODEL_ARRAY_OFFSET);
-    if (IsBadReadPtr(model_array, sizeof(uintptr_t) * (modelIndex + 1))) return nullptr;
+	// 步驟 B: 獲取模型陣列的基底位址。
+	uintptr_t* model_array = (uintptr_t*)(model_manager_ptr + MODEL_ARRAY_OFFSET);
+	if (IsBadReadPtr(model_array, sizeof(uintptr_t) * (modelIndex + 1)))
+		return nullptr;
 
-    // 步驟 C: 根據索引直接獲取模型物件指標
-    uintptr_t model_object = model_array[modelIndex];
-    if (!model_object) return nullptr;
+	// 步驟 C: 根據索引直接獲取模型物件指標
+	uintptr_t model_object = model_array[modelIndex];
+	if (!model_object)
+		return nullptr;
 
-    // 步驟 D: 從模型物件中加上偏移量，獲取最終的路徑指標
-    const wchar_t* internalPathPtr = (const wchar_t*)(model_object + PATH_POINTER_OFFSET);
-    if (IsBadReadPtr((void*)internalPathPtr, sizeof(wchar_t))) return nullptr;
+	// 步驟 D: 從模型物件中加上偏移量，獲取最終的路徑指標
+	const wchar_t* internalPathPtr = (const wchar_t*)(model_object + PATH_POINTER_OFFSET);
+	if (IsBadReadPtr((void*)internalPathPtr, sizeof(wchar_t)))
+		return nullptr;
 
-    return internalPathPtr;
+	return internalPathPtr;
 }
 
 // =======================================================================
 // 輔助函數 2：判斷呼叫者是否是我們自己的 d3d9.dll
 // =======================================================================
-bool IsCallerFromMMDBridge() {
-    HMODULE hModule = NULL;
-    GetModuleHandleExW(
-        GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-        (LPCWSTR)_ReturnAddress(),
-        &hModule
-    );
+bool IsCallerFromMMDBridge()
+{
+	HMODULE hModule = NULL;
+	GetModuleHandleExW(
+		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
+		(LPCWSTR)_ReturnAddress(),
+		&hModule);
 
-    wchar_t modulePath[MAX_PATH];
-    if (!hModule || GetModuleFileNameW(hModule, modulePath, MAX_PATH) == 0) {
-        return false;
-    }
+	wchar_t modulePath[MAX_PATH];
+	if (!hModule || GetModuleFileNameW(hModule, modulePath, MAX_PATH) == 0)
+	{
+		return false;
+	}
 
 	const wchar_t* fileName = PathFindFileNameW(modulePath);
-    return (_wcsicmp(fileName, L"d3d9.dll") == 0);
+	return (_wcsicmp(fileName, L"d3d9.dll") == 0);
 }
 
 // 撰寫我們自己的版本 (Detour 函數) - 這是最終的、完整的 Hook 函數
 char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
 {
-    // 步驟 1: 呼叫我們的逆向邏輯，獲取內部真實的 UTF16 路徑
-    const wchar_t* internalPathPtr = GetInternalPathFromModelIndex(modelIndex);
+	// 步驟 1: 呼叫我們的逆向邏輯，獲取內部真實的 UTF16 路徑
+	const wchar_t* internalPathPtr = GetInternalPathFromModelIndex(modelIndex);
 
-    // 如果由於某種原因（例如模型正在卸載）獲取失敗，就返回一個空字串，避免崩潰
-    if (!internalPathPtr || internalPathPtr[0] == L'\0') {
-        // 為了安全，我們準備一個靜態空字串來返回
-        static char empty_string[] = "";
-        return empty_string;
-    }
+	// 如果由於某種原因（例如模型正在卸載）獲取失敗，就返回一個空字串，避免崩潰
+	if (!internalPathPtr || internalPathPtr[0] == L'\0')
+	{
+		// 為了安全，我們準備一個靜態空字串來返回
+		static char empty_string[] = "";
+		return empty_string;
+	}
 
-    // 步驟 2: 根據呼叫者是我們的 MMDBridge 還是 MMD 本身，決定目標編碼
-    UINT targetCodePage;
-    if (IsCallerFromMMDBridge()) {
-        // 呼叫者是我們自己，我們想要無損的 UTF8
-        targetCodePage = CP_UTF8;
-    } else {
-        // 呼叫者是 MikuMikuDance.exe 或其他外掛，我們提供它期望的 CP932 來保證相容性
-        targetCodePage = 932;
-    }
+	// 步驟 2: 根據呼叫者是我們的 MMDBridge 還是 MMD 本身，決定目標編碼
+	UINT targetCodePage;
+	if (IsCallerFromMMDBridge())
+	{
+		// 呼叫者是我們自己，我們想要無損的 UTF8
+		targetCodePage = CP_UTF8;
+	}
+	else
+	{
+		// 呼叫者是 MikuMikuDance.exe 或其他外掛，我們提供它期望的 CP932 來保證相容性
+		targetCodePage = 932;
+	}
 
-    // 步驟 3: 轉換字串並透過 thread_local 緩衝區返回
-    // thread_local 確保每個執行緒都有自己獨立的緩衝區，是執行緒安全的
-    // 緩衝區大小設置為 MAX_PATH * 4 以應對 UTF8 編碼可能需要更多空間的情況
-    thread_local char resultBuffer[MAX_PATH * 4];
+	// 步驟 3: 轉換字串並透過 thread_local 緩衝區返回
+	// thread_local 確保每個執行緒都有自己獨立的緩衝區，是執行緒安全的
+	// 緩衝區大小設置為 MAX_PATH * 4 以應對 UTF8 編碼可能需要更多空間的情況
+	thread_local char resultBuffer[MAX_PATH * 4];
 
-    WideCharToMultiByte(
-        targetCodePage,
-        0,
-        internalPathPtr,
-        -1, // -1 表示處理到字串結尾
-        resultBuffer,
-        sizeof(resultBuffer),
-        NULL,
-        NULL
-    );
+	WideCharToMultiByte(
+		targetCodePage,
+		0,
+		internalPathPtr,
+		-1, // -1 表示處理到字串結尾
+		resultBuffer,
+		sizeof(resultBuffer),
+		NULL,
+		NULL);
 
-    return resultBuffer;
+	return resultBuffer;
 }
 // +++++ MINHOOK HOOKING LOGIC END +++++
 
@@ -192,9 +202,11 @@ int (*ExpGetRenderRepeatCount)() = nullptr;
 bool (*ExpGetEnglishMode)() = nullptr;
 
 // Implementation of initialization function
-bool InitializeMMDExports() {
+bool InitializeMMDExports()
+{
 	// Check if already attempted initialization
-	if (g_mmd_exports_init_attempted) {
+	if (g_mmd_exports_init_attempted)
+	{
 		return g_mmd_exports_initialized;
 	}
 
@@ -202,20 +214,22 @@ bool InitializeMMDExports() {
 	g_mmd_exports_init_attempted = true;
 
 	HMODULE hExe = GetModuleHandle(NULL);
-	if (!hExe) {
+	if (!hExe)
+	{
 		::MessageBoxA(NULL, "Failed to get EXE module handle", "MMD Export Init Error", MB_OK);
 		g_mmd_exports_initialized = false;
 		return false;
 	}
 
-	// Load all function pointers
-	#define LOAD_FUNC(name) \
-		name = (decltype(name))GetProcAddress(hExe, #name); \
-		if (!name) { \
-			::MessageBoxA(NULL, "Failed to load function: " #name, "MMD Export Init Error", MB_OK); \
-			g_mmd_exports_initialized = false; \
-			return false; \
-		}
+// Load all function pointers
+#define LOAD_FUNC(name)                                                                         \
+	name = (decltype(name))GetProcAddress(hExe, #name);                                         \
+	if (!name)                                                                                  \
+	{                                                                                           \
+		::MessageBoxA(NULL, "Failed to load function: " #name, "MMD Export Init Error", MB_OK); \
+		g_mmd_exports_initialized = false;                                                      \
+		return false;                                                                           \
+	}
 
 	// PMD related functions
 	LOAD_FUNC(ExpGetFrameTime);
@@ -260,7 +274,7 @@ bool InitializeMMDExports() {
 	LOAD_FUNC(ExpGetRenderRepeatCount);
 	LOAD_FUNC(ExpGetEnglishMode);
 
-	#undef LOAD_FUNC
+#undef LOAD_FUNC
 
 	g_mmd_exports_initialized = true;
 	return true;
@@ -270,18 +284,20 @@ bool InitializeMMDExports() {
 // End of MMD Export Function Pointers
 ///////////////////////////////////////////////////////////////////////////
 
-template <class T> std::string to_string(T value)
+template <class T>
+std::string to_string(T value)
 {
 	return umbase::UMStringUtil::number_to_string(value);
 }
 
-template <class T> std::wstring to_wstring(T value)
+template <class T>
+std::wstring to_wstring(T value)
 {
 	return umbase::UMStringUtil::number_to_wstring(value);
 }
 
 // Convert wide string to utf8 string
-static void to_string(std::string &dest, const std::wstring &src)
+static void to_string(std::string& dest, const std::wstring& src)
 {
 	dest = oguna::EncodingConverter::wstringTostring(src);
 }
@@ -296,46 +312,54 @@ static void message(std::string message)
 	::MessageBoxA(NULL, message.c_str(), "message", MB_OK);
 }
 
-static void messagebox_float4(float v[4], const char *title)
+static void messagebox_float4(float v[4], const char* title)
 {
-	::MessageBoxA(NULL, std::string(
-		to_string(v[0]) + " "
-		+ to_string(v[1]) + " "
-		+ to_string(v[2]) + " "
-		+ to_string(v[3]) + "\n").c_str(), title, MB_OK);
+	// clang-format off
+	::MessageBoxA(NULL,
+				  std::string(to_string(v[0]) + " " +
+							  to_string(v[1]) + " " +
+							  to_string(v[2]) + " " +
+							  to_string(v[3]) + "\n")
+					  .c_str(),
+				  title, MB_OK);
+	// clang-format on
 }
 
-static void messagebox_matrix(D3DXMATRIX& mat, const char *title)
+static void messagebox_matrix(D3DXMATRIX& mat, const char* title)
 {
-	::MessageBoxA(NULL,
-		std::string(
-		to_string(mat._11)+" "+to_string(mat._12)+" "+to_string(mat._13)+" "+to_string(mat._14)+"\n"
-		+to_string(mat._21)+" "+to_string(mat._22)+" "+to_string(mat._23)+" "+to_string(mat._24)+"\n"
-		+to_string(mat._31)+" "+to_string(mat._32)+" "+to_string(mat._33)+" "+to_string(mat._34)+"\n"
-		+to_string(mat._41)+" "+to_string(mat._42)+" "+to_string(mat._43)+" "+to_string(mat._44)+"\n").c_str(), title, MB_OK);
+	// clang-format off
+	::MessageBoxA(
+		NULL,
+		std::string(to_string(mat._11) + " " + to_string(mat._12) + " " + to_string(mat._13) + " " + to_string(mat._14) + "\n" +
+					to_string(mat._21) + " " + to_string(mat._22) + " " + to_string(mat._23) + " " + to_string(mat._24) + "\n" +
+					to_string(mat._31) + " " + to_string(mat._32) + " " + to_string(mat._33) + " " + to_string(mat._34) + "\n" +
+					to_string(mat._41) + " " + to_string(mat._42) + " " + to_string(mat._43) + " " + to_string(mat._44) + "\n")
+			.c_str(),
+		title, MB_OK);
+	// clang-format on
 }
 
 // Hook functions for IDirect3DDevice9
 static void hookDevice(void);
 static void originalDevice(void);
 // Hooked device
-IDirect3DDevice9 *p_device = NULL;
+IDirect3DDevice9* p_device = NULL;
 
 RenderData renderData;
 
-std::vector<std::pair<IDirect3DTexture9*, bool> > finishTextureBuffers;
+std::vector<std::pair<IDirect3DTexture9*, bool>> finishTextureBuffers;
 
 std::map<IDirect3DTexture9*, RenderedTexture> renderedTextures;
-std::map<int, std::map<int , RenderedMaterial*> > renderedMaterials;
+std::map<int, std::map<int, RenderedMaterial*>> renderedMaterials;
 //-----------------------------------------------------------------------------------------------------------------
 
-static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9 * texture, D3DXIMAGE_FILEFORMAT fileFormat);
+static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9* texture, D3DXIMAGE_FILEFORMAT fileFormat);
 
-static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstring &textureType, bool uncopied = false);
+static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstring& textureType, bool uncopied = false);
 
-static bool copyTextureToFiles(const std::wstring &texturePath);
+static bool copyTextureToFiles(const std::wstring& texturePath);
 
-static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTexture9 * texture, bool copied);
+static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTexture9* texture, bool copied);
 
 //------------------------------------------Python invocation--------------------------------------------------------
 static int pre_frame = 0;
@@ -346,14 +370,14 @@ static int ui_frame = 0;
 // Transform 3D vector with matrix
 // Almost same as D3DXVec3Transform
 static void d3d_vector3_dir_transform(
-	D3DXVECTOR3 &dst,
-	const D3DXVECTOR3 &src,
-	const D3DXMATRIX &matrix)
+	D3DXVECTOR3& dst,
+	const D3DXVECTOR3& src,
+	const D3DXMATRIX& matrix)
 {
 	const float tmp[] = {
-		src.x*matrix.m[0][0] + src.y*matrix.m[1][0] + src.z*matrix.m[2][0],
-		src.x*matrix.m[0][1] + src.y*matrix.m[1][1] + src.z*matrix.m[2][1],
-		src.x*matrix.m[0][2] + src.y*matrix.m[1][2] + src.z*matrix.m[2][2]
+		src.x * matrix.m[0][0] + src.y * matrix.m[1][0] + src.z * matrix.m[2][0],
+		src.x * matrix.m[0][1] + src.y * matrix.m[1][1] + src.z * matrix.m[2][1],
+		src.x * matrix.m[0][2] + src.y * matrix.m[1][2] + src.z * matrix.m[2][2]
 	};
 	dst.x = tmp[0];
 	dst.y = tmp[1];
@@ -361,14 +385,14 @@ static void d3d_vector3_dir_transform(
 }
 
 static void d3d_vector3_transform(
-	D3DXVECTOR3 &dst,
-	const D3DXVECTOR3 &src,
-	const D3DXMATRIX &matrix)
+	D3DXVECTOR3& dst,
+	const D3DXVECTOR3& src,
+	const D3DXMATRIX& matrix)
 {
 	const float tmp[] = {
-		src.x*matrix.m[0][0] + src.y*matrix.m[1][0] + src.z*matrix.m[2][0] + 1.0f*matrix.m[3][0],
-		src.x*matrix.m[0][1] + src.y*matrix.m[1][1] + src.z*matrix.m[2][1] + 1.0f*matrix.m[3][1],
-		src.x*matrix.m[0][2] + src.y*matrix.m[1][2] + src.z*matrix.m[2][2] + 1.0f*matrix.m[3][2]
+		src.x * matrix.m[0][0] + src.y * matrix.m[1][0] + src.z * matrix.m[2][0] + 1.0f * matrix.m[3][0],
+		src.x * matrix.m[0][1] + src.y * matrix.m[1][1] + src.z * matrix.m[2][1] + 1.0f * matrix.m[3][1],
+		src.x * matrix.m[0][2] + src.y * matrix.m[1][2] + src.z * matrix.m[2][2] + 1.0f * matrix.m[3][2]
 	};
 	dst.x = tmp[0];
 	dst.y = tmp[1];
@@ -378,7 +402,7 @@ static void d3d_vector3_transform(
 // python
 namespace
 {
-	std::wstring pythonName; // Script name
+	std::wstring pythonName;	 // Script name
 	int script_call_setting = 1; // Script call setting
 	std::map<int, int> exportedFrames;
 
@@ -387,9 +411,11 @@ namespace
 	{
 		BridgeParameter::mutable_instance().mmdbridge_python_script.clear();
 		std::ifstream ifs(BridgeParameter::instance().python_script_path.c_str());
-		if (!ifs) return false;
+		if (!ifs)
+			return false;
 		char buf[2048];
-		while (ifs.getline( buf, sizeof(buf))) {
+		while (ifs.getline(buf, sizeof(buf)))
+		{
 			BridgeParameter::mutable_instance().mmdbridge_python_script.append(buf);
 			BridgeParameter::mutable_instance().mmdbridge_python_script.append("\r\n");
 		}
@@ -423,7 +449,8 @@ namespace
 					std::wstring path(searchPath + find.cFileName);
 					found_scripts.emplace_back(name, path);
 				}
-			} while (FindNextFile(hFind, &find));
+			}
+			while (FindNextFile(hFind, &find));
 			FindClose(hFind);
 		}
 
@@ -435,7 +462,8 @@ namespace
 		// Repopulate the main lists from the sorted temporary list.
 		for (const auto& script : found_scripts)
 		{
-			if (mutable_parameter.python_script_name.empty()) {
+			if (mutable_parameter.python_script_name.empty())
+			{
 				mutable_parameter.python_script_name = script.first;
 				mutable_parameter.python_script_path = script.second;
 			}
@@ -594,7 +622,7 @@ namespace
 
 	std::vector<int> get_face(int at, int mpos, int fpos)
 	{
-		RenderedSurface &surface = BridgeParameter::instance().render_buffer(at).materials[mpos]->surface;
+		RenderedSurface& surface = BridgeParameter::instance().render_buffer(at).materials[mpos]->surface;
 		int v1 = surface.faces[fpos].x;
 		int v2 = surface.faces[fpos].y;
 		int v3 = surface.faces[fpos].z;
@@ -625,7 +653,7 @@ namespace
 
 	std::vector<float> get_texture_pixel(int at, int tpos)
 	{
-		UMVec4f &rgba = renderedTextures[finishTextureBuffers[at].first].texture[tpos];
+		UMVec4f& rgba = renderedTextures[finishTextureBuffers[at].first].texture[tpos];
 		std::vector<float> result;
 		result.push_back(rgba.x);
 		result.push_back(rgba.y);
@@ -640,16 +668,46 @@ namespace
 
 		std::wstring_view textureType{ dst.c_str() + dst.size() - 3, 3 };
 		D3DXIMAGE_FILEFORMAT fileFormat;
-		if (textureType == L"bmp" || textureType == L"BMP") { fileFormat = D3DXIFF_BMP; }
-		else if (textureType.compare(L"png") == 0 || textureType.compare(L"PNG") == 0) { fileFormat = D3DXIFF_PNG; }
-		else if (textureType.compare(L"jpg") == 0 || textureType.compare(L"JPG") == 0) { fileFormat = D3DXIFF_JPG; }
-		else if (textureType.compare(L"tga") == 0 || textureType.compare(L"TGA") == 0) { fileFormat = D3DXIFF_TGA; }
-		else if (textureType.compare(L"dds") == 0 || textureType.compare(L"DDS") == 0) { fileFormat = D3DXIFF_DDS; }
-		else if (textureType.compare(L"ppm") == 0 || textureType.compare(L"PPM") == 0) { fileFormat = D3DXIFF_PPM; }
-		else if (textureType.compare(L"dib") == 0 || textureType.compare(L"DIB") == 0) { fileFormat = D3DXIFF_DIB; }
-		else if (textureType.compare(L"hdr") == 0 || textureType.compare(L"HDR") == 0) { fileFormat = D3DXIFF_HDR; }
-		else if (textureType.compare(L"pfm") == 0 || textureType.compare(L"PFM") == 0) { fileFormat = D3DXIFF_PFM; }
-		else { return false; }
+		if (textureType == L"bmp" || textureType == L"BMP")
+		{
+			fileFormat = D3DXIFF_BMP;
+		}
+		else if (textureType.compare(L"png") == 0 || textureType.compare(L"PNG") == 0)
+		{
+			fileFormat = D3DXIFF_PNG;
+		}
+		else if (textureType.compare(L"jpg") == 0 || textureType.compare(L"JPG") == 0)
+		{
+			fileFormat = D3DXIFF_JPG;
+		}
+		else if (textureType.compare(L"tga") == 0 || textureType.compare(L"TGA") == 0)
+		{
+			fileFormat = D3DXIFF_TGA;
+		}
+		else if (textureType.compare(L"dds") == 0 || textureType.compare(L"DDS") == 0)
+		{
+			fileFormat = D3DXIFF_DDS;
+		}
+		else if (textureType.compare(L"ppm") == 0 || textureType.compare(L"PPM") == 0)
+		{
+			fileFormat = D3DXIFF_PPM;
+		}
+		else if (textureType.compare(L"dib") == 0 || textureType.compare(L"DIB") == 0)
+		{
+			fileFormat = D3DXIFF_DIB;
+		}
+		else if (textureType.compare(L"hdr") == 0 || textureType.compare(L"HDR") == 0)
+		{
+			fileFormat = D3DXIFF_HDR;
+		}
+		else if (textureType.compare(L"pfm") == 0 || textureType.compare(L"PFM") == 0)
+		{
+			fileFormat = D3DXIFF_PFM;
+		}
+		else
+		{
+			return false;
+		}
 
 		if (mat->tex)
 		{
@@ -818,7 +876,7 @@ namespace
 
 	std::vector<float> get_light(int at)
 	{
-		const UMVec3f &light = BridgeParameter::instance().render_buffer(at).light;
+		const UMVec3f& light = BridgeParameter::instance().render_buffer(at).light;
 		std::vector<float> result;
 		result.push_back(light.x);
 		result.push_back(light.y);
@@ -828,7 +886,7 @@ namespace
 
 	std::vector<float> get_light_color(int at)
 	{
-		const UMVec3f &light = BridgeParameter::instance().render_buffer(at).light_color;
+		const UMVec3f& light = BridgeParameter::instance().render_buffer(at).light_color;
 		std::vector<float> result;
 		result.push_back(light.x);
 		result.push_back(light.y);
@@ -845,7 +903,6 @@ namespace
 	{
 		return ExpGetPmdBoneNum(at);
 	}
-
 
 	int get_accessory_size()
 	{
@@ -867,13 +924,14 @@ namespace
 	std::string get_object_filename(int at)
 	{
 		const int count = get_bone_size(at);
-		if (count <= 0) return "";
+		if (count <= 0)
+			return "";
 		const char* cp932 = ExpGetPmdFilename(at);
 		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
 		wchar_t* utf16 = new wchar_t[size];
 		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
 		std::wstring wchar(utf16);
-		delete [] utf16;
+		delete[] utf16;
 		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
 		return utf8str;
 	}
@@ -894,13 +952,14 @@ namespace
 	std::string get_bone_name(int at, int bone_index)
 	{
 		const int count = get_bone_size(at);
-		if (count <= 0) return "";
+		if (count <= 0)
+			return "";
 		const char* cp932 = ExpGetPmdBoneName(at, bone_index);
 		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
 		wchar_t* utf16 = new wchar_t[size];
 		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
 		std::wstring wchar(utf16);
-		delete [] utf16;
+		delete[] utf16;
 		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
 		return utf8str;
 	}
@@ -909,7 +968,8 @@ namespace
 	{
 		const int count = get_bone_size(at);
 		std::vector<float> result;
-		if (count <= 0) return result;
+		if (count <= 0)
+			return result;
 
 		D3DMATRIX mat = ExpGetPmdBoneWorldMat(at, bone_index);
 		for (int i = 0; i < 4; ++i)
@@ -978,44 +1038,53 @@ namespace
 		return result;
 	}
 
-	std::vector<double> invert_matrix(const std::vector<double> &tp1)
+	std::vector<double> invert_matrix(const std::vector<double>& tp1)
 	{
-		if (tp1.size() < 16) {
+		if (tp1.size() < 16)
+		{
 			PyErr_SetString(PyExc_IndexError, "index out of range");
 			throw py::error_already_set();
 		}
 		std::vector<double> result;
 		UMMat44d src;
-		for (int i = 0; i < 4; ++i) {
-			for (int k = 0; k < 4; ++k) {
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int k = 0; k < 4; ++k)
+			{
 				src[i][k] = static_cast<double>(tp1[i * 4 + k]);
 			}
 		}
 		const UMMat44d dst = src.inverted();
-		for (int i = 0; i < 4; ++i) {
-			for (int k = 0; k < 4; ++k) {
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int k = 0; k < 4; ++k)
+			{
 				result.push_back(dst[i][k]);
 			}
 		}
 		return result;
 	}
 
-	std::vector<double> extract_xyz_degree(const std::vector<double> &tp1)
+	std::vector<double> extract_xyz_degree(const std::vector<double>& tp1)
 	{
-		if (tp1.size() < 16) {
+		if (tp1.size() < 16)
+		{
 			PyErr_SetString(PyExc_IndexError, "index out of range");
 			throw py::error_already_set();
 		}
 		std::vector<double> result;
 		UMMat44d src;
-		for (int i = 0; i < 4; ++i) {
-			for (int k = 0; k < 4; ++k) {
+		for (int i = 0; i < 4; ++i)
+		{
+			for (int k = 0; k < 4; ++k)
+			{
 				src[i][k] = static_cast<double>(tp1[i * 4 + k]);
 			}
 		}
 
 		const UMVec3d euler = umbase::um_matrix_to_euler_xyz(src);
-		for (int i = 0; i < 3; ++i) {
+		for (int i = 0; i < 3; ++i)
+		{
 			result.push_back(umbase::um_to_degree(euler[i]));
 		}
 		return result;
@@ -1067,12 +1136,13 @@ namespace
 		result.push_back(vec.z);
 		return result;
 	}
-}
+} // namespace
 
 PYBIND11_MAKE_OPAQUE(std::vector<float>);
 PYBIND11_MAKE_OPAQUE(std::vector<int>);
 
-PYBIND11_MODULE(mmdbridge, m) {
+PYBIND11_MODULE(mmdbridge, m)
+{
 	m.doc() = "MMD Bridge main module";
 
 	m.def("get_vertex_buffer_size", get_vertex_buffer_size);
@@ -1149,7 +1219,10 @@ PYBIND11_MODULE(mmdbridge, m) {
 void run_python_script()
 {
 	relaod_python_script();
-	if (BridgeParameter::instance().mmdbridge_python_script.empty()) { return; }
+	if (BridgeParameter::instance().mmdbridge_python_script.empty())
+	{
+		return;
+	}
 
 	if (Py_IsInitialized())
 	{
@@ -1182,7 +1255,8 @@ void run_python_script()
 		PyStatus status = Py_InitializeFromConfig(&config);
 		PyConfig_Clear(&config);
 
-		if (PyStatus_Exception(status)) {
+		if (PyStatus_Exception(status))
+		{
 			::MessageBoxA(NULL, "Failed to initialize Python", "Python Error", MB_OK);
 			return;
 		}
@@ -1202,13 +1276,16 @@ void run_python_script()
 	{
 		std::stringstream error_report;
 		error_report << "----------- MMDBridge Python/C++ Error Report -----------\n\n";
-		error_report << "[C++ Exception Info]\n" << ex.what() << "\n\n";
+		error_report << "[C++ Exception Info]\n"
+					 << ex.what() << "\n\n";
 		error_report << "[Problematic Python Code Line]\n";
 		std::string what_str = ex.what();
 		std::regex re(R"((?:[\s\S]*)\((\d+)\):)");
 		std::smatch match;
-		if (std::regex_search(what_str, match, re) && match.size() > 1) {
-			try {
+		if (std::regex_search(what_str, match, re) && match.size() > 1)
+		{
+			try
+			{
 				int reported_line_number = std::stoi(match[1].str());
 				int trigger_line_number = std::max(1, reported_line_number - 1);
 
@@ -1216,44 +1293,60 @@ void run_python_script()
 				std::stringstream script_stream(full_script);
 				std::string script_line;
 				std::vector<std::string> lines;
-				while (std::getline(script_stream, script_line, '\n')) {
-					if (!script_line.empty() && script_line.back() == '\r') {
+				while (std::getline(script_stream, script_line, '\n'))
+				{
+					if (!script_line.empty() && script_line.back() == '\r')
+					{
 						script_line.pop_back();
 					}
 					lines.push_back(script_line);
 				}
 				error_report << "Error likely triggered by call on line " << trigger_line_number
-							<< " (execution was halted before line " << reported_line_number << "):\n";
+							 << " (execution was halted before line " << reported_line_number << "):\n";
 				error_report << "--------------------------------------------------\n";
 
 				int start_line = std::max(1, trigger_line_number - 2);
 				int end_line = std::min((int)lines.size(), trigger_line_number + 2);
-				for (int i = start_line; i <= end_line; ++i) {
-					if (i == trigger_line_number) {
+				for (int i = start_line; i <= end_line; ++i)
+				{
+					if (i == trigger_line_number)
+					{
 						error_report << ">> " << std::setw(3) << i << ": " << lines[i - 1] << "\n";
-					} else {
+					}
+					else
+					{
 						error_report << "   " << std::setw(3) << i << ": " << lines[i - 1] << "\n";
 					}
 				}
 				error_report << "--------------------------------------------------\n\n";
-			} catch (const std::exception& e) {
+			}
+			catch (const std::exception& e)
+			{
 				error_report << "Could not parse source code line: " << e.what() << "\n\n";
 			}
-		} else {
+		}
+		else
+		{
 			error_report << "Could not parse line number from the error message.\n\n";
 		}
 		error_report << "[Python Traceback]\n";
-		if (PyErr_Occurred()) {
-			try {
+		if (PyErr_Occurred())
+		{
+			try
+			{
 				py::object traceback = py::module::import("traceback");
 				py::object format_exc = traceback.attr("format_exc");
 				std::string full_traceback = py::str(format_exc());
 				error_report << full_traceback;
-			} catch (...) {
+			}
+			catch (...)
+			{
 				error_report << "Failed to import the Python 'traceback' module.\n";
 			}
 			PyErr_Clear();
-		} else {
+		}
+		else
+		{
 			error_report << "No Python traceback available (PyErr_Occurred() returned false).\n";
 		}
 		std::string error_report_utf8 = error_report.str();
@@ -1271,60 +1364,61 @@ void run_python_script()
 //-----------------------------------------------------------Hook function pointers-----------------------------------------------------------
 
 // Direct3DCreate9
-IDirect3D9 *(WINAPI *original_direct3d_create)(UINT)(NULL);
+IDirect3D9*(WINAPI* original_direct3d_create)(UINT)(NULL);
 
-HRESULT (WINAPI *original_direct3d9ex_create)(UINT, IDirect3D9Ex**)(NULL);
+HRESULT(WINAPI* original_direct3d9ex_create)(UINT, IDirect3D9Ex**)(NULL);
 // IDirect3D9::CreateDevice
-HRESULT (WINAPI *original_create_device)(IDirect3D9*,UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice9**)(NULL);
+HRESULT(WINAPI* original_create_device)(IDirect3D9*, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, IDirect3DDevice9**)(NULL);
 
-HRESULT(WINAPI *original_create_deviceex)(IDirect3D9Ex*, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, D3DDISPLAYMODEEX*, IDirect3DDevice9Ex**)(NULL);
+HRESULT(WINAPI* original_create_deviceex)(IDirect3D9Ex*, UINT, D3DDEVTYPE, HWND, DWORD, D3DPRESENT_PARAMETERS*, D3DDISPLAYMODEEX*, IDirect3DDevice9Ex**)(NULL);
 // IDirect3DDevice9::BeginScene
-HRESULT (WINAPI *original_begin_scene)(IDirect3DDevice9*)(NULL);
+HRESULT(WINAPI* original_begin_scene)(IDirect3DDevice9*)(NULL);
 // IDirect3DDevice9::EndScene
-HRESULT(WINAPI *original_end_scene)(IDirect3DDevice9*)(NULL);
+HRESULT(WINAPI* original_end_scene)(IDirect3DDevice9*)(NULL);
 // IDirect3DDevice9::SetFVF
-HRESULT (WINAPI *original_set_fvf)(IDirect3DDevice9*, DWORD);
+HRESULT(WINAPI* original_set_fvf)(IDirect3DDevice9*, DWORD);
 // IDirect3DDevice9::Clear
-HRESULT (WINAPI *original_clear)(IDirect3DDevice9*, DWORD, const D3DRECT*, DWORD, D3DCOLOR, float, DWORD)(NULL);
+HRESULT(WINAPI* original_clear)(IDirect3DDevice9*, DWORD, const D3DRECT*, DWORD, D3DCOLOR, float, DWORD)(NULL);
 // IDirect3DDevice9::Present
-HRESULT (WINAPI *original_present)(IDirect3DDevice9*, const RECT*, const RECT*, HWND, const RGNDATA *)(NULL);
+HRESULT(WINAPI* original_present)(IDirect3DDevice9*, const RECT*, const RECT*, HWND, const RGNDATA*)(NULL);
 // IDirect3DDevice9::Reset
-HRESULT (WINAPI *original_reset)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*)(NULL);
+HRESULT(WINAPI* original_reset)(IDirect3DDevice9*, D3DPRESENT_PARAMETERS*)(NULL);
 
 // IDirect3DDevice9::BeginStateBlock
 // This function modifies lpVtbl, so we need to restore lpVtbl
-HRESULT (WINAPI *original_begin_state_block)(IDirect3DDevice9 *)(NULL);
+HRESULT(WINAPI* original_begin_state_block)(IDirect3DDevice9*)(NULL);
 
 // IDirect3DDevice9::EndStateBlock
 // This function modifies lpVtbl, so we need to restore lpVtbl
-HRESULT (WINAPI *original_end_state_block)(IDirect3DDevice9*, IDirect3DStateBlock9**)(NULL);
+HRESULT(WINAPI* original_end_state_block)(IDirect3DDevice9*, IDirect3DStateBlock9**)(NULL);
 
 // IDirect3DDevice9::DrawIndexedPrimitive
-HRESULT (WINAPI *original_draw_indexed_primitive)(IDirect3DDevice9*, D3DPRIMITIVETYPE, INT, UINT, UINT, UINT, UINT)(NULL);
+HRESULT(WINAPI* original_draw_indexed_primitive)(IDirect3DDevice9*, D3DPRIMITIVETYPE, INT, UINT, UINT, UINT, UINT)(NULL);
 
 // IDirect3DDevice9::SetStreamSource
-HRESULT (WINAPI *original_set_stream_source)(IDirect3DDevice9*, UINT, IDirect3DVertexBuffer9*, UINT, UINT)(NULL);
+HRESULT(WINAPI* original_set_stream_source)(IDirect3DDevice9*, UINT, IDirect3DVertexBuffer9*, UINT, UINT)(NULL);
 
 // IDirect3DDevice9::SetIndices
-HRESULT (WINAPI *original_set_indices)(IDirect3DDevice9*, IDirect3DIndexBuffer9*)(NULL);
+HRESULT(WINAPI* original_set_indices)(IDirect3DDevice9*, IDirect3DIndexBuffer9*)(NULL);
 
 // IDirect3DDevice9::CreateVertexBuffer
-HRESULT (WINAPI *original_create_vertex_buffer)(IDirect3DDevice9*, UINT, DWORD, DWORD, D3DPOOL, IDirect3DVertexBuffer9**, HANDLE*)(NULL);
+HRESULT(WINAPI* original_create_vertex_buffer)(IDirect3DDevice9*, UINT, DWORD, DWORD, D3DPOOL, IDirect3DVertexBuffer9**, HANDLE*)(NULL);
 
 // IDirect3DDevice9::SetTexture
-HRESULT (WINAPI *original_set_texture)(IDirect3DDevice9*, DWORD, IDirect3DBaseTexture9 *)(NULL);
+HRESULT(WINAPI* original_set_texture)(IDirect3DDevice9*, DWORD, IDirect3DBaseTexture9*)(NULL);
 
 // IDirect3DDevice9::CreateTexture
-HRESULT (WINAPI *original_create_texture)(IDirect3DDevice9*, UINT, UINT, UINT, DWORD, D3DFORMAT, D3DPOOL, IDirect3DTexture9**, HANDLE*)(NULL);
+HRESULT(WINAPI* original_create_texture)(IDirect3DDevice9*, UINT, UINT, UINT, DWORD, D3DFORMAT, D3DPOOL, IDirect3DTexture9**, HANDLE*)(NULL);
 //-----------------------------------------------------------------------------------------------------------------------------
 
-static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9 * texture, D3DXIMAGE_FILEFORMAT fileFormat)
+static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9* texture, D3DXIMAGE_FILEFORMAT fileFormat)
 {
 	TextureBuffers::iterator tit = renderData.textureBuffers.find(texture);
-	if(tit != renderData.textureBuffers.end())
+	if (tit != renderData.textureBuffers.end())
 	{
-		if (texture->lpVtbl) {
-			HRESULT res = D3DXSaveTextureToFileW(texturePath, fileFormat,(LPDIRECT3DBASETEXTURE9) texture, NULL);
+		if (texture->lpVtbl)
+		{
+			HRESULT res = D3DXSaveTextureToFileW(texturePath, fileFormat, (LPDIRECT3DBASETEXTURE9)texture, NULL);
 			if (res == S_OK)
 			{
 				return true;
@@ -1334,21 +1428,51 @@ static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9 * t
 	return false;
 }
 
-static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstring &textureType, bool uncopied)
+static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstring& textureType, bool uncopied)
 {
 	bool res = true;
 
 	D3DXIMAGE_FILEFORMAT fileFormat;
-	if (textureType == L"bmp" || textureType == L"BMP") { fileFormat = D3DXIFF_BMP; }
-	else if (textureType.compare(L"png") == 0 || textureType.compare(L"PNG") == 0) { fileFormat = D3DXIFF_PNG; }
-	else if (textureType.compare(L"jpg") == 0 || textureType.compare(L"JPG") == 0) { fileFormat = D3DXIFF_JPG; }
-	else if (textureType.compare(L"tga") == 0 || textureType.compare(L"TGA") == 0) { fileFormat = D3DXIFF_TGA; }
-	else if (textureType.compare(L"dds") == 0 || textureType.compare(L"DDS") == 0) { fileFormat = D3DXIFF_DDS; }
-	else if (textureType.compare(L"ppm") == 0 || textureType.compare(L"PPM") == 0) { fileFormat = D3DXIFF_PPM; }
-	else if (textureType.compare(L"dib") == 0 || textureType.compare(L"DIB") == 0) { fileFormat = D3DXIFF_DIB; }
-	else if (textureType.compare(L"hdr") == 0 || textureType.compare(L"HDR") == 0) { fileFormat = D3DXIFF_HDR; }
-	else if (textureType.compare(L"pfm") == 0 || textureType.compare(L"PFM") == 0) { fileFormat = D3DXIFF_PFM; }
-	else { return false; }
+	if (textureType == L"bmp" || textureType == L"BMP")
+	{
+		fileFormat = D3DXIFF_BMP;
+	}
+	else if (textureType.compare(L"png") == 0 || textureType.compare(L"PNG") == 0)
+	{
+		fileFormat = D3DXIFF_PNG;
+	}
+	else if (textureType.compare(L"jpg") == 0 || textureType.compare(L"JPG") == 0)
+	{
+		fileFormat = D3DXIFF_JPG;
+	}
+	else if (textureType.compare(L"tga") == 0 || textureType.compare(L"TGA") == 0)
+	{
+		fileFormat = D3DXIFF_TGA;
+	}
+	else if (textureType.compare(L"dds") == 0 || textureType.compare(L"DDS") == 0)
+	{
+		fileFormat = D3DXIFF_DDS;
+	}
+	else if (textureType.compare(L"ppm") == 0 || textureType.compare(L"PPM") == 0)
+	{
+		fileFormat = D3DXIFF_PPM;
+	}
+	else if (textureType.compare(L"dib") == 0 || textureType.compare(L"DIB") == 0)
+	{
+		fileFormat = D3DXIFF_DIB;
+	}
+	else if (textureType.compare(L"hdr") == 0 || textureType.compare(L"HDR") == 0)
+	{
+		fileFormat = D3DXIFF_HDR;
+	}
+	else if (textureType.compare(L"pfm") == 0 || textureType.compare(L"PFM") == 0)
+	{
+		fileFormat = D3DXIFF_PFM;
+	}
+	else
+	{
+		return false;
+	}
 
 	wchar_t dir[MAX_PATH];
 	wcscpy_s(dir, MAX_PATH, texturePath.c_str());
@@ -1358,7 +1482,8 @@ static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstr
 	{
 		IDirect3DTexture9* texture = finishTextureBuffers[i].first;
 		bool copied = finishTextureBuffers[i].second;
-		if (texture) {
+		if (texture)
+		{
 			if (uncopied)
 			{
 				if (!copied)
@@ -1367,14 +1492,22 @@ static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstr
 					PathCombineW(path, dir, to_wstring(texture).c_str());
 					std::wstring wpath(path);
 					wpath += L"." + textureType;
-					if (!writeTextureToFile(wpath.c_str(), texture, fileFormat)) { res = false; }
+					if (!writeTextureToFile(wpath.c_str(), texture, fileFormat))
+					{
+						res = false;
+					}
 				}
-			} else {
+			}
+			else
+			{
 				wchar_t path[MAX_PATH];
 				PathCombineW(path, dir, to_wstring(texture).c_str());
 				std::wstring wpath(path);
 				wpath += L"." + textureType;
-				if (!writeTextureToFile(wpath.c_str(), texture, fileFormat)) { res = false; }
+				if (!writeTextureToFile(wpath.c_str(), texture, fileFormat))
+				{
+					res = false;
+				}
 			}
 		}
 	}
@@ -1382,33 +1515,45 @@ static bool writeTextureToFiles(const std::wstring &texturePath, const std::wstr
 	return res;
 }
 
-static bool copyTextureToFiles(const std::wstring &texturePath)
+static bool copyTextureToFiles(const std::wstring& texturePath)
 {
-	if (texturePath.empty()) return false;
+	if (texturePath.empty())
+		return false;
 
 	std::wstring path = texturePath;
 	PathRemoveFileSpec(&path[0]);
 	PathAddBackslash(&path[0]);
-	if (!PathIsDirectory(path.c_str())) { return false; }
+	if (!PathIsDirectory(path.c_str()))
+	{
+		return false;
+	}
 
 	bool res = true;
 	for (size_t i = 0; i < finishTextureBuffers.size(); ++i)
 	{
 		IDirect3DTexture9* texture = finishTextureBuffers[i].first;
-		if (texture) {
-			if (!UMCopyTexture(path.c_str(), texture)) { res = false; }
+		if (texture)
+		{
+			if (!UMCopyTexture(path.c_str(), texture))
+			{
+				res = false;
+			}
 		}
 	}
 	return res;
 }
 
-static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTexture9 * texture, bool copied)
+static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTexture9* texture, bool copied)
 {
 	// Check if already in finishTextureBuffer
 	bool found = false;
 	for (size_t i = 0; i < finishTextureBuffers.size(); ++i)
 	{
-		if (finishTextureBuffers[i].first == texture) { found = true; break; }
+		if (finishTextureBuffers[i].first == texture)
+		{
+			found = true;
+			break;
+		}
 	}
 
 	if (!found)
@@ -1421,12 +1566,15 @@ static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTextu
 	if (BridgeParameter::instance().is_texture_buffer_enabled)
 	{
 		TextureBuffers::iterator tit = renderData.textureBuffers.find(texture);
-		if(tit != renderData.textureBuffers.end())
+		if (tit != renderData.textureBuffers.end())
 		{
 			// Write texture to memory
 			D3DLOCKED_RECT lockRect;
 			HRESULT isLocked = texture->lpVtbl->LockRect(texture, 0, &lockRect, NULL, D3DLOCK_READONLY);
-			if (isLocked != D3D_OK) { return false; }
+			if (isLocked != D3D_OK)
+			{
+				return false;
+			}
 
 			int width = tit->second.wh.x;
 			int height = tit->second.wh.y;
@@ -1437,20 +1585,23 @@ static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTextu
 			tex.name = textureName;
 
 			D3DFORMAT format = tit->second.format;
-			for(int y = 0; y < height; y++)
+			for (int y = 0; y < height; y++)
 			{
-				unsigned char *lineHead = (unsigned char*)lockRect.pBits + lockRect.Pitch * y;
+				unsigned char* lineHead = (unsigned char*)lockRect.pBits + lockRect.Pitch * y;
 
 				for (int x = 0; x < width; x++)
 				{
-					if (format == D3DFMT_A8R8G8B8) {
+					if (format == D3DFMT_A8R8G8B8)
+					{
 						UMVec4f rgba;
 						rgba.x = lineHead[4 * x + 0];
 						rgba.y = lineHead[4 * x + 1];
 						rgba.z = lineHead[4 * x + 2];
 						rgba.w = lineHead[4 * x + 3];
 						tex.texture.push_back(rgba);
-					} else {
+					}
+					else
+					{
 						::MessageBoxA(NULL, std::string("not supported texture format:" + format).c_str(), "info", MB_OK);
 					}
 				}
@@ -1464,30 +1615,28 @@ static bool writeTextureToMemory(const std::wstring &textureName, IDirect3DTextu
 	return false;
 }
 
-static HRESULT WINAPI beginScene(IDirect3DDevice9 *device)
+static HRESULT WINAPI beginScene(IDirect3DDevice9* device)
 {
 	HRESULT res = (*original_begin_scene)(device);
 	return res;
 }
 
-static HRESULT WINAPI endScene(IDirect3DDevice9 *device)
+static HRESULT WINAPI endScene(IDirect3DDevice9* device)
 {
 	HRESULT res = (*original_end_scene)(device);
 	return res;
-
 }
 
-HWND g_hWnd=NULL; // Window handle
-HMENU g_hMenu=NULL; // Menu
+HWND g_hWnd = NULL;	  // Window handle
+HMENU g_hMenu = NULL; // Menu
 HWND g_hFrame = NULL; // Frame number
-
 
 static void GetFrame(HWND hWnd)
 {
 	char text[256];
-	::GetWindowTextA(hWnd, text, sizeof(text)/sizeof(text[0]));
+	::GetWindowTextA(hWnd, text, sizeof(text) / sizeof(text[0]));
 
-	ui_frame= atoi(text);
+	ui_frame = atoi(text);
 }
 
 static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
@@ -1511,22 +1660,24 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 }
 
 // Search for target window to hijack
-static BOOL CALLBACK enumWindowsProc(HWND hWnd,LPARAM lParam)
+static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 {
-	if (g_hWnd && g_hFrame) {
+	if (g_hWnd && g_hFrame)
+	{
 		GetFrame(g_hFrame);
 		return FALSE;
 	}
-	HANDLE hModule=(HANDLE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
-	if(GetModuleHandle(NULL)==hModule)
+	HANDLE hModule = (HANDLE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
+	if (GetModuleHandle(NULL) == hModule)
 	{
 		// Found window created by our process
 		char szClassName[256];
-		GetClassNameA(hWnd,szClassName,sizeof(szClassName)/sizeof(szClassName[0]));
+		GetClassNameA(hWnd, szClassName, sizeof(szClassName) / sizeof(szClassName[0]));
 
 		std::string name(szClassName);
 
-		if (name == "Polygon Movie Maker"){
+		if (name == "Polygon Movie Maker")
+		{
 			g_hWnd = hWnd;
 			EnumChildWindows(hWnd, enumChildWindowsProc, 0);
 			return FALSE; // break
@@ -1537,7 +1688,8 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd,LPARAM lParam)
 
 static void setMyMenu()
 {
-	if (g_hMenu) return;
+	if (g_hMenu)
+		return;
 	if (g_hWnd)
 	{
 		HMENU hmenu = GetMenu(g_hWnd);
@@ -1564,46 +1716,49 @@ static void setMyMenu()
 	}
 }
 
-static void setMySize() {
-	if (!g_hWnd) return;
+static void setMySize()
+{
+	if (!g_hWnd)
+		return;
 	RECT rc;
-	if (!::GetWindowRect(g_hWnd, &rc))return;
+	if (!::GetWindowRect(g_hWnd, &rc))
+		return;
 	if (rc.bottom - rc.top <= 40)
 		SetWindowPos(g_hWnd, HWND_TOP, 0, 0, 1920, 1080, NULL);
 }
 
-LONG_PTR originalWndProc =NULL;
+LONG_PTR originalWndProc = NULL;
 // Function declarations for this code module:
 static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
-HINSTANCE hInstance= NULL;
+HINSTANCE hInstance = NULL;
 HWND pluginDialog = NULL;
 
 static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
-	switch( msg )
+	switch (msg)
 	{
 		case WM_COMMAND:
 		{
-			switch(LOWORD(wp))
+			switch (LOWORD(wp))
 			{
-			case 1020: // プラグイン設定
-				if(hInstance)
-				{
-					pluginDialog = hWnd;
-					::DialogBoxW(hInstance, L"IDD_DIALOG1", NULL, DialogProc);
-				}
-				break;
+				case 1020: // プラグイン設定
+					if (hInstance)
+					{
+						pluginDialog = hWnd;
+						::DialogBoxW(hInstance, L"IDD_DIALOG1", NULL, DialogProc);
+					}
+					break;
 			}
 		}
 		break;
 		case WM_DESTROY:
 			::DestroyWindow(pluginDialog);
 
-		break;
+			break;
 	}
 
 	// Messages not handled by subclass are processed by the original window procedure
-	return CallWindowProc( (WNDPROC)originalWndProc, hWnd, msg, wp, lp );
+	return CallWindowProc((WNDPROC)originalWndProc, hWnd, msg, wp, lp);
 }
 
 static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
@@ -1615,24 +1770,25 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 	HWND hEdit1 = GetDlgItem(hWnd, IDC_EDIT1);
 	HWND hEdit2 = GetDlgItem(hWnd, IDC_EDIT2);
 	HWND hEdit5 = GetDlgItem(hWnd, IDC_EDIT5);
-	switch (msg) {
+	switch (msg)
+	{
 		case WM_INITDIALOG:
+		{
+			for (size_t i = 0; i < parameter.python_script_name_list.size(); i++)
 			{
-				for (size_t i = 0 ; i < parameter.python_script_name_list.size() ; i++)
-				{
-					SendMessage(hCombo1 , CB_ADDSTRING , 0 , (LPARAM)parameter.python_script_name_list[i].c_str());
-				}
-				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行する");
-				SendMessage(hCombo2 , CB_ADDSTRING , 0 , (LPARAM)L"実行しない");
-				// Specify data to display initially when window is created
-				LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
-				SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
-				SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
-
-				::SetWindowTextW(hEdit1, to_wstring(parameter.start_frame).c_str());
-				::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
-				::SetWindowTextW(hEdit5, to_wstring(parameter.export_fps).c_str());
+				SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)parameter.python_script_name_list[i].c_str());
 			}
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)L"実行する");
+			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)L"実行しない");
+			// Specify data to display initially when window is created
+			LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
+			SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
+			SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
+
+			::SetWindowTextW(hEdit1, to_wstring(parameter.start_frame).c_str());
+			::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
+			::SetWindowTextW(hEdit5, to_wstring(parameter.export_fps).c_str());
+		}
 			return TRUE;
 		case WM_CLOSE:
 			EndDialog(hWnd, IDCANCEL);
@@ -1641,71 +1797,71 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			switch (LOWORD(wParam))
 			{
 				case IDOK: // Button was pressed
+				{
+					UINT num1 = (UINT)SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+					if (num1 < parameter.python_script_name_list.size())
 					{
-						UINT num1 = (UINT)SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
-						if (num1 < parameter.python_script_name_list.size())
+						const std::wstring& selected_name = parameter.python_script_name_list[num1];
+						mutable_parameter.python_script_name = selected_name;
+						mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
+						if (pythonName != selected_name)
 						{
-							const std::wstring& selected_name = parameter.python_script_name_list[num1];
-							mutable_parameter.python_script_name = selected_name;
-							mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
-							if (pythonName != selected_name)
-							{
-								pythonName = selected_name;
-								relaod_python_script();
-							}
+							pythonName = selected_name;
+							relaod_python_script();
 						}
-						UINT num2 = (UINT)SendMessage(hCombo2, CB_GETCURSEL, 0, 0);
-						if (num2 <= 2)
-						{
-							script_call_setting = num2 + 1;
-						}
-
-						char text1[32];
-						char text2[32];
-						char text5[32];
-						::GetWindowTextA(hEdit1, text1, sizeof(text1)/sizeof(text1[0]));
-						::GetWindowTextA(hEdit2, text2, sizeof(text2)/sizeof(text2[0]));
-						::GetWindowTextA(hEdit5, text5, sizeof(text5)/sizeof(text5[0]));
-						mutable_parameter.start_frame = atoi(text1);
-						mutable_parameter.end_frame = atoi(text2);
-						mutable_parameter.export_fps = atof(text5);
-
-						if (parameter.start_frame > parameter.end_frame)
-						{
-							mutable_parameter.end_frame = parameter.start_frame + 1;
-							::SetWindowTextA(hEdit2, to_string(parameter.end_frame).c_str());
-						}
-						EndDialog(hWnd, IDOK);
 					}
-					break;
+					UINT num2 = (UINT)SendMessage(hCombo2, CB_GETCURSEL, 0, 0);
+					if (num2 <= 2)
+					{
+						script_call_setting = num2 + 1;
+					}
+
+					char text1[32];
+					char text2[32];
+					char text5[32];
+					::GetWindowTextA(hEdit1, text1, sizeof(text1) / sizeof(text1[0]));
+					::GetWindowTextA(hEdit2, text2, sizeof(text2) / sizeof(text2[0]));
+					::GetWindowTextA(hEdit5, text5, sizeof(text5) / sizeof(text5[0]));
+					mutable_parameter.start_frame = atoi(text1);
+					mutable_parameter.end_frame = atoi(text2);
+					mutable_parameter.export_fps = atof(text5);
+
+					if (parameter.start_frame > parameter.end_frame)
+					{
+						mutable_parameter.end_frame = parameter.start_frame + 1;
+						::SetWindowTextA(hEdit2, to_string(parameter.end_frame).c_str());
+					}
+					EndDialog(hWnd, IDOK);
+				}
+				break;
 				case IDCANCEL:
 					EndDialog(hWnd, IDCANCEL);
 					break;
 				case IDC_BUTTON1: // 再検索
+				{
+					wchar_t current_selection_text[MAX_PATH] = { 0 };
+					LRESULT current_selection_index = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+					if (current_selection_index != CB_ERR)
 					{
-						wchar_t current_selection_text[MAX_PATH] = { 0 };
-						LRESULT current_selection_index = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
-						if (current_selection_index != CB_ERR)
-						{
-							SendMessage(hCombo1, CB_GETLBTEXT, current_selection_index, (LPARAM)current_selection_text);
-						}
-						reload_python_file_paths();
-						SendMessage(hCombo1, CB_RESETCONTENT, 0, 0);
-						for (const auto& name : parameter.python_script_name_list)
-						{
-							SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
-						}
-						LRESULT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)current_selection_text);
-						if (index_to_select == CB_ERR && parameter.python_script_name_list.size() > 0)
-						{
-							index_to_select = 0;
-						}
-						if (index_to_select != CB_ERR)
-						{
-							SendMessage(hCombo1, CB_SETCURSEL, index_to_select, 0);
-						}
+						SendMessage(hCombo1, CB_GETLBTEXT, current_selection_index, (LPARAM)current_selection_text);
 					}
-					break;
+					reload_python_file_paths();
+					SendMessage(hCombo1, CB_RESETCONTENT, 0, 0);
+					for (const auto& name : parameter.python_script_name_list)
+					{
+						SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
+					}
+					LRESULT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)current_selection_text);
+					if (index_to_select == CB_ERR && parameter.python_script_name_list.size() > 0)
+					{
+						index_to_select = 0;
+					}
+					if (index_to_select != CB_ERR)
+					{
+						SendMessage(hCombo1, CB_SETCURSEL, index_to_select, 0);
+					}
+				}
+				break;
 			}
 			return TRUE;
 	}
@@ -1718,35 +1874,41 @@ static void overrideGLWindow()
 	setMyMenu();
 	setMySize();
 	// Subclassing
-	if(g_hWnd && !originalWndProc){
-		originalWndProc = GetWindowLongPtr(g_hWnd,GWLP_WNDPROC);
-		SetWindowLongPtr(g_hWnd,GWLP_WNDPROC,(_LONG_PTR)overrideWndProc);
+	if (g_hWnd && !originalWndProc)
+	{
+		originalWndProc = GetWindowLongPtr(g_hWnd, GWLP_WNDPROC);
+		SetWindowLongPtr(g_hWnd, GWLP_WNDPROC, (_LONG_PTR)overrideWndProc);
 	}
 }
 
-
-static bool IsValidCallSetting() {
+static bool IsValidCallSetting()
+{
 	return (script_call_setting == 0) || (script_call_setting == 1);
 }
 
 // Helper struct for the EnumWindows callback, passing a PID and returning a HWND.
-struct FindWindowData {
+struct FindWindowData
+{
 	DWORD process_id;
 	HWND found_hwnd;
 };
 
 // EnumWindows callback that finds "RecWindow" belonging to a specific process.
-BOOL CALLBACK FindRecWindowProc(HWND hWnd, LPARAM lParam) {
+BOOL CALLBACK FindRecWindowProc(HWND hWnd, LPARAM lParam)
+{
 	FindWindowData* pData = (FindWindowData*)lParam;
 
 	// Check if the window's class name is "RecWindow".
 	char className[256];
-	if (GetClassNameA(hWnd, className, sizeof(className)) > 0) {
-		if (strcmp(className, "RecWindow") == 0) {
+	if (GetClassNameA(hWnd, className, sizeof(className)) > 0)
+	{
+		if (strcmp(className, "RecWindow") == 0)
+		{
 			DWORD windowProcessId;
 			GetWindowThreadProcessId(hWnd, &windowProcessId);
 
-			if (windowProcessId == pData->process_id) {
+			if (windowProcessId == pData->process_id)
+			{
 				pData->found_hwnd = hWnd;
 				return FALSE; // Returning FALSE stops the EnumWindows loop.
 			}
@@ -1757,7 +1919,8 @@ BOOL CALLBACK FindRecWindowProc(HWND hWnd, LPARAM lParam) {
 	return TRUE;
 }
 
-static bool IsValidFrame() {
+static bool IsValidFrame()
+{
 	FindWindowData data;
 	data.process_id = GetCurrentProcessId();
 	data.found_hwnd = NULL;
@@ -1767,17 +1930,18 @@ static bool IsValidFrame() {
 	return (data.found_hwnd != NULL);
 }
 
-static bool IsValidTechniq() {
+static bool IsValidTechniq()
+{
 	const int technic = ExpGetCurrentTechnic();
 	return (technic == 0 || technic == 1 || technic == 2);
 }
 
 static HRESULT WINAPI present(
-	IDirect3DDevice9 *device,
-	const RECT * pSourceRect,
-	const RECT * pDestRect,
+	IDirect3DDevice9* device,
+	const RECT* pSourceRect,
+	const RECT* pDestRect,
 	HWND hDestWindowOverride,
-	const RGNDATA * pDirtyRegion)
+	const RGNDATA* pDirtyRegion)
 {
 	const float time = ExpGetFrameTime();
 
@@ -1819,14 +1983,14 @@ static HRESULT WINAPI present(
 	return res;
 }
 
-static HRESULT WINAPI reset(IDirect3DDevice9 *device, D3DPRESENT_PARAMETERS* pPresentationParameters)
+static HRESULT WINAPI reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	HRESULT res = (*original_reset)(device, pPresentationParameters);
 	::MessageBox(NULL, _T("MMDBridge does not support 3D Vision"), _T("HOGE"), MB_OK);
 	return res;
 }
 
-static HRESULT WINAPI setFVF(IDirect3DDevice9 *device, DWORD fvf)
+static HRESULT WINAPI setFVF(IDirect3DDevice9* device, DWORD fvf)
 {
 	HRESULT res = (*original_set_fvf)(device, fvf);
 
@@ -1835,19 +1999,19 @@ static HRESULT WINAPI setFVF(IDirect3DDevice9 *device, DWORD fvf)
 		renderData.fvf = fvf;
 		DWORD pos = (fvf & D3DFVF_POSITION_MASK);
 		renderData.pos = (pos > 0);
-		renderData.pos_xyz	= ((pos & D3DFVF_XYZ) > 0);
-		renderData.pos_rhw	= ((pos & D3DFVF_XYZRHW) > 0);
+		renderData.pos_xyz = ((pos & D3DFVF_XYZ) > 0);
+		renderData.pos_rhw = ((pos & D3DFVF_XYZRHW) > 0);
 		renderData.pos_xyzb[0] = ((fvf & D3DFVF_XYZB1) == D3DFVF_XYZB1);
 		renderData.pos_xyzb[1] = ((fvf & D3DFVF_XYZB2) == D3DFVF_XYZB2);
 		renderData.pos_xyzb[2] = ((fvf & D3DFVF_XYZB3) == D3DFVF_XYZB3);
 		renderData.pos_xyzb[3] = ((fvf & D3DFVF_XYZB4) == D3DFVF_XYZB4);
 		renderData.pos_xyzb[4] = ((fvf & D3DFVF_XYZB5) == D3DFVF_XYZB5);
 		renderData.pos_last_beta_ubyte4 = ((fvf & D3DFVF_LASTBETA_UBYTE4) > 0);
-		renderData.normal	= ((fvf & D3DFVF_NORMAL) > 0);
-		renderData.psize	= ((fvf & D3DFVF_PSIZE) > 0);
-		renderData.diffuse	= ((fvf & D3DFVF_DIFFUSE) > 0);
-		renderData.specular	= ((fvf & D3DFVF_SPECULAR) > 0);
-		renderData.texcount	= (fvf & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT;
+		renderData.normal = ((fvf & D3DFVF_NORMAL) > 0);
+		renderData.psize = ((fvf & D3DFVF_PSIZE) > 0);
+		renderData.diffuse = ((fvf & D3DFVF_DIFFUSE) > 0);
+		renderData.specular = ((fvf & D3DFVF_SPECULAR) > 0);
+		renderData.texcount = (fvf & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT;
 	}
 
 	return res;
@@ -1859,26 +2023,25 @@ static void setFVF(DWORD fvf)
 
 	DWORD pos = (fvf & D3DFVF_POSITION_MASK);
 	renderData.pos = (pos > 0);
-	renderData.pos_xyz	= ((pos & D3DFVF_XYZ) > 0);
-	renderData.pos_rhw	= ((pos & D3DFVF_XYZRHW) > 0);
+	renderData.pos_xyz = ((pos & D3DFVF_XYZ) > 0);
+	renderData.pos_rhw = ((pos & D3DFVF_XYZRHW) > 0);
 	renderData.pos_xyzb[0] = ((fvf & D3DFVF_XYZB1) == D3DFVF_XYZB1);
 	renderData.pos_xyzb[1] = ((fvf & D3DFVF_XYZB2) == D3DFVF_XYZB2);
 	renderData.pos_xyzb[2] = ((fvf & D3DFVF_XYZB3) == D3DFVF_XYZB3);
 	renderData.pos_xyzb[3] = ((fvf & D3DFVF_XYZB4) == D3DFVF_XYZB4);
 	renderData.pos_xyzb[4] = ((fvf & D3DFVF_XYZB5) == D3DFVF_XYZB5);
 	renderData.pos_last_beta_ubyte4 = ((fvf & D3DFVF_LASTBETA_UBYTE4) > 0);
-	renderData.normal	= ((fvf & D3DFVF_NORMAL) > 0);
-	renderData.psize	= ((fvf & D3DFVF_PSIZE) > 0);
-	renderData.diffuse	= ((fvf & D3DFVF_DIFFUSE) > 0);
-	renderData.specular	= ((fvf & D3DFVF_SPECULAR) > 0);
-	renderData.texcount	= (fvf & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT;
-
+	renderData.normal = ((fvf & D3DFVF_NORMAL) > 0);
+	renderData.psize = ((fvf & D3DFVF_PSIZE) > 0);
+	renderData.diffuse = ((fvf & D3DFVF_DIFFUSE) > 0);
+	renderData.specular = ((fvf & D3DFVF_SPECULAR) > 0);
+	renderData.texcount = (fvf & D3DFVF_TEXCOUNT_MASK) >> D3DFVF_TEXCOUNT_SHIFT;
 }
 
 HRESULT WINAPI clear(
-	IDirect3DDevice9 *device,
+	IDirect3DDevice9* device,
 	DWORD count,
-	const D3DRECT *pRects,
+	const D3DRECT* pRects,
 	DWORD flags,
 	D3DCOLOR color,
 	float z,
@@ -1888,7 +2051,7 @@ HRESULT WINAPI clear(
 	return res;
 }
 
-static void getTextureParameter(TextureParameter &param)
+static void getTextureParameter(TextureParameter& param)
 {
 	TextureSamplers::iterator tit0 = renderData.textureSamplers.find(0);
 	TextureSamplers::iterator tit1 = renderData.textureSamplers.find(1);
@@ -1898,13 +2061,14 @@ static void getTextureParameter(TextureParameter &param)
 	param.hasTextureSampler1 = (tit1 != renderData.textureSamplers.end());
 	param.hasTextureSampler2 = (tit2 != renderData.textureSamplers.end());
 
-	if (param.hasTextureSampler1) {
+	if (param.hasTextureSampler1)
+	{
 		LPWSTR name = UMGetTextureName(tit1->second);
 		param.texture = tit1->second;
 		param.textureMemoryName = to_string(param.texture);
 		if (name)
 		{
-			param.textureName=std::wstring(name);
+			param.textureName = std::wstring(name);
 		}
 		if (UMIsAlphaTexture(param.texture))
 		{
@@ -1914,20 +2078,20 @@ static void getTextureParameter(TextureParameter &param)
 }
 
 // Write vertex/normal buffer/texture to memory
-static bool writeBuffersToMemory(IDirect3DDevice9 *device)
+static bool writeBuffersToMemory(IDirect3DDevice9* device)
 {
 	const int currentTechnic = ExpGetCurrentTechnic();
 	const int currentMaterial = ExpGetCurrentMaterial();
 	const int currentObject = ExpGetCurrentObject();
 
-	BYTE *pVertexBuf;
-	IDirect3DVertexBuffer9 *pStreamData = renderData.pStreamData;
+	BYTE* pVertexBuf;
+	IDirect3DVertexBuffer9* pStreamData = renderData.pStreamData;
 
 	VertexBufferList& finishBuffers = BridgeParameter::mutable_instance().finish_buffer_list;
 	if (std::find(finishBuffers.begin(), finishBuffers.end(), pStreamData) == finishBuffers.end())
 	{
 		VertexBuffers::iterator vit = renderData.vertexBuffers.find(pStreamData);
-		if(vit != renderData.vertexBuffers.end())
+		if (vit != renderData.vertexBuffers.end())
 		{
 			RenderBufferMap& renderedBuffers = BridgeParameter::mutable_instance().render_buffer_map;
 			pStreamData->lpVtbl->Lock(pStreamData, 0, 0, (void**)&pVertexBuf, D3DLOCK_READONLY);
@@ -1946,15 +2110,15 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 			::D3DXMatrixIdentity(&renderedBuffer.view);
 			::D3DXMatrixIdentity(&renderedBuffer.projection);
 			::D3DXMatrixIdentity(&renderedBuffer.world_inv);
-			device->lpVtbl->GetTransform(device ,D3DTS_WORLD, &renderedBuffer.world);
-			device->lpVtbl->GetTransform(device ,D3DTS_VIEW, &renderedBuffer.view);
-			device->lpVtbl->GetTransform(device ,D3DTS_PROJECTION, &renderedBuffer.projection);
+			device->lpVtbl->GetTransform(device, D3DTS_WORLD, &renderedBuffer.world);
+			device->lpVtbl->GetTransform(device, D3DTS_VIEW, &renderedBuffer.view);
+			device->lpVtbl->GetTransform(device, D3DTS_PROJECTION, &renderedBuffer.projection);
 
 			::D3DXMatrixInverse(&renderedBuffer.world_inv, NULL, &renderedBuffer.world);
 
 			int bytePos = 0;
 
-			if (renderedBuffer.world.m[0][0] == 0 && renderedBuffer.world.m[1][1]== 0 && renderedBuffer.world.m[2][2]== 0)
+			if (renderedBuffer.world.m[0][0] == 0 && renderedBuffer.world.m[1][1] == 0 && renderedBuffer.world.m[2][2] == 0)
 			{
 				return false;
 			}
@@ -1995,7 +2159,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				for (size_t i = bytePos, n = 0; i < vit->second; i += renderData.stride, ++n)
 				{
 					D3DXVECTOR3 v;
-					memcpy(&v, &pVertexBuf[i], sizeof( D3DXVECTOR3 ));
+					memcpy(&v, &pVertexBuf[i], sizeof(D3DXVECTOR3));
 					if (renderedBuffer.isAccessory)
 					{
 						D3DXVECTOR4 dst;
@@ -2018,7 +2182,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				for (size_t i = bytePos; i < vit->second; i += renderData.stride)
 				{
 					D3DXVECTOR3 n;
-					memcpy(&n, &pVertexBuf[i], sizeof( D3DXVECTOR3 ));
+					memcpy(&n, &pVertexBuf[i], sizeof(D3DXVECTOR3));
 					renderedBuffer.normals.push_back(n);
 				}
 				bytePos += (sizeof(DWORD) * 3);
@@ -2030,9 +2194,8 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 				for (size_t i = 0; i < vit->second; i += renderData.stride)
 				{
 					DWORD diffuse;
-					memcpy(&diffuse, &pVertexBuf[i], sizeof( DWORD ));
+					memcpy(&diffuse, &pVertexBuf[i], sizeof(DWORD));
 					renderedBuffer.diffuses.push_back(diffuse);
-
 				}
 				bytePos += (sizeof(DWORD));
 			}
@@ -2045,13 +2208,12 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 					for (size_t i = bytePos; i < vit->second; i += renderData.stride)
 					{
 						UMVec2f uv;
-						memcpy(&uv, &pVertexBuf[i], sizeof( UMVec2f ));
+						memcpy(&uv, &pVertexBuf[i], sizeof(UMVec2f));
 						renderedBuffer.uvs.push_back(uv);
 					}
 					bytePos += (sizeof(DWORD) * 2);
 				}
 			}
-
 
 			pStreamData->lpVtbl->Unlock(pStreamData);
 
@@ -2063,13 +2225,13 @@ static bool writeBuffersToMemory(IDirect3DDevice9 *device)
 	return true;
 }
 
-static bool writeMaterialsToMemory(TextureParameter & textureParameter)
+static bool writeMaterialsToMemory(TextureParameter& textureParameter)
 {
 	const int currentTechnic = ExpGetCurrentTechnic();
 	const int currentMaterial = ExpGetCurrentMaterial();
 	const int currentObject = ExpGetCurrentObject();
 
-	IDirect3DVertexBuffer9 *pStreamData = renderData.pStreamData;
+	IDirect3DVertexBuffer9* pStreamData = renderData.pStreamData;
 	RenderBufferMap& renderedBuffers = BridgeParameter::mutable_instance().render_buffer_map;
 	if (renderedBuffers.find(pStreamData) == renderedBuffers.end())
 	{
@@ -2081,9 +2243,9 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 	{
 		// Get D3DMATERIAL9
 		D3DMATERIAL9 material = ExpGetPmdMaterial(currentObject, currentMaterial);
-		//p_device->lpVtbl->GetMaterial(p_device, &material);
+		// p_device->lpVtbl->GetMaterial(p_device, &material);
 
-		RenderedMaterial *mat = new RenderedMaterial();
+		RenderedMaterial* mat = new RenderedMaterial();
 		mat->diffuse.x = material.Diffuse.r;
 		mat->diffuse.y = material.Diffuse.g;
 		mat->diffuse.z = material.Diffuse.b;
@@ -2100,10 +2262,12 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 		mat->power = material.Power;
 
 		// Shader time
-		if (currentTechnic == 2) {
+		if (currentTechnic == 2)
+		{
 			LPD3DXEFFECT* effect = UMGetEffect();
 
-			if (effect) {
+			if (effect)
+			{
 				D3DXHANDLE current = (*effect)->lpVtbl->GetCurrentTechnique(*effect);
 				D3DXHANDLE texHandle1 = (*effect)->lpVtbl->GetTechniqueByName(*effect, "DiffuseBSSphiaTexTec");
 				D3DXHANDLE texHandle2 = (*effect)->lpVtbl->GetTechniqueByName(*effect, "DiffuseBSTextureTec");
@@ -2111,19 +2275,23 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 				D3DXHANDLE texHandle4 = (*effect)->lpVtbl->GetTechniqueByName(*effect, "BShadowTextureTec");
 
 				textureParameter.hasTextureSampler2 = false;
-				if (current == texHandle1) {
+				if (current == texHandle1)
+				{
 					//::MessageBoxA(NULL, "1", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
-				if (current == texHandle2) {
+				if (current == texHandle2)
+				{
 					//::MessageBoxA(NULL, "2", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
-				if (current == texHandle3) {
+				if (current == texHandle3)
+				{
 					//::MessageBoxA(NULL, "3", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
-				if (current == texHandle4) {
+				if (current == texHandle4)
+				{
 					//::MessageBoxA(NULL, "4", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
@@ -2167,7 +2335,8 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 			p_device->lpVtbl->GetTextureStageState(p_device, 0, D3DTSS_COLOROP, &colorRop0);
 			p_device->lpVtbl->GetTextureStageState(p_device, 1, D3DTSS_COLOROP, &colorRop1);
 
-			if (textureParameter.hasTextureSampler2) {
+			if (textureParameter.hasTextureSampler2)
+			{
 
 				mat->tex = textureParameter.texture;
 				mat->texture = textureParameter.textureName;
@@ -2177,7 +2346,9 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 				{
 					mat->diffuse.w = 1.0f;
 				}
-			} else	if (textureParameter.hasTextureSampler0 || textureParameter.hasTextureSampler1) {
+			}
+			else if (textureParameter.hasTextureSampler0 || textureParameter.hasTextureSampler1)
+			{
 				if (colorRop0 != D3DTOP_DISABLE && colorRop1 != D3DTOP_DISABLE)
 				{
 					mat->tex = textureParameter.texture;
@@ -2191,7 +2362,7 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 			}
 		}
 
-		RenderedBuffer &renderedBuffer = renderedBuffers[pStreamData];
+		RenderedBuffer& renderedBuffer = renderedBuffers[pStreamData];
 		if (renderedBuffer.isAccessory)
 		{
 			D3DMATERIAL9 accessoryMat = ExpGetAcsMaterial(renderedBuffer.accessory, currentMaterial);
@@ -2230,39 +2401,39 @@ static bool writeMaterialsToMemory(TextureParameter & textureParameter)
 	}
 }
 
-static void writeMatrixToMemory(IDirect3DDevice9 *device, RenderedBuffer &dst)
+static void writeMatrixToMemory(IDirect3DDevice9* device, RenderedBuffer& dst)
 {
 	::D3DXMatrixIdentity(&dst.world);
 	::D3DXMatrixIdentity(&dst.view);
 	::D3DXMatrixIdentity(&dst.projection);
-	device->lpVtbl->GetTransform(device ,D3DTS_WORLD, &dst.world);
-	device->lpVtbl->GetTransform(device ,D3DTS_VIEW, &dst.view);
-	device->lpVtbl->GetTransform(device ,D3DTS_PROJECTION, &dst.projection);
+	device->lpVtbl->GetTransform(device, D3DTS_WORLD, &dst.world);
+	device->lpVtbl->GetTransform(device, D3DTS_VIEW, &dst.view);
+	device->lpVtbl->GetTransform(device, D3DTS_PROJECTION, &dst.projection);
 }
 
-static void writeLightToMemory(IDirect3DDevice9 *device, RenderedBuffer &renderedBuffer)
+static void writeLightToMemory(IDirect3DDevice9* device, RenderedBuffer& renderedBuffer)
 {
 	BOOL isLight;
 	int lightNumber = 0;
-	 p_device->lpVtbl->GetLightEnable(p_device, lightNumber, &isLight);
-	 if (isLight)
-	 {
+	p_device->lpVtbl->GetLightEnable(p_device, lightNumber, &isLight);
+	if (isLight)
+	{
 		D3DLIGHT9 light;
 		p_device->lpVtbl->GetLight(p_device, lightNumber, &light);
 		UMVec3f& umlight = renderedBuffer.light;
 		D3DXVECTOR3 v(light.Direction.x, light.Direction.y, light.Direction.z);
 		D3DXVECTOR4 dst;
-		//D3DXVec3Transform(&dst, &v, &renderedBuffer.world);
-		// NOTE: There might be a function that only rotates without crushing the parallel translation component.
+		// D3DXVec3Transform(&dst, &v, &renderedBuffer.world);
+		//  NOTE: There might be a function that only rotates without crushing the parallel translation component.
 		D3DXMATRIX m = renderedBuffer.world_inv;
 		// ugly hack.
-		m._41 = m._42 = m._43 = 0; m._14 = m._24 = m._34 = m._44 = 0;
+		m._41 = m._42 = m._43 = 0;
+		m._14 = m._24 = m._34 = m._44 = 0;
 		D3DXVec3Transform(&dst, &v, &m);
 
 		umlight.x = dst.x;
 		umlight.y = dst.y;
 		umlight.z = dst.z;
-
 
 		// Specular is closest to the value set in MMD UI.
 		// But you need to col * 256.0 / 255.0 to be in the range 0~1.
@@ -2272,22 +2443,22 @@ static void writeLightToMemory(IDirect3DDevice9 *device, RenderedBuffer &rendere
 		renderedBuffer.light_color.y = light.Specular.g * s;
 		renderedBuffer.light_color.z = light.Specular.b * s;
 
-		//renderedBuffer.light_diffuse.x = light.Diffuse.r;
-		//renderedBuffer.light_diffuse.y = light.Diffuse.g;
-		//renderedBuffer.light_diffuse.z = light.Diffuse.b;
-		//renderedBuffer.light_diffuse.w = light.Diffuse.a;
-		//renderedBuffer.light_specular.x = light.Specular.r;
-		//renderedBuffer.light_specular.y = light.Specular.g;
-		//renderedBuffer.light_specular.z = light.Specular.b;
-		//renderedBuffer.light_specular.w = light.Specular.a;
-		//renderedBuffer.light_position.x = light.Position.x;
-		//renderedBuffer.light_position.y = light.Position.y;
-		//renderedBuffer.light_position.z = light.Position.z;
+		// renderedBuffer.light_diffuse.x = light.Diffuse.r;
+		// renderedBuffer.light_diffuse.y = light.Diffuse.g;
+		// renderedBuffer.light_diffuse.z = light.Diffuse.b;
+		// renderedBuffer.light_diffuse.w = light.Diffuse.a;
+		// renderedBuffer.light_specular.x = light.Specular.r;
+		// renderedBuffer.light_specular.y = light.Specular.g;
+		// renderedBuffer.light_specular.z = light.Specular.b;
+		// renderedBuffer.light_specular.w = light.Specular.a;
+		// renderedBuffer.light_position.x = light.Position.x;
+		// renderedBuffer.light_position.y = light.Position.y;
+		// renderedBuffer.light_position.z = light.Position.z;
 	}
 }
 
 static HRESULT WINAPI drawIndexedPrimitive(
-	IDirect3DDevice9 *device,
+	IDirect3DDevice9* device,
 	D3DPRIMITIVETYPE type,
 	INT baseVertexIndex,
 	UINT minIndex,
@@ -2339,18 +2510,18 @@ static HRESULT WINAPI drawIndexedPrimitive(
 
 			// Write index buffer to memory
 			// Calculate normal if no normal
-			IDirect3DVertexBuffer9 *pStreamData = renderData.pStreamData;
-			IDirect3DIndexBuffer9 *pIndexData = renderData.pIndexData;
+			IDirect3DVertexBuffer9* pStreamData = renderData.pStreamData;
+			IDirect3DIndexBuffer9* pIndexData = renderData.pIndexData;
 
 			D3DINDEXBUFFER_DESC indexDesc;
 			if (pIndexData->lpVtbl->GetDesc(pIndexData, &indexDesc) == D3D_OK)
 			{
-				void *pIndexBuf;
+				void* pIndexBuf;
 				if (pIndexData->lpVtbl->Lock(pIndexData, 0, 0, (void**)&pIndexBuf, D3DLOCK_READONLY) == D3D_OK)
 				{
 					RenderBufferMap& renderedBuffers = BridgeParameter::mutable_instance().render_buffer_map;
-					RenderedBuffer &renderedBuffer = renderedBuffers[pStreamData];
-					RenderedSurface &renderedSurface = renderedBuffer.material_map[currentMaterial]->surface;
+					RenderedBuffer& renderedBuffer = renderedBuffers[pStreamData];
+					RenderedSurface& renderedSurface = renderedBuffer.material_map[currentMaterial]->surface;
 					renderedSurface.faces.clear();
 
 					// Write transformation matrix to memory
@@ -2379,10 +2550,12 @@ static HRESULT WINAPI drawIndexedPrimitive(
 							face.z = static_cast<int>((p[startIndex + i + 2]) + 1);
 						}
 						const size_t vsize = renderedBuffer.vertecies.size();
-						if (face.x > vsize || face.y > vsize || face.z > vsize) {
+						if (face.x > vsize || face.y > vsize || face.z > vsize)
+						{
 							continue;
 						}
-						if (face.x <= 0 || face.y <= 0 || face.z <= 0) {
+						if (face.x <= 0 || face.y <= 0 || face.z <= 0)
+						{
 							continue;
 						}
 						renderedSurface.faces.push_back(face);
@@ -2396,8 +2569,8 @@ static HRESULT WINAPI drawIndexedPrimitive(
 							D3DXVECTOR3 v0 = renderedBuffer.vertecies[face.x - 1];
 							D3DXVECTOR3 v1 = renderedBuffer.vertecies[face.y - 1];
 							D3DXVECTOR3 v2 = renderedBuffer.vertecies[face.z - 1];
-							D3DXVECTOR3 v10 = v1-v0;
-							D3DXVECTOR3 v20 = v2-v0;
+							D3DXVECTOR3 v10 = v1 - v0;
+							D3DXVECTOR3 v20 = v2 - v0;
 							::D3DXVec3Cross(&n, &v10, &v20);
 							renderedBuffer.normals[face.x - 1] += n;
 							renderedBuffer.normals[face.y - 1] += n;
@@ -2418,7 +2591,6 @@ static HRESULT WINAPI drawIndexedPrimitive(
 			pIndexData->lpVtbl->Unlock(pIndexData);
 		}
 	}
-
 
 	HRESULT res = (*original_draw_indexed_primitive)(device, type, baseVertexIndex, minIndex, numVertices, startIndex, primitiveCount);
 
@@ -2446,9 +2618,7 @@ static HRESULT WINAPI createTexture(
 
 	renderData.textureBuffers[*ppTexture] = info;
 
-
 	return res;
-
 }
 
 static HRESULT WINAPI createVertexBuffer(
@@ -2470,9 +2640,10 @@ static HRESULT WINAPI createVertexBuffer(
 static HRESULT WINAPI setTexture(
 	IDirect3DDevice9* device,
 	DWORD sampler,
-	IDirect3DBaseTexture9 * pTexture)
+	IDirect3DBaseTexture9* pTexture)
 {
-	if (presentCount == 0) {
+	if (presentCount == 0)
+	{
 		IDirect3DTexture9* texture = reinterpret_cast<IDirect3DTexture9*>(pTexture);
 		renderData.textureSamplers[sampler] = texture;
 	}
@@ -2483,9 +2654,9 @@ static HRESULT WINAPI setTexture(
 }
 
 static HRESULT WINAPI setStreamSource(
-	IDirect3DDevice9 *device,
+	IDirect3DDevice9* device,
 	UINT streamNumber,
-	IDirect3DVertexBuffer9 *pStreamData,
+	IDirect3DVertexBuffer9* pStreamData,
 	UINT offsetInBytes,
 	UINT stride)
 {
@@ -2499,7 +2670,8 @@ static HRESULT WINAPI setStreamSource(
 
 	if (validCallSetting && validFrame && validTechniq)
 	{
-		if (pStreamData) {
+		if (pStreamData)
+		{
 			renderData.streamNumber = streamNumber;
 			renderData.pStreamData = pStreamData;
 			renderData.offsetInBytes = offsetInBytes;
@@ -2511,7 +2683,7 @@ static HRESULT WINAPI setStreamSource(
 }
 
 // IDirect3DDevice9::SetIndices
-static HRESULT WINAPI setIndices(IDirect3DDevice9 *device, IDirect3DIndexBuffer9 * pIndexData)
+static HRESULT WINAPI setIndices(IDirect3DDevice9* device, IDirect3DIndexBuffer9* pIndexData)
 {
 	HRESULT res = (*original_set_indices)(device, pIndexData);
 
@@ -2530,7 +2702,7 @@ static HRESULT WINAPI setIndices(IDirect3DDevice9 *device, IDirect3DIndexBuffer9
 
 // IDirect3DDevice9::BeginStateBlock
 // This function modifies lpVtbl, so we need to restore lpVtbl
-static HRESULT WINAPI beginStateBlock(IDirect3DDevice9 *device)
+static HRESULT WINAPI beginStateBlock(IDirect3DDevice9* device)
 {
 	originalDevice();
 	HRESULT res = (*original_begin_state_block)(device);
@@ -2543,7 +2715,7 @@ static HRESULT WINAPI beginStateBlock(IDirect3DDevice9 *device)
 
 // IDirect3DDevice9::EndStateBlock
 // This function modifies lpVtbl, so we need to restore lpVtbl
-static HRESULT WINAPI endStateBlock(IDirect3DDevice9 *device, IDirect3DStateBlock9 **ppSB)
+static HRESULT WINAPI endStateBlock(IDirect3DDevice9* device, IDirect3DStateBlock9** ppSB)
 {
 	originalDevice();
 	HRESULT res = (*original_end_state_block)(device, ppSB);
@@ -2560,13 +2732,13 @@ static void hookDevice()
 	{
 		// Grant write attribute
 		DWORD old_protect;
-		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
+		VirtualProtect(reinterpret_cast<void*>(p_device->lpVtbl), sizeof(p_device->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
 		p_device->lpVtbl->BeginScene = beginScene;
 		p_device->lpVtbl->EndScene = endScene;
-		//p_device->lpVtbl->Clear = clear;
+		// p_device->lpVtbl->Clear = clear;
 		p_device->lpVtbl->Present = present;
-		//p_device->lpVtbl->Reset = reset;
+		// p_device->lpVtbl->Reset = reset;
 		p_device->lpVtbl->BeginStateBlock = beginStateBlock;
 		p_device->lpVtbl->EndStateBlock = endStateBlock;
 		p_device->lpVtbl->SetFVF = setFVF;
@@ -2576,10 +2748,10 @@ static void hookDevice()
 		p_device->lpVtbl->CreateVertexBuffer = createVertexBuffer;
 		p_device->lpVtbl->SetTexture = setTexture;
 		p_device->lpVtbl->CreateTexture = createTexture;
-		//p_device->lpVtbl->SetTextureStageState = setTextureStageState;
+		// p_device->lpVtbl->SetTextureStageState = setTextureStageState;
 
 		// Restore original write attribute
-		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), old_protect, &old_protect);
+		VirtualProtect(reinterpret_cast<void*>(p_device->lpVtbl), sizeof(p_device->lpVtbl), old_protect, &old_protect);
 	}
 }
 
@@ -2589,13 +2761,13 @@ static void originalDevice()
 	{
 		// Grant write attribute
 		DWORD old_protect;
-		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
+		VirtualProtect(reinterpret_cast<void*>(p_device->lpVtbl), sizeof(p_device->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
 		p_device->lpVtbl->BeginScene = original_begin_scene;
 		p_device->lpVtbl->EndScene = original_end_scene;
-		//p_device->lpVtbl->Clear = clear;
+		// p_device->lpVtbl->Clear = clear;
 		p_device->lpVtbl->Present = original_present;
-		//p_device->lpVtbl->Reset = reset;
+		// p_device->lpVtbl->Reset = reset;
 		p_device->lpVtbl->BeginStateBlock = original_begin_state_block;
 		p_device->lpVtbl->EndStateBlock = original_end_state_block;
 		p_device->lpVtbl->SetFVF = original_set_fvf;
@@ -2605,21 +2777,21 @@ static void originalDevice()
 		p_device->lpVtbl->CreateVertexBuffer = original_create_vertex_buffer;
 		p_device->lpVtbl->SetTexture = original_set_texture;
 		p_device->lpVtbl->CreateTexture = original_create_texture;
-		//p_device->lpVtbl->SetTextureStageState = setTextureStageState;
+		// p_device->lpVtbl->SetTextureStageState = setTextureStageState;
 
 		// Restore original write attribute
-		VirtualProtect(reinterpret_cast<void *>(p_device->lpVtbl), sizeof(p_device->lpVtbl), old_protect, &old_protect);
+		VirtualProtect(reinterpret_cast<void*>(p_device->lpVtbl), sizeof(p_device->lpVtbl), old_protect, &old_protect);
 	}
 }
 
 static HRESULT WINAPI createDevice(
-	IDirect3D9 *direct3d,
+	IDirect3D9* direct3d,
 	UINT adapter,
 	D3DDEVTYPE type,
 	HWND window,
 	DWORD flag,
-	D3DPRESENT_PARAMETERS *param,
-	IDirect3DDevice9 **device)
+	D3DPRESENT_PARAMETERS* param,
+	IDirect3DDevice9** device)
 {
 	if (g_hWnd == NULL)
 	{
@@ -2629,12 +2801,13 @@ static HRESULT WINAPI createDevice(
 	HRESULT res = (*original_create_device)(direct3d, adapter, type, window, flag, param, device);
 	p_device = (*device);
 
-	if (p_device) {
+	if (p_device)
+	{
 		original_begin_scene = p_device->lpVtbl->BeginScene;
 		original_end_scene = p_device->lpVtbl->EndScene;
-		//original_clear = p_device->lpVtbl->Clear;
+		// original_clear = p_device->lpVtbl->Clear;
 		original_present = p_device->lpVtbl->Present;
-		//original_reset = p_device->lpVtbl->Reset;
+		// original_reset = p_device->lpVtbl->Reset;
 		original_begin_state_block = p_device->lpVtbl->BeginStateBlock;
 		original_end_state_block = p_device->lpVtbl->EndStateBlock;
 		original_set_fvf = p_device->lpVtbl->SetFVF;
@@ -2644,7 +2817,7 @@ static HRESULT WINAPI createDevice(
 		original_create_vertex_buffer = p_device->lpVtbl->CreateVertexBuffer;
 		original_set_texture = p_device->lpVtbl->SetTexture;
 		original_create_texture = p_device->lpVtbl->CreateTexture;
-		//original_set_texture_stage_state = p_device->lpVtbl->SetTextureStageState;
+		// original_set_texture_stage_state = p_device->lpVtbl->SetTextureStageState;
 
 		hookDevice();
 	}
@@ -2652,14 +2825,14 @@ static HRESULT WINAPI createDevice(
 }
 
 static HRESULT WINAPI createDeviceEx(
-	IDirect3D9Ex *direct3dex,
+	IDirect3D9Ex* direct3dex,
 	UINT adapter,
 	D3DDEVTYPE type,
 	HWND window,
 	DWORD flag,
-	D3DPRESENT_PARAMETERS *param,
+	D3DPRESENT_PARAMETERS* param,
 	D3DDISPLAYMODEEX* displayMode,
-	IDirect3DDevice9Ex **device)
+	IDirect3DDevice9Ex** device)
 {
 	if (g_hWnd == NULL)
 	{
@@ -2669,11 +2842,12 @@ static HRESULT WINAPI createDeviceEx(
 	HRESULT res = (*original_create_deviceex)(direct3dex, adapter, type, window, flag, param, displayMode, device);
 	p_device = reinterpret_cast<IDirect3DDevice9*>(*device);
 
-	if (p_device) {
+	if (p_device)
+	{
 		original_begin_scene = p_device->lpVtbl->BeginScene;
-		//original_clear = p_device->lpVtbl->Clear;
+		// original_clear = p_device->lpVtbl->Clear;
 		original_present = p_device->lpVtbl->Present;
-		//original_reset = p_device->lpVtbl->Reset;
+		// original_reset = p_device->lpVtbl->Reset;
 		original_begin_state_block = p_device->lpVtbl->BeginStateBlock;
 		original_end_state_block = p_device->lpVtbl->EndStateBlock;
 		original_set_fvf = p_device->lpVtbl->SetFVF;
@@ -2683,33 +2857,36 @@ static HRESULT WINAPI createDeviceEx(
 		original_create_vertex_buffer = p_device->lpVtbl->CreateVertexBuffer;
 		original_set_texture = p_device->lpVtbl->SetTexture;
 		original_create_texture = p_device->lpVtbl->CreateTexture;
-		//original_set_texture_stage_state = p_device->lpVtbl->SetTextureStageState;
+		// original_set_texture_stage_state = p_device->lpVtbl->SetTextureStageState;
 
 		hookDevice();
 	}
 	return res;
 }
 
-extern "C" {
+extern "C"
+{
 	// Fake Direct3DCreate9
-	IDirect3D9 * WINAPI Direct3DCreate9(UINT SDKVersion) {
-		IDirect3D9 *direct3d((*original_direct3d_create)(SDKVersion));
+	IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
+	{
+		IDirect3D9* direct3d((*original_direct3d_create)(SDKVersion));
 		original_create_device = direct3d->lpVtbl->CreateDevice;
 
 		// Grant write attribute
 		DWORD old_protect;
-		VirtualProtect(reinterpret_cast<void *>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
+		VirtualProtect(reinterpret_cast<void*>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
 		direct3d->lpVtbl->CreateDevice = createDevice;
 
 		// Restore original write attribute
-		VirtualProtect(reinterpret_cast<void *>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), old_protect, &old_protect);
+		VirtualProtect(reinterpret_cast<void*>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), old_protect, &old_protect);
 
 		return direct3d;
 	}
 
-	HRESULT WINAPI Direct3DCreate9Ex(UINT SDKVersion, IDirect3D9Ex **ppD3D) {
-		IDirect3D9Ex *direct3d9ex = NULL;
+	HRESULT WINAPI Direct3DCreate9Ex(UINT SDKVersion, IDirect3D9Ex** ppD3D)
+	{
+		IDirect3D9Ex* direct3d9ex = NULL;
 		(*original_direct3d9ex_create)(SDKVersion, &direct3d9ex);
 
 		if (direct3d9ex)
@@ -2719,12 +2896,12 @@ extern "C" {
 			{
 				// Grant write attribute
 				DWORD old_protect;
-				VirtualProtect(reinterpret_cast<void *>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
+				VirtualProtect(reinterpret_cast<void*>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
 
 				direct3d9ex->lpVtbl->CreateDeviceEx = createDeviceEx;
 
 				// Restore original write attribute
-				VirtualProtect(reinterpret_cast<void *>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), old_protect, &old_protect);
+				VirtualProtect(reinterpret_cast<void*>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), old_protect, &old_protect);
 
 				*ppD3D = direct3d9ex;
 				return S_OK;
@@ -2752,41 +2929,41 @@ bool d3d9_initialize()
 	reload_python_file_paths();
 	relaod_python_script();
 
-    // +++++ MINHOOK HOOKING LOGIC START +++++
-    // 初始化 MinHook 函式庫
-    if (MH_Initialize() != MH_OK)
-    {
-        ::MessageBoxA(NULL, "MH_Initialize failed!", "MinHook Error", MB_OK);
-        return false;
-    }
+	// +++++ MINHOOK HOOKING LOGIC START +++++
+	// 初始化 MinHook 函式庫
+	if (MH_Initialize() != MH_OK)
+	{
+		::MessageBoxA(NULL, "MH_Initialize failed!", "MinHook Error", MB_OK);
+		return false;
+	}
 
-    // 取得 MMD 主程式的模組控制代碼
-    HMODULE hMMD = GetModuleHandle(NULL);
-    if (hMMD)
-    {
-        // 從 MMD 中找到原始 ExpGetPmdFilename 函數的位址
-        void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
-        if (pTarget)
-        {
-            // 建立 Hook：
-            // 1. pTarget: 要 Hook 的目標函數
-            // 2. &Detour_ExpGetPmdFilename: 我們自己的替代函數
-            // 3. (LPVOID*)&fpExpGetPmdFilename_Original: 用來儲存原始函數位址的指標
-            if (MH_CreateHook(pTarget, &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original) != MH_OK)
-            {
-                ::MessageBoxA(NULL, "MH_CreateHook failed!", "MinHook Error", MB_OK);
-                return false;
-            }
+	// 取得 MMD 主程式的模組控制代碼
+	HMODULE hMMD = GetModuleHandle(NULL);
+	if (hMMD)
+	{
+		// 從 MMD 中找到原始 ExpGetPmdFilename 函數的位址
+		void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
+		if (pTarget)
+		{
+			// 建立 Hook：
+			// 1. pTarget: 要 Hook 的目標函數
+			// 2. &Detour_ExpGetPmdFilename: 我們自己的替代函數
+			// 3. (LPVOID*)&fpExpGetPmdFilename_Original: 用來儲存原始函數位址的指標
+			if (MH_CreateHook(pTarget, &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original) != MH_OK)
+			{
+				::MessageBoxA(NULL, "MH_CreateHook failed!", "MinHook Error", MB_OK);
+				return false;
+			}
 
-            // 啟用剛剛建立的 Hook
-            if (MH_EnableHook(pTarget) != MH_OK)
-            {
-                ::MessageBoxA(NULL, "MH_EnableHook failed!", "MinHook Error", MB_OK);
-                return false;
-            }
-        }
-    }
-    // +++++ MINHOOK HOOKING LOGIC END +++++
+			// 啟用剛剛建立的 Hook
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxA(NULL, "MH_EnableHook failed!", "MinHook Error", MB_OK);
+				return false;
+			}
+		}
+	}
+	// +++++ MINHOOK HOOKING LOGIC END +++++
 
 	// System path storage
 	TCHAR system_path_buffer[MAX_PATH] = { 0 };
@@ -2797,17 +2974,20 @@ bool d3d9_initialize()
 	// Original d3d9.dll module
 	HMODULE d3d9_module(LoadLibrary(d3d9_path.c_str()));
 
-	if (!d3d9_module) {
+	if (!d3d9_module)
+	{
 		return FALSE;
 	}
 
 	// Get original Direct3DCreate9 function pointer
-	original_direct3d_create = reinterpret_cast<IDirect3D9 *(WINAPI*)(UINT)>(GetProcAddress(d3d9_module, "Direct3DCreate9"));
-	if (!original_direct3d_create) {
+	original_direct3d_create = reinterpret_cast<IDirect3D9*(WINAPI*)(UINT)>(GetProcAddress(d3d9_module, "Direct3DCreate9"));
+	if (!original_direct3d_create)
+	{
 		return FALSE;
 	}
 	original_direct3d9ex_create = reinterpret_cast<HRESULT(WINAPI*)(UINT, IDirect3D9Ex**)>(GetProcAddress(d3d9_module, "Direct3DCreate9Ex"));
-	if (!original_direct3d9ex_create) {
+	if (!original_direct3d9ex_create)
+	{
 		return FALSE;
 	}
 
@@ -2816,22 +2996,22 @@ bool d3d9_initialize()
 
 void d3d9_dispose()
 {
-    // +++++ MINHOOK HOOKING LOGIC START +++++
-    // 取得目標函數位址以便停用
-    HMODULE hMMD = GetModuleHandle(NULL);
-    if (hMMD)
-    {
-        void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
-        if (pTarget)
-        {
-            // 停用 Hook
-            MH_DisableHook(pTarget);
-        }
-    }
+	// +++++ MINHOOK HOOKING LOGIC START +++++
+	// 取得目標函數位址以便停用
+	HMODULE hMMD = GetModuleHandle(NULL);
+	if (hMMD)
+	{
+		void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
+		if (pTarget)
+		{
+			// 停用 Hook
+			MH_DisableHook(pTarget);
+		}
+	}
 
-    // 反初始化 MinHook
-    MH_Uninitialize();
-    // +++++ MINHOOK HOOKING LOGIC END +++++
+	// 反初始化 MinHook
+	MH_Uninitialize();
+	// +++++ MINHOOK HOOKING LOGIC END +++++
 
 	renderData.dispose();
 	DisposePMX();
@@ -2846,7 +3026,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 	{
 		case DLL_PROCESS_ATTACH:
 			// Initialize MMD export function pointers
-			if (!InitializeMMDExports()) {
+			if (!InitializeMMDExports())
+			{
 				::MessageBoxA(NULL, "Failed to initialize MMD export functions", "Initialization Error", MB_OK);
 				return FALSE;
 			}

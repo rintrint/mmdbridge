@@ -22,7 +22,8 @@ namespace py = pybind11;
 #include <Pmx.h>
 #include <Vmd.h>
 
-template <class T> std::string to_string(T value)
+template <class T>
+std::string to_string(T value)
 {
 	return umbase::UMStringUtil::number_to_string(value);
 }
@@ -31,7 +32,8 @@ typedef std::shared_ptr<pmd::PmdModel> PMDPtr;
 typedef std::shared_ptr<pmx::PmxModel> PMXPtr;
 typedef std::shared_ptr<vmd::VmdMotion> VMDPtr;
 
-class FileDataForVMD {
+class FileDataForVMD
+{
 public:
 	FileDataForVMD() = default;
 	~FileDataForVMD() = default;
@@ -49,7 +51,8 @@ public:
 	// morph (face)
 	std::map<int, std::string> morph_name_map;
 
-	FileDataForVMD(const FileDataForVMD& data) {
+	FileDataForVMD(const FileDataForVMD& data)
+	{
 		this->vmd = data.vmd;
 		this->pmd = data.pmd;
 		this->pmx = data.pmx;
@@ -65,10 +68,11 @@ public:
 	}
 };
 
-class VMDArchive {
+class VMDArchive
+{
 public:
-
-	static VMDArchive& instance() {
+	static VMDArchive& instance()
+	{
 		static VMDArchive instance;
 		return instance;
 	}
@@ -89,13 +93,14 @@ public:
 	}
 
 	~VMDArchive() = default;
+
 private:
 	VMDArchive() = default;
 };
 
 static bool start_vmd_export(const int export_mode)
 {
-	VMDArchive &archive = VMDArchive::instance();
+	VMDArchive& archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	if (parameter.export_fps <= 0)
@@ -112,17 +117,15 @@ static bool start_vmd_export(const int export_mode)
 		::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 	}
 
-	oguna::EncodingConverter::Utf16ToUtf8(
-		wide_output_path.c_str(),
-		static_cast<int>(wide_output_path.length()),
-		&VMDArchive::instance().output_path
-	);
+	oguna::EncodingConverter::Utf16ToUtf8(wide_output_path.c_str(), static_cast<int>(wide_output_path.length()), &VMDArchive::instance().output_path);
 
 	archive.export_mode = export_mode;
 	const int pmd_num = ExpGetPmdNum();
-	for (int i = 0; i < pmd_num; ++i) {
+	for (int i = 0; i < pmd_num; ++i)
+	{
 		const char* filename = ExpGetPmdFilename(i);
-		if (archive.file_path_map.find(filename) != archive.file_path_map.end()) {
+		if (archive.file_path_map.find(filename) != archive.file_path_map.end())
+		{
 			continue;
 		}
 
@@ -133,7 +136,7 @@ static bool start_vmd_export(const int export_mode)
 		{
 			filename_ext = filename_string.substr(pos);
 		}
-		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), [](unsigned char c){ return std::tolower(c); });
+		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), [](unsigned char c) { return std::tolower(c); });
 
 		std::wstring filename_wstring;
 		oguna::EncodingConverter::Utf8ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
@@ -176,9 +179,12 @@ static bool start_vmd_export(const int export_mode)
 		else
 		{
 			std::wstring error_message;
-			if (filename_wstring.empty()) {
+			if (filename_wstring.empty())
+			{
 				error_message = L"Unable to get pmd/pmx filepath.";
-			} else {
+			}
+			else
+			{
 				error_message = L"This is not a pmd/pmx file: " + filename_wstring;
 			}
 			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
@@ -197,77 +203,91 @@ static bool start_vmd_export(const int export_mode)
  */
 template <typename T, typename GetNameFunc, typename AreEqualFunc, typename IsZeroFunc>
 std::vector<T> PostProcessKeyframes(
-    const std::vector<T>& all_frames,
-    GetNameFunc get_name_func,
-    AreEqualFunc are_equal_func,
-    IsZeroFunc is_zero_func)
+	const std::vector<T>& all_frames,
+	GetNameFunc get_name_func,
+	AreEqualFunc are_equal_func,
+	IsZeroFunc is_zero_func)
 {
-    if (all_frames.empty()) {
-        return {};
-    }
+	if (all_frames.empty())
+	{
+		return {};
+	}
 
-    // 將所有幀按其名稱分組
-    std::map<std::string, std::vector<T>> grouped_frames;
-    for (const auto& frame : all_frames) {
-        grouped_frames[get_name_func(frame)].push_back(frame);
-    }
+	// 將所有幀按其名稱分組
+	std::map<std::string, std::vector<T>> grouped_frames;
+	for (const auto& frame : all_frames)
+	{
+		grouped_frames[get_name_func(frame)].push_back(frame);
+	}
 
-    std::vector<T> final_frames;
-    final_frames.reserve(all_frames.size());
+	std::vector<T> final_frames;
+	final_frames.reserve(all_frames.size());
 
-    // 對每一組 (每一個骨骼或表情) 獨立進行過濾
-    for (auto const& [name, frames] : grouped_frames)
-    {
-        if (frames.empty()) {
-            continue;
-        }
+	// 對每一組 (每一個骨骼或表情) 獨立進行過濾
+	for (auto const& [name, frames] : grouped_frames)
+	{
+		if (frames.empty())
+		{
+			continue;
+		}
 
-        // ------------------------- 過濾規則實施開始 -------------------------
-        // 規則 1: 先清除相同的中間幀
-        std::vector<T> stage1_frames;
-        if (frames.size() > 2) {
-            stage1_frames.push_back(frames.front()); // 總是保留第一幀
-            for (int i = 1; i < frames.size() - 1; ++i) {
-                // 如果一個幀和它前後的幀都相等，它就是可移除的中間幀
-                if (!(are_equal_func(frames[i - 1], frames[i]) && are_equal_func(frames[i], frames[i + 1]))) {
-                    stage1_frames.push_back(frames[i]);
-                }
-            }
-            stage1_frames.push_back(frames.back()); // 總是保留最後一幀
-        } else {
-            stage1_frames = frames; // 幀數小於等於2，沒有中間幀
-        }
+		// ------------------------- 過濾規則實施開始 -------------------------
+		// 規則 1: 先清除相同的中間幀
+		std::vector<T> stage1_frames;
+		if (frames.size() > 2)
+		{
+			stage1_frames.push_back(frames.front()); // 總是保留第一幀
+			for (int i = 1; i < frames.size() - 1; ++i)
+			{
+				// 如果一個幀和它前後的幀都相等，它就是可移除的中間幀
+				if (!(are_equal_func(frames[i - 1], frames[i]) && are_equal_func(frames[i], frames[i + 1])))
+				{
+					stage1_frames.push_back(frames[i]);
+				}
+			}
+			stage1_frames.push_back(frames.back()); // 總是保留最後一幀
+		}
+		else
+		{
+			stage1_frames = frames; // 幀數小於等於2，沒有中間幀
+		}
 
-        // 規則 2: 如果只剩下頭尾且頭尾一樣, 留下頭
-        std::vector<T> stage2_frames;
-        if (stage1_frames.size() == 2 && are_equal_func(stage1_frames[0], stage1_frames[1])) {
-            stage2_frames.push_back(stage1_frames[0]);
-        } else {
-            stage2_frames = stage1_frames;
-        }
+		// 規則 2: 如果只剩下頭尾且頭尾一樣, 留下頭
+		std::vector<T> stage2_frames;
+		if (stage1_frames.size() == 2 && are_equal_func(stage1_frames[0], stage1_frames[1]))
+		{
+			stage2_frames.push_back(stage1_frames[0]);
+		}
+		else
+		{
+			stage2_frames = stage1_frames;
+		}
 
-        // 規則 3: 如果只剩下頭 且頭為0.0 直接刪除
-        if (stage2_frames.size() == 1 && is_zero_func(stage2_frames[0])) {
-            // 不做任何事，即刪除這個表情的所有關鍵幀
-        } else {
-            // 將最終結果合併到 final_frames
-            final_frames.insert(final_frames.end(), stage2_frames.begin(), stage2_frames.end());
-        }
-        // ------------------------- 過濾規則實施結束 -------------------------
-    }
+		// 規則 3: 如果只剩下頭 且頭為0.0 直接刪除
+		if (stage2_frames.size() == 1 && is_zero_func(stage2_frames[0]))
+		{
+			// 不做任何事，即刪除這個表情的所有關鍵幀
+		}
+		else
+		{
+			// 將最終結果合併到 final_frames
+			final_frames.insert(final_frames.end(), stage2_frames.begin(), stage2_frames.end());
+		}
+		// ------------------------- 過濾規則實施結束 -------------------------
+	}
 
-    // 最終結果按幀號排序
-    std::sort(final_frames.begin(), final_frames.end(),
-        [](const T& a, const T& b) {
-        return a.frame < b.frame;
-    });
+	// 最終結果按幀號排序
+	std::sort(final_frames.begin(), final_frames.end(),
+			  [](const T& a, const T& b) {
+				  return a.frame < b.frame;
+			  });
 
-    return final_frames;
+	return final_frames;
 }
 
 static bool end_vmd_export()
 {
-	VMDArchive &archive = VMDArchive::instance();
+	VMDArchive& archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 	BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
@@ -276,11 +296,12 @@ static bool end_vmd_export()
 	{
 		const char* filename = ExpGetPmdFilename(i);
 		FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
-		if (!file_data.vmd) {
+		if (!file_data.vmd)
+		{
 			continue;
 		}
 
-        // PostProcess
+		// PostProcess
 		{
 			// morph (face)
 			const float face_threshold = 0.0f;
@@ -297,11 +318,15 @@ static bool end_vmd_export()
 			const float bone_threshold = 0.0f;
 			auto get_bone_name = [](const vmd::VmdBoneFrame& f) { return f.name; };
 			auto are_bones_equal = [&](const vmd::VmdBoneFrame& a, const vmd::VmdBoneFrame& b) {
-				for (int j = 0; j < 3; ++j) {
-					if (std::abs(a.position[j] - b.position[j]) > bone_threshold) return false;
+				for (int j = 0; j < 3; ++j)
+				{
+					if (std::abs(a.position[j] - b.position[j]) > bone_threshold)
+						return false;
 				}
-				for (int j = 0; j < 4; ++j) {
-					if (std::abs(a.orientation[j] - b.orientation[j]) > bone_threshold) return false;
+				for (int j = 0; j < 4; ++j)
+				{
+					if (std::abs(a.orientation[j] - b.orientation[j]) > bone_threshold)
+						return false;
 				}
 				return true;
 			};
@@ -310,9 +335,9 @@ static bool end_vmd_export()
 										std::abs(f.position[1]) <= bone_threshold &&
 										std::abs(f.position[2]) <= bone_threshold;
 				bool orientation_is_identity = std::abs(f.orientation[0]) <= bone_threshold &&
-											std::abs(f.orientation[1]) <= bone_threshold &&
-											std::abs(f.orientation[2]) <= bone_threshold &&
-											std::abs(f.orientation[3] - 1.0f) <= bone_threshold;
+											   std::abs(f.orientation[1]) <= bone_threshold &&
+											   std::abs(f.orientation[2]) <= bone_threshold &&
+											   std::abs(f.orientation[3] - 1.0f) <= bone_threshold;
 				return position_is_zero && orientation_is_identity;
 			};
 			file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
@@ -346,7 +371,8 @@ static bool end_vmd_export()
 
 static void init_file_data(FileDataForVMD& data)
 {
-	if (data.pmd) {
+	if (data.pmd)
+	{
 		const std::vector<pmd::PmdBone>& bones = data.pmd->bones;
 		const std::vector<pmd::PmdRigidBody>& rigids = data.pmd->rigid_bodies;
 		std::map<int, int> bone_to_rigid_map;
@@ -416,7 +442,8 @@ static void init_file_data(FileDataForVMD& data)
 			for (int parent_bone : parent_physics_bone_list)
 			{
 				const pmd::PmdRigidBody& parent_rigid = rigids[bone_to_rigid_map[parent_bone]];
-				if (parent_rigid.rigid_type == pmd::RigidBodyType::BoneConnected) {
+				if (parent_rigid.rigid_type == pmd::RigidBodyType::BoneConnected)
+				{
 					data.physics_bone_map[parent_bone] = 0;
 				}
 			}
@@ -437,7 +464,8 @@ static void init_file_data(FileDataForVMD& data)
 				data.ik_bone_map[link.link_target] = 1;
 				data.ik_frame_bone_map[i] = 1;
 			}
-			if ((bone.bone_flag & 0x0100) || (bone.bone_flag & 0x0200)) {
+			if ((bone.bone_flag & 0x0100) || (bone.bone_flag & 0x0200))
+			{
 				data.fuyo_target_map[bone.grant_parent_index] = 1;
 				data.fuyo_bone_map[i] = 1;
 			}
@@ -454,7 +482,8 @@ static void init_file_data(FileDataForVMD& data)
 				const auto bone_index = rigid.target_bone;
 				if (data.bone_name_map.find(bone_index) != data.bone_name_map.end())
 				{
-					if (rigid.physics_calc_type == 2) {
+					if (rigid.physics_calc_type == 2)
+					{
 						data.physics_bone_map[bone_index] = 2;
 					}
 					else
@@ -488,7 +517,8 @@ static void init_file_data(FileDataForVMD& data)
 			for (int parent_bone : parent_physics_bone_list)
 			{
 				const pmx::PmxRigidBody& parent_rigid = data.pmx->rigid_bodies[bone_to_rigid_map[parent_bone]];
-				if (parent_rigid.physics_calc_type == 0) {
+				if (parent_rigid.physics_calc_type == 0)
+				{
 					data.physics_bone_map[parent_bone] = 0;
 				}
 			}
@@ -499,8 +529,7 @@ static void init_file_data(FileDataForVMD& data)
 		{
 			const pmx::PmxMorph& morph = data.pmx->morphs[i];
 			std::string morph_name;
-			oguna::EncodingConverter::Utf16ToCp932(morph.morph_name.c_str(),
-				static_cast<int>(morph.morph_name.length()), &morph_name);
+			oguna::EncodingConverter::Utf16ToCp932(morph.morph_name.c_str(), static_cast<int>(morph.morph_name.length()), &morph_name);
 			data.morph_name_map[i] = morph_name;
 		}
 	}
@@ -520,14 +549,15 @@ static UMMat44d to_ummat(const D3DMATRIX& mat)
 }
 
 // from Imath
-static UMVec4d extractQuat(const UMMat44d &mat)
+static UMVec4d extractQuat(const UMMat44d& mat)
 {
 	double s;
 	UMVec4d quat;
 	constexpr int nxt[3] = { 1, 2, 0 };
 
 	// check the diagonal
-	if (const double tr = mat[0][0] + mat[1][1] + mat[2][2]; tr > 0.0) {
+	if (const double tr = mat[0][0] + mat[1][1] + mat[2][2]; tr > 0.0)
+	{
 		s = sqrt(tr + 1.0);
 		quat.w = s / 2.0;
 		s = 0.5 / s;
@@ -536,7 +566,8 @@ static UMVec4d extractQuat(const UMMat44d &mat)
 		quat.y = (mat[2][0] - mat[0][2]) * s;
 		quat.z = (mat[0][1] - mat[1][0]) * s;
 	}
-	else {
+	else
+	{
 		double q[4];
 		// diagonal is negative
 		int i = 0;
@@ -571,7 +602,7 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	int model_index,				// Model index (i)
 	int bone_index,					// Bone index (k)
 	int current_frame,				// Current frame number
-	const FileDataForVMD& file_data	// File data
+	const FileDataForVMD& file_data // File data
 )
 {
 	vmd::VmdBoneFrame bone_frame;
@@ -583,23 +614,27 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 
 	// Validate bone name mapping
 	if (file_data.bone_name_map.find(bone_index) == file_data.bone_name_map.end() ||
-		file_data.bone_name_map.at(bone_index) != bone_name) {
+		file_data.bone_name_map.at(bone_index) != bone_name)
+	{
 		// If validation fails, return default bone_frame
 		return bone_frame;
 	}
 
 	// Get initial position
 	UMVec3f initial_trans;
-	if (file_data.pmd) {
+	if (file_data.pmd)
+	{
 		const pmd::PmdBone& bone = file_data.pmd->bones[bone_index];
-		if (bone.bone_type == pmd::BoneType::Invisible) {
+		if (bone.bone_type == pmd::BoneType::Invisible)
+		{
 			return bone_frame; // Return default values
 		}
 		initial_trans[0] = bone.bone_head_pos[0];
 		initial_trans[1] = bone.bone_head_pos[1];
 		initial_trans[2] = bone.bone_head_pos[2];
 	}
-	else if (file_data.pmx) {
+	else if (file_data.pmx)
+	{
 		const pmx::PmxBone& bone = file_data.pmx->bones[bone_index];
 		initial_trans[0] = bone.position[0];
 		initial_trans[1] = bone.position[1];
@@ -611,7 +646,8 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	UMMat44d local = world;
 	int parent_index = file_data.parent_index_map.count(bone_index) ? file_data.parent_index_map.at(bone_index) : -1;
 
-	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
+	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end())
+	{
 		UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(model_index, parent_index));
 		local = world * parent_world.inverted();
 	}
@@ -622,14 +658,17 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
 	bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
 	// Step 2: Add parent bone's initial position
-	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end()) {
-		if (file_data.pmd && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmd->bones.size())) {
+	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end())
+	{
+		if (file_data.pmd && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmd->bones.size()))
+		{
 			const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
 			bone_frame.position[0] += parent_bone.bone_head_pos[0];
 			bone_frame.position[1] += parent_bone.bone_head_pos[1];
 			bone_frame.position[2] += parent_bone.bone_head_pos[2];
 		}
-		else if (file_data.pmx && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmx->bones.size())) {
+		else if (file_data.pmx && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmx->bones.size()))
+		{
 			const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
 			bone_frame.position[0] += parent_bone.position[0];
 			bone_frame.position[1] += parent_bone.position[1];
@@ -648,12 +687,15 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	bone_frame.orientation[3] = static_cast<float>(quat[3]);
 
 	// Set interpolation parameters
-	for (auto& n : bone_frame.interpolation) {
-		for (int m = 0; m < 4; ++m) {
+	for (auto& n : bone_frame.interpolation)
+	{
+		for (int m = 0; m < 4; ++m)
+		{
 			n[0][m] = 20;
 			n[1][m] = 20;
 		}
-		for (int m = 0; m < 4; ++m) {
+		for (int m = 0; m < 4; ++m)
+		{
 			n[2][m] = 107;
 			n[3][m] = 107;
 		}
@@ -667,7 +709,7 @@ static vmd::VmdFaceFrame calculate_face_frame(
 	int model_index,				// Model index (i)
 	int morph_index,				// Morph index (m)
 	int current_frame,				// Current frame number
-	const FileDataForVMD& file_data	// File data
+	const FileDataForVMD& file_data // File data
 )
 {
 	vmd::VmdFaceFrame face_frame;
@@ -679,7 +721,8 @@ static vmd::VmdFaceFrame calculate_face_frame(
 
 	// Validate morph name mapping
 	if (file_data.morph_name_map.find(morph_index) == file_data.morph_name_map.end() ||
-		file_data.morph_name_map.at(morph_index) != morph_name) {
+		file_data.morph_name_map.at(morph_index) != morph_name)
+	{
 		// If validation fails, return default face_frame with 0 weight
 		face_frame.weight = 0.0f;
 		return face_frame;
@@ -693,7 +736,7 @@ static vmd::VmdFaceFrame calculate_face_frame(
 
 static bool execute_vmd_export(const int currentframe)
 {
-	VMDArchive &archive = VMDArchive::instance();
+	VMDArchive& archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
@@ -730,10 +773,12 @@ static bool execute_vmd_export(const int currentframe)
 			const char* bone_name = ExpGetPmdBoneName(i, k);
 
 			// Validate bone name mapping
-			if (file_data.bone_name_map.find(k) == file_data.bone_name_map.end()) {
+			if (file_data.bone_name_map.find(k) == file_data.bone_name_map.end())
+			{
 				continue;
 			}
-			if (file_data.bone_name_map[k] != bone_name) {
+			if (file_data.bone_name_map[k] != bone_name)
+			{
 				continue;
 			}
 
@@ -745,22 +790,29 @@ static bool execute_vmd_export(const int currentframe)
 			const bool is_physics_bone = file_data.physics_bone_map.count(k) > 0;
 			bool is_simulated_physics_bone = false;
 			bool is_non_simulated_physics_bone = false;
-			if (is_physics_bone) {
-				if (file_data.physics_bone_map.at(k) == 0) {
+			if (is_physics_bone)
+			{
+				if (file_data.physics_bone_map.at(k) == 0)
+				{
 					is_non_simulated_physics_bone = true;
-				} else {
+				}
+				else
+				{
 					is_simulated_physics_bone = true;
 				}
 			}
 
 			// Since IK is baked to FK, skip exporting IK bone motion keyframes
-			if (is_ik_effector_bone) {
+			if (is_ik_effector_bone)
+			{
 				continue;
 			}
 
 			// Export mode filter
-			if (archive.export_mode == 0) { // simulated physics bones only
-				if (!is_simulated_physics_bone) {
+			if (archive.export_mode == 0) // simulated physics bones only
+			{
+				if (!is_simulated_physics_bone)
+				{
 					continue;
 				}
 			}
@@ -768,36 +820,44 @@ static bool execute_vmd_export(const int currentframe)
 			// Use helper function to calculate bone frame
 			vmd::VmdBoneFrame bone_frame = calculate_bone_frame(i, k, currentframe, file_data);
 
-			if (archive.export_mode == 1) { // all bones except IK, keep 付与親 constraint (MMD compatible, MMD Tools)
+			if (archive.export_mode == 1) // all bones except IK, keep 付与親 constraint (MMD compatible, MMD Tools)
+			{
 				// Remove grant parent influence if this is a grant child bone
-				if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size())) {
+				if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size()))
+				{
 					const pmx::PmxBone& current_bone = file_data.pmx->bones[k];
 					const uint16_t grant_flags = current_bone.bone_flag & 0x0300; // 0x0100 | 0x0200
 
 					if (grant_flags && current_bone.grant_parent_index >= 0 &&
-						current_bone.grant_parent_index < static_cast<int>(file_data.pmx->bones.size())) {
+						current_bone.grant_parent_index < static_cast<int>(file_data.pmx->bones.size()))
+					{
 
 						// Calculate grant parent bone frame
 						vmd::VmdBoneFrame grant_parent_frame = calculate_bone_frame(
-							i, current_bone.grant_parent_index, currentframe, file_data
-						);
+							i, current_bone.grant_parent_index, currentframe, file_data);
 
 						const float grant_weight = current_bone.grant_weight;
 
 						// Remove position grant influence
-						if (grant_flags & 0x0200) { // Position grant
+						if (grant_flags & 0x0200) // Position grant
+						{
 							bone_frame.position[0] -= grant_parent_frame.position[0] * grant_weight;
 							bone_frame.position[1] -= grant_parent_frame.position[1] * grant_weight;
 							bone_frame.position[2] -= grant_parent_frame.position[2] * grant_weight;
 						}
 
 						// Remove rotation grant influence - using Imath::Quat
-						if (grant_flags & 0x0100) { // Rotation grant
+						if (grant_flags & 0x0100) // Rotation grant
+						{
 							// Create Imath quaternion objects
-							Imath::Quatf current_quat(bone_frame.orientation[3], bone_frame.orientation[0],
-													bone_frame.orientation[1], bone_frame.orientation[2]);
-							Imath::Quatf parent_quat(grant_parent_frame.orientation[3], grant_parent_frame.orientation[0],
-													grant_parent_frame.orientation[1], grant_parent_frame.orientation[2]);
+							Imath::Quatf current_quat(bone_frame.orientation[3],
+													  bone_frame.orientation[0],
+													  bone_frame.orientation[1],
+													  bone_frame.orientation[2]);
+							Imath::Quatf parent_quat(grant_parent_frame.orientation[3],
+													 grant_parent_frame.orientation[0],
+													 grant_parent_frame.orientation[1],
+													 grant_parent_frame.orientation[2]);
 
 							// Create identity quaternion for interpolation
 							Imath::Quatf identity = Imath::Quatf::identity();
@@ -856,10 +916,12 @@ static bool execute_vmd_export(const int currentframe)
 			const char* morph_name = ExpGetPmdMorphName(i, m);
 
 			// Validate morph name mapping
-			if (file_data.morph_name_map.find(m) == file_data.morph_name_map.end()) {
+			if (file_data.morph_name_map.find(m) == file_data.morph_name_map.end())
+			{
 				continue;
 			}
-			if (file_data.morph_name_map[m] != morph_name) {
+			if (file_data.morph_name_map[m] != morph_name)
+			{
 				continue;
 			}
 
@@ -873,18 +935,20 @@ static bool execute_vmd_export(const int currentframe)
 }
 
 // ---------------------------------------------------------------------------
-PYBIND11_MODULE(mmdbridge_vmd, m) {
+PYBIND11_MODULE(mmdbridge_vmd, m)
+{
 	m.doc() = "MMD Bridge VMD export module";
 	m.def("start_vmd_export", start_vmd_export);
 	m.def("end_vmd_export", end_vmd_export);
 	m.def("execute_vmd_export", execute_vmd_export);
 }
 
-#endif //WITH_VMD
+#endif // WITH_VMD
 
 // ---------------------------------------------------------------------------
+// clang-format off
 #ifdef WITH_VMD
-void InitVMD()
+	void InitVMD()
 	{
 		PyImport_AppendInittab("mmdbridge_vmd", PyInit_mmdbridge_vmd);
 	}
@@ -893,6 +957,7 @@ void InitVMD()
 		VMDArchive::instance().end();
 	}
 #else
-	void InitVMD(){}
+	void InitVMD() {}
 	void DisposeVMD() {}
-#endif //WITH_VMD
+#endif // WITH_VMD
+// clang-format on

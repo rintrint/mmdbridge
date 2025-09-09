@@ -14,16 +14,15 @@
 #include <pybind11/pybind11.h>
 namespace py = pybind11;
 
-
 #include <Alembic/Abc/All.h>
 #include <Alembic/AbcGeom/All.h>
 #include <Alembic/AbcCoreHDF5/All.h>
 #include <Alembic/AbcCoreOgawa/All.h>
 
-
 namespace AbcA = Alembic::AbcCoreAbstract;
 
-template <class T> std::string to_string(T value)
+template <class T>
+std::string to_string(T value)
 {
 	return umbase::UMStringUtil::number_to_string(value);
 }
@@ -31,14 +30,14 @@ template <class T> std::string to_string(T value)
 // 行列で3Dベクトルをトランスフォームする
 // D3DXVec3Transformとほぼ同じ
 static void d3d_vector3_dir_transform(
-	D3DXVECTOR3 &dst,
-	const D3DXVECTOR3 &src,
-	const D3DXMATRIX &matrix)
+	D3DXVECTOR3& dst,
+	const D3DXVECTOR3& src,
+	const D3DXMATRIX& matrix)
 {
 	const float tmp[] = {
-		src.x*matrix.m[0][0] + src.y*matrix.m[1][0] + src.z*matrix.m[2][0],
-		src.x*matrix.m[0][1] + src.y*matrix.m[1][1] + src.z*matrix.m[2][1],
-		src.x*matrix.m[0][2] + src.y*matrix.m[1][2] + src.z*matrix.m[2][2]
+		src.x * matrix.m[0][0] + src.y * matrix.m[1][0] + src.z * matrix.m[2][0],
+		src.x * matrix.m[0][1] + src.y * matrix.m[1][1] + src.z * matrix.m[2][1],
+		src.x * matrix.m[0][2] + src.y * matrix.m[1][2] + src.z * matrix.m[2][2]
 	};
 	dst.x = tmp[0];
 	dst.y = tmp[1];
@@ -46,24 +45,25 @@ static void d3d_vector3_dir_transform(
 }
 
 static void d3d_vector3_transform(
-	D3DXVECTOR3 &dst,
-	const D3DXVECTOR3 &src,
-	const D3DXMATRIX &matrix)
+	D3DXVECTOR3& dst,
+	const D3DXVECTOR3& src,
+	const D3DXMATRIX& matrix)
 {
 	const float tmp[] = {
-		src.x*matrix.m[0][0] + src.y*matrix.m[1][0] + src.z*matrix.m[2][0] + 1.0f*matrix.m[3][0],
-		src.x*matrix.m[0][1] + src.y*matrix.m[1][1] + src.z*matrix.m[2][1] + 1.0f*matrix.m[3][1],
-		src.x*matrix.m[0][2] + src.y*matrix.m[1][2] + src.z*matrix.m[2][2] + 1.0f*matrix.m[3][2]
+		src.x * matrix.m[0][0] + src.y * matrix.m[1][0] + src.z * matrix.m[2][0] + 1.0f * matrix.m[3][0],
+		src.x * matrix.m[0][1] + src.y * matrix.m[1][1] + src.z * matrix.m[2][1] + 1.0f * matrix.m[3][1],
+		src.x * matrix.m[0][2] + src.y * matrix.m[1][2] + src.z * matrix.m[2][2] + 1.0f * matrix.m[3][2]
 	};
 	dst.x = tmp[0];
 	dst.y = tmp[1];
 	dst.z = tmp[2];
 }
 
-class AlembicArchive {
+class AlembicArchive
+{
 public:
-
-	static AlembicArchive& instance() {
+	static AlembicArchive& instance()
+	{
 		static AlembicArchive instance;
 		return instance;
 	}
@@ -85,7 +85,7 @@ public:
 	typedef std::map<int, Alembic::AbcGeom::OPolyMeshSchema> SchemaMap;
 	SchemaMap schema_map;
 
-	typedef std::map<int, int > SurfaceSizeMap;
+	typedef std::map<int, int> SurfaceSizeMap;
 	SurfaceSizeMap surface_size_map;
 
 	typedef std::map<int, Alembic::AbcGeom::OCamera> CameraMap;
@@ -115,7 +115,8 @@ public:
 	RenderedBuffer::NormalList temporary_normal_list;
 	RenderedBuffer::VertexList temporary_vertex_list;
 
-	void end() {
+	void end()
+	{
 		xform_map.clear();
 		xform_schema_map.clear();
 		mesh_map.clear();
@@ -135,8 +136,10 @@ public:
 		}
 		m_stream = {};
 	}
+
 private:
-	AlembicArchive() : archive(nullptr), timeindex(0), export_mode(0), is_use_euler_rotation_camera(false) {}
+	AlembicArchive()
+		: archive(nullptr), timeindex(0), export_mode(0), is_use_euler_rotation_camera(false) {}
 };
 
 static bool start_alembic_export(
@@ -160,26 +163,28 @@ static bool start_alembic_export(
 		{
 			output_path = parameter.base_path + L"out/alembic_file.abc";
 		}
-		if (is_use_ogawa) {
+		if (is_use_ogawa)
+		{
 			// Abc::OArchive doesn't accept wide string path. so create file stream with wide string path and pass it.
 			// (VisualC++'s std::ifstream accepts wide string)
 			alembic_archive.m_stream.reset(new std::ofstream());
 			alembic_archive.m_stream->open(output_path, std::ios::out | std::ios::binary);
-			if (!alembic_archive.m_stream->is_open()) {
+			if (!alembic_archive.m_stream->is_open())
+			{
 				alembic_archive.end();
 				return false;
 			}
 			const Alembic::AbcCoreOgawa::WriteArchive archive_writer;
 			alembic_archive.archive =
 				new Alembic::Abc::OArchive(archive_writer(alembic_archive.m_stream.get(),
-					Alembic::AbcCoreAbstract::MetaData()),
-					Alembic::Abc::kWrapExisting, Alembic::Abc::ErrorHandler::kThrowPolicy);
+														  Alembic::AbcCoreAbstract::MetaData()),
+										   Alembic::Abc::kWrapExisting, Alembic::Abc::ErrorHandler::kThrowPolicy);
 		}
 		else
 		{
 			alembic_archive.archive =
 				new Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(),
-					oguna::EncodingConverter::wstringTostring(output_path));
+										   oguna::EncodingConverter::wstringTostring(output_path));
 		}
 
 		const double dt = 1.0 / parameter.export_fps;
@@ -231,15 +236,17 @@ static void convertToQuad(
 	}
 	*/
 
-	struct Edge {
+	struct Edge
+	{
 		int vertexIndex[2];
 		int triangleIndex[2];
 		int edgeNumber[2];
-		Edge *next;
+		Edge* next;
 	};
 	std::vector<Edge> edgeList(3 * faceCountList.size());
 	std::vector<Edge*> edgeHeadList(3 * faceCountList.size());
-	for (unsigned long long i = 0, size = 3ULL * faceCountList.size(); i < size; ++i) {
+	for (unsigned long long i = 0, size = 3ULL * faceCountList.size(); i < size; ++i)
+	{
 		edgeHeadList[i] = nullptr;
 		edgeList[i].vertexIndex[0] = -1;
 		edgeList[i].vertexIndex[1] = -1;
@@ -253,21 +260,26 @@ static void convertToQuad(
 	int count = 0;
 	for (size_t i = 0, isize = faceCountList.size(); i < isize; ++i)
 	{
-		for (int k = 0, j = 2; k < 2; j = k, ++k) {
+		for (int k = 0, j = 2; k < 2; j = k, ++k)
+		{
 			int vj = faceList[i * 3 + j];
 			int vk = faceList[i * 3 + k];
-			if (vj > vk) {
+			if (vj > vk)
+			{
 				int temp = vj;
 				vj = vk;
 				vk = temp;
 			}
 			std::pair indexPair(vj, vk);
-			if (edgeHashMap.find(indexPair) == edgeHashMap.end()) {
+			if (edgeHashMap.find(indexPair) == edgeHashMap.end())
+			{
 				edgeHashMap[indexPair] = edgeHashMap.size();
 			}
 			int hash = edgeHashMap[indexPair];
-			for (Edge *edge = edgeHeadList[hash]; ; edge = edge->next) {
-				if (edge == nullptr) {
+			for (Edge* edge = edgeHeadList[hash];; edge = edge->next)
+			{
+				if (edge == nullptr)
+				{
 					edgeList[count].vertexIndex[0] = vj;
 					edgeList[count].vertexIndex[1] = vk;
 					edgeList[count].triangleIndex[0] = i;
@@ -275,7 +287,9 @@ static void convertToQuad(
 					edgeList[count].next = edgeHeadList[hash];
 					edgeHeadList[hash] = &edgeList[count++];
 					break;
-				} else if (edge->vertexIndex[0] == vj && edge->vertexIndex[1] == vk) {
+				}
+				else if (edge->vertexIndex[0] == vj && edge->vertexIndex[1] == vk)
+				{
 					edge->triangleIndex[1] = i;
 					edge->edgeNumber[1] = j;
 					break;
@@ -299,27 +313,34 @@ static void convertToQuad(
 	std::vector<int32_t> quadFaceList;
 	std::vector<int32_t> quadFaceCountList;
 	std::map<int, int> exportedFaces;
-	for (size_t i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
+	for (size_t i = 0, isize = 3 * faceCountList.size(); i < isize; ++i)
+	{
 		Edge* edge = edgeHeadList[i];
-		if (edge) {
+		if (edge)
+		{
 			const int t1 = edge->triangleIndex[0];
 			const int t2 = edge->triangleIndex[1];
 			if (t1 >= 0 && exportedFaces.find(t1) == exportedFaces.end())
 			{
 				const UMVec3i tri1(faceList[t1 * 3 + 0], faceList[t1 * 3 + 1], faceList[t1 * 3 + 2]);
-				if (t2 >= 0 && exportedFaces.find(t2) == exportedFaces.end() && faceNormalList[t1].dot(faceNormalList[t2]) > 0.9) {
+				if (t2 >= 0 && exportedFaces.find(t2) == exportedFaces.end() && faceNormalList[t1].dot(faceNormalList[t2]) > 0.9)
+				{
 					const UMVec3i tri2(faceList[t2 * 3 + 0], faceList[t2 * 3 + 1], faceList[t2 * 3 + 2]);
 
 					bool share[3] = { false, false, false };
-					for (int k = 0; k < 3; ++k) {
-						for (int n = 0; n < 3; ++n) {
-							if (tri1[k] == tri2[n]) {
+					for (int k = 0; k < 3; ++k)
+					{
+						for (int n = 0; n < 3; ++n)
+						{
+							if (tri1[k] == tri2[n])
+							{
 								share[k] = true;
 							}
 						}
 					}
 					int forthV = -1;
-					for (int k = 0; k < 3; ++k) {
+					for (int k = 0; k < 3; ++k)
+					{
 						if (tri2[k] != tri1[0] &&
 							tri2[k] != tri1[1] &&
 							tri2[k] != tri1[2])
@@ -328,7 +349,8 @@ static void convertToQuad(
 							break;
 						}
 					}
-					if (share[0] && share[2]) {
+					if (share[0] && share[2])
+					{
 						// 0, 1, 2, V
 						viToViMap[t1 * 3 + 0] = quadFaceList.size();
 						quadFaceList.push_back(tri1[0]);
@@ -339,7 +361,8 @@ static void convertToQuad(
 						viToViMap[t2 * 3 + forthV] = quadFaceList.size();
 						quadFaceList.push_back(tri2[forthV]);
 					}
-					else if (share[1] && share[2]) {
+					else if (share[1] && share[2])
+					{
 						// 0, 1, V, 2
 						viToViMap[t1 * 3 + 0] = quadFaceList.size();
 						quadFaceList.push_back(tri1[0]);
@@ -350,7 +373,8 @@ static void convertToQuad(
 						viToViMap[t1 * 3 + 2] = quadFaceList.size();
 						quadFaceList.push_back(tri1[2]);
 					}
-					else if (share[0] && share[1]) {
+					else if (share[0] && share[1])
+					{
 						// 0, V, 1, 2
 						viToViMap[t1 * 3 + 0] = quadFaceList.size();
 						quadFaceList.push_back(tri1[0]);
@@ -370,9 +394,11 @@ static void convertToQuad(
 		}
 	}
 
-	for (size_t i = 0, isize = 3 * faceCountList.size(); i < isize; ++i) {
+	for (size_t i = 0, isize = 3 * faceCountList.size(); i < isize; ++i)
+	{
 		Edge* edge = edgeHeadList[i];
-		if (edge) {
+		if (edge)
+		{
 			const int t1 = edge->triangleIndex[0];
 			const int t2 = edge->triangleIndex[1];
 			if (t1 >= 0 && exportedFaces.find(t1) == exportedFaces.end())
@@ -405,7 +431,7 @@ static void convertToQuad(
 	quadFaceList.swap(faceList);
 }
 
-static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, int renderedBufferIndex, bool isConvertToQuad)
+static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive, const RenderedBuffer& renderedBuffer, int renderedBufferIndex, bool isConvertToQuad)
 {
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
 
@@ -421,7 +447,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		}
 		else
 		{
-			xform = Alembic::AbcGeom::OXform(topObj, "xform_" + to_string(renderedBufferIndex) + "_material_" + to_string(k) , archive.timesampling);
+			xform = Alembic::AbcGeom::OXform(topObj, "xform_" + to_string(renderedBufferIndex) + "_material_" + to_string(k), archive.timesampling);
 			archive.xform_map[key] = xform;
 		}
 
@@ -436,7 +462,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 			archive.mesh_map[key] = polyMesh;
 			isFirstMesh = true;
 
-			Alembic::AbcGeom::OPolyMeshSchema &meshSchema = polyMesh.getSchema();
+			Alembic::AbcGeom::OPolyMeshSchema& meshSchema = polyMesh.getSchema();
 			archive.schema_map[key] = meshSchema;
 		}
 
@@ -457,7 +483,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 			archive.trivi_to_vertex_index_map[key] = triViToVi;
 		}
 
-		Alembic::AbcGeom::OPolyMeshSchema &meshSchema = archive.schema_map[key];
+		Alembic::AbcGeom::OPolyMeshSchema& meshSchema = archive.schema_map[key];
 		meshSchema.setTimeSampling(archive.timesampling);
 
 		Alembic::AbcGeom::OPolyMeshSchema::Sample empty;
@@ -465,9 +491,9 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		std::vector<Alembic::Util::int32_t> faceList;
 		std::vector<Alembic::Util::int32_t> faceCountList;
 
-		const RenderedBuffer::UVList &uvList = renderedBuffer.uvs;
-		const RenderedBuffer::VertexList &vertexList = renderedBuffer.vertecies;
-		const RenderedBuffer::NormalList &normalList =  renderedBuffer.normals;
+		const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
+		const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
+		const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
 
 		RenderedBuffer::VertexList vertexListByMaterial;
 		RenderedBuffer::UVList uvListByMaterial;
@@ -512,30 +538,36 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 				int vi2 = 0;
 				int vi3 = 0;
 
-				if (fiToVi.find(f1) == fiToVi.end()) {
+				if (fiToVi.find(f1) == fiToVi.end())
+				{
 					vi1 = lastIndex;
 					fiToVi[f1] = vi1;
 					++lastIndex;
 				}
-				else {
+				else
+				{
 					vi1 = fiToVi[f1];
 				}
 
-				if (fiToVi.find(f2) == fiToVi.end()) {
+				if (fiToVi.find(f2) == fiToVi.end())
+				{
 					vi2 = lastIndex;
 					fiToVi[f2] = vi2;
 					++lastIndex;
 				}
-				else {
+				else
+				{
 					vi2 = fiToVi[f2];
 				}
 
-				if (fiToVi.find(f3) == fiToVi.end()) {
+				if (fiToVi.find(f3) == fiToVi.end())
+				{
 					vi3 = lastIndex;
 					fiToVi[f3] = vi3;
 					++lastIndex;
 				}
-				else {
+				else
+				{
 					vi3 = fiToVi[f3];
 				}
 			}
@@ -579,12 +611,14 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 			vertexListByMaterial[n].z = -vertexListByMaterial[n].z;
 		}
 
-		if (isFirstMesh && isConvertToQuad) {
+		if (isFirstMesh && isConvertToQuad)
+		{
 			convertToQuad(triViToVi, faceList, faceCountList, vertexListByMaterial);
 			archive.quadvi_count_map[key] = faceList.size();
 		}
 
-		if (isConvertToQuad) {
+		if (isConvertToQuad)
+		{
 			if (!uvList.empty() && archive.is_export_uvs)
 			{
 				uvListByMaterial.resize(archive.quadvi_count_map[key]);
@@ -604,7 +638,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 		Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 		// vertex
-		Alembic::AbcGeom::P3fArraySample positions( (const Imath::V3f *) &vertexListByMaterial.front(), vertexListByMaterial.size());
+		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&vertexListByMaterial.front(), vertexListByMaterial.size());
 		sample.setPositions(positions);
 
 		if (isFirstMesh)
@@ -650,8 +684,8 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 				}
 			}
 			Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
-			normalSample.setScope(Alembic::AbcGeom::kVertexScope );
-			normalSample.setVals(Alembic::AbcGeom::N3fArraySample( (const Alembic::AbcGeom::N3f *) &normalListByMaterial.front(), normalListByMaterial.size()));
+			normalSample.setScope(Alembic::AbcGeom::kVertexScope);
+			normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)&normalListByMaterial.front(), normalListByMaterial.size()));
 			sample.setNormals(normalSample);
 		}
 
@@ -659,7 +693,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive &archive,
 	}
 }
 
-static void export_alembic_xform_by_material_direct(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, int renderedBufferIndex)
+static void export_alembic_xform_by_material_direct(AlembicArchive& archive, const RenderedBuffer& renderedBuffer, int renderedBufferIndex)
 {
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
 
@@ -675,7 +709,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		}
 		else
 		{
-			xform = Alembic::AbcGeom::OXform(topObj, "xform_" + to_string(renderedBufferIndex) + "_material_" + to_string(k) , archive.timesampling);
+			xform = Alembic::AbcGeom::OXform(topObj, "xform_" + to_string(renderedBufferIndex) + "_material_" + to_string(k), archive.timesampling);
 			archive.xform_map[key] = xform;
 		}
 
@@ -690,7 +724,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 			archive.mesh_map[key] = polyMesh;
 			isFirstMesh = true;
 
-			Alembic::AbcGeom::OPolyMeshSchema &meshSchema = polyMesh.getSchema();
+			Alembic::AbcGeom::OPolyMeshSchema& meshSchema = polyMesh.getSchema();
 			archive.schema_map[key] = meshSchema;
 		}
 
@@ -699,7 +733,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 			archive.surface_size_map[key] = 0;
 		}
 
-		Alembic::AbcGeom::OPolyMeshSchema &meshSchema = archive.schema_map[key];
+		Alembic::AbcGeom::OPolyMeshSchema& meshSchema = archive.schema_map[key];
 		meshSchema.setTimeSampling(archive.timesampling);
 
 		Alembic::AbcGeom::OPolyMeshSchema::Sample empty;
@@ -707,9 +741,9 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		std::vector<Alembic::Util::int32_t> faceList;
 		std::vector<Alembic::Util::int32_t> faceCountList;
 
-		const RenderedBuffer::UVList &uvList = renderedBuffer.uvs;
-		const RenderedBuffer::VertexList &vertexList = renderedBuffer.vertecies;
-		const RenderedBuffer::NormalList &normalList =  renderedBuffer.normals;
+		const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
+		const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
+		const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
 
 		RenderedBuffer::VertexList vertexListByMaterial;
 		RenderedBuffer::UVList uvListByMaterial;
@@ -780,7 +814,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 		Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 		// vertex
-		Alembic::AbcGeom::P3fArraySample positions( (const Imath::V3f *) &vertexListByMaterial.front(), vertexListByMaterial.size());
+		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&vertexListByMaterial.front(), vertexListByMaterial.size());
 		sample.setPositions(positions);
 
 		// face index
@@ -800,8 +834,8 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 				uvListByMaterial[n].y = 1.0f - uvListByMaterial[n].y;
 			}
 			Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
-			uvSample.setScope(Alembic::AbcGeom::kVertexScope );
-			uvSample.setVals(Alembic::AbcGeom::V2fArraySample( ( const Imath::V2f *) &uvListByMaterial.front(), uvListByMaterial.size()));
+			uvSample.setScope(Alembic::AbcGeom::kVertexScope);
+			uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)&uvListByMaterial.front(), uvListByMaterial.size()));
 			sample.setUVs(uvSample);
 		}
 
@@ -813,8 +847,8 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 				normalListByMaterial[n].z = -normalListByMaterial[n].z;
 			}
 			Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
-			normalSample.setScope(Alembic::AbcGeom::kVertexScope );
-			normalSample.setVals(Alembic::AbcGeom::N3fArraySample( (const Alembic::AbcGeom::N3f *) &normalListByMaterial.front(), normalListByMaterial.size()));
+			normalSample.setScope(Alembic::AbcGeom::kVertexScope);
+			normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)&normalListByMaterial.front(), normalListByMaterial.size()));
 			sample.setNormals(normalSample);
 		}
 
@@ -822,7 +856,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive &archive, con
 	}
 }
 
-static void export_alembic_xform_by_buffer(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, int renderedBufferIndex)
+static void export_alembic_xform_by_buffer(AlembicArchive& archive, const RenderedBuffer& renderedBuffer, int renderedBufferIndex)
 {
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
 
@@ -849,19 +883,19 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 		archive.mesh_map[renderedBufferIndex] = polyMesh;
 		isFirstMesh = true;
 
-		Alembic::AbcGeom::OPolyMeshSchema &meshSchema = polyMesh.getSchema();
+		Alembic::AbcGeom::OPolyMeshSchema& meshSchema = polyMesh.getSchema();
 		archive.schema_map[renderedBufferIndex] = meshSchema;
 	}
 
-	Alembic::AbcGeom::OPolyMeshSchema &meshSchema = archive.schema_map[renderedBufferIndex];
+	Alembic::AbcGeom::OPolyMeshSchema& meshSchema = archive.schema_map[renderedBufferIndex];
 	meshSchema.setTimeSampling(archive.timesampling);
 
 	std::vector<Alembic::Util::int32_t> faceList;
 	std::vector<Alembic::Util::int32_t> faceCountList;
 
-	const RenderedBuffer::UVList &uvList = renderedBuffer.uvs;
-	const RenderedBuffer::VertexList &vertexList = renderedBuffer.vertecies;
-	const RenderedBuffer::NormalList &normalList =  renderedBuffer.normals;
+	const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
+	const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
+	const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
 	RenderedBuffer::UVList& temporary_uv = archive.temporary_uv_list;
 	temporary_uv.resize(uvList.size());
 	RenderedBuffer::NormalList& temporary_normal = archive.temporary_normal_list;
@@ -916,7 +950,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 	{
 		temporary_vertex[n].z = -vertexList[n].z;
 	}
-	Alembic::AbcGeom::P3fArraySample positions( (const Imath::V3f *) &temporary_vertex.front(), temporary_vertex.size());
+	Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&temporary_vertex.front(), temporary_vertex.size());
 	sample.setPositions(positions);
 
 	// face index
@@ -936,8 +970,8 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 			temporary_uv[n].y = 1.0f - uvList[n].y;
 		}
 		Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
-		uvSample.setScope(Alembic::AbcGeom::kVertexScope );
-		uvSample.setVals(Alembic::AbcGeom::V2fArraySample( ( const Imath::V2f *) &temporary_uv.front(), temporary_uv.size()));
+		uvSample.setScope(Alembic::AbcGeom::kVertexScope);
+		uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)&temporary_uv.front(), temporary_uv.size()));
 		sample.setUVs(uvSample);
 	}
 
@@ -949,30 +983,32 @@ static void export_alembic_xform_by_buffer(AlembicArchive &archive, const Render
 			temporary_normal[n].z = -normalList[n].z;
 		}
 		Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
-		normalSample.setScope(Alembic::AbcGeom::kVertexScope );
-		normalSample.setVals(Alembic::AbcGeom::N3fArraySample( (const Alembic::AbcGeom::N3f *) &temporary_normal.front(), temporary_normal.size()));
+		normalSample.setScope(Alembic::AbcGeom::kVertexScope);
+		normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)&temporary_normal.front(), temporary_normal.size()));
 		sample.setNormals(normalSample);
 	}
 
 	meshSchema.set(sample);
-
 }
 
-static void quatToEuler(Imath::V3d &dst, const Imath::Quatd quat) {
+static void quatToEuler(Imath::V3d& dst, const Imath::Quatd quat)
+{
 	const double xy = quat.v.x * quat.v.y;
 	const double zw = quat.v.z * quat.r;
 
 	const double test = xy + zw;
-	if (test > 0.499) { // singularity at north pole
+	if (test > 0.499) // singularity at north pole
+	{
 		const double yaw = 2 * atan2(quat.v.x, quat.r);
-		const double pitch = M_PI/2;
+		const double pitch = M_PI / 2;
 		const double roll = 0;
 		dst = Imath::V3d(yaw, pitch, roll);
 		return;
 	}
-	if (test < -0.499) { // singularity at south pole
+	if (test < -0.499) // singularity at south pole
+	{
 		const double yaw = -2 * atan2(quat.v.x, quat.r);
-		const double pitch = - M_PI/2;
+		const double pitch = -M_PI / 2;
 		const double roll = 0;
 		dst = Imath::V3d(yaw, pitch, roll);
 		return;
@@ -986,15 +1022,15 @@ static void quatToEuler(Imath::V3d &dst, const Imath::Quatd quat) {
 	const double wx = quat.r * quat.v.x;
 	const double wy = quat.r * quat.v.y;
 
-	const double yaw = atan2( 2*(wy - xz), 1 - 2*(yy + zz));
-	const double pitch = atan2( 2*(wx - yz), 1 - 2*(xx +zz));
-	const double roll = asin( 2*(test));
+	const double yaw = atan2(2 * (wy - xz), 1 - 2 * (yy + zz));
+	const double pitch = atan2(2 * (wx - yz), 1 - 2 * (xx + zz));
+	const double roll = asin(2 * (test));
 	dst = Imath::V3d(yaw, pitch, roll);
 }
 
 static py::list get_abc_angle_axis()
 {
-	const RenderedBuffer & renderedBuffer = BridgeParameter::instance().first_noaccessory_buffer();
+	const RenderedBuffer& renderedBuffer = BridgeParameter::instance().first_noaccessory_buffer();
 	D3DXMATRIX convertMat(
 		1, 0, 0, 0,
 		0, 1, 0, 0,
@@ -1048,7 +1084,7 @@ static py::list get_abc_angle_axis()
 	return result;
 }
 
-static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer & renderedBuffer, bool isUseEuler)
+static void export_alembic_camera(AlembicArchive& archive, const RenderedBuffer& renderedBuffer, bool isUseEuler)
 {
 	static constexpr int cameraKey = 0xFFFFFF;
 	Alembic::AbcGeom::OObject topObj(*archive.archive, Alembic::AbcGeom::kTop);
@@ -1063,13 +1099,13 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 		xform = Alembic::AbcGeom::OXform(topObj, "camera_xform", archive.timesampling);
 		archive.xform_map[cameraKey] = xform;
 
-		Alembic::AbcGeom::OXformSchema &xformSchema = xform.getSchema();
+		Alembic::AbcGeom::OXformSchema& xformSchema = xform.getSchema();
 		archive.xform_schema_map[cameraKey] = xformSchema;
 	}
 
 	// set camera transform
 	{
-		Alembic::AbcGeom::OXformSchema &xformSchema = archive.xform_schema_map[cameraKey];
+		Alembic::AbcGeom::OXformSchema& xformSchema = archive.xform_schema_map[cameraKey];
 		xformSchema.setTimeSampling(archive.timesampling);
 
 		Alembic::AbcGeom::XformSample xformSample;
@@ -1087,7 +1123,7 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 		{
 			D3DXVECTOR3 v;
 			UMGetCameraEye(&v);
-			d3d_vector3_transform(eye, v,convertedWordInv);
+			d3d_vector3_transform(eye, v, convertedWordInv);
 		}
 
 		D3DXVECTOR3 at;
@@ -1125,12 +1161,12 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 			Imath::V3d imeuler;
 			quatToEuler(imeuler, quat);
 
-			//UMMat44d umrot(
-			//	-view.m[0][0], view.m[0][1], view.m[0][2], 0,
-			//	-view.m[1][0], view.m[1][1], view.m[1][2], 0,
-			//	view.m[2][0], -view.m[2][1], -view.m[2][2], 0,
-			//	0, 0, 0, 1);
-			//UMVec3d umeuler = umbase::um_matrix_to_euler_xyz(umrot.transposed());
+			// UMMat44d umrot(
+			// 	-view.m[0][0], view.m[0][1], view.m[0][2], 0,
+			// 	-view.m[1][0], view.m[1][1], view.m[1][2], 0,
+			// 	view.m[2][0], -view.m[2][1], -view.m[2][2], 0,
+			// 	0, 0, 0, 1);
+			// UMVec3d umeuler = umbase::um_matrix_to_euler_xyz(umrot.transposed());
 			xformSample.setXRotation(umbase::um_to_degree(imeuler.y));
 			xformSample.setYRotation(umbase::um_to_degree(imeuler.x));
 			xformSample.setZRotation(-umbase::um_to_degree(imeuler.z));
@@ -1153,11 +1189,11 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 		camera = Alembic::AbcGeom::OCamera(xform, "camera", archive.timesampling);
 		archive.camera_map[cameraKey] = camera;
 
-		Alembic::AbcGeom::OCameraSchema &cameraSchema = camera.getSchema();
+		Alembic::AbcGeom::OCameraSchema& cameraSchema = camera.getSchema();
 		archive.camera_schema_map[cameraKey] = cameraSchema;
 	}
 
-	Alembic::AbcGeom::OCameraSchema &cameraSchema = archive.camera_schema_map[cameraKey];
+	Alembic::AbcGeom::OCameraSchema& cameraSchema = archive.camera_schema_map[cameraKey];
 	cameraSchema.setTimeSampling(archive.timesampling);
 	Alembic::AbcGeom::CameraSample sample;
 
@@ -1169,7 +1205,7 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 
 	double fovy = v.x;
 	double aspect = v.y;
-	double fovx = 2.0 * atan(tan(fovy / 2.0)*(aspect));
+	double fovx = 2.0 * atan(tan(fovy / 2.0) * (aspect));
 	double w = BridgeParameter::instance().frame_width / 10.0;
 	double h = BridgeParameter::instance().frame_height / 10.0;
 	double focalLength = w / (2.0 * tan(fovx / 2.0));
@@ -1183,8 +1219,11 @@ static void export_alembic_camera(AlembicArchive &archive, const RenderedBuffer 
 
 static bool execute_alembic_export(int currentframe)
 {
-	AlembicArchive &archive = AlembicArchive::instance();
-	if (!archive.archive) { return Py_BuildValue(""); }
+	AlembicArchive& archive = AlembicArchive::instance();
+	if (!archive.archive)
+	{
+		return Py_BuildValue("");
+	}
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const VertexBufferList& finishBuffers = BridgeParameter::instance().finish_buffer_list;
@@ -1192,7 +1231,7 @@ static bool execute_alembic_export(int currentframe)
 	bool exportedCamera = false;
 	for (int i = static_cast<int>(finishBuffers.size()) - 1; i >= 0; --i)
 	{
-		const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+		const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 
 		if (!exportedCamera && !renderedBuffer.isAccessory)
 		{
@@ -1203,7 +1242,7 @@ static bool execute_alembic_export(int currentframe)
 
 	for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 	{
-		const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+		const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 
 		if (archive.export_mode == 0)
 		{
@@ -1226,17 +1265,19 @@ static bool execute_alembic_export(int currentframe)
 }
 
 // ---------------------------------------------------------------------------
-PYBIND11_MODULE(mmdbridge_abc, m) {
-    m.doc() = "MMD Bridge ABC export module";
-    m.def("start_alembic_export", start_alembic_export);
-    m.def("end_alembic_export", end_alembic_export);
-    m.def("execute_alembic_export", execute_alembic_export);
-    m.def("get_abc_angle_axis", get_abc_angle_axis);
+PYBIND11_MODULE(mmdbridge_abc, m)
+{
+	m.doc() = "MMD Bridge ABC export module";
+	m.def("start_alembic_export", start_alembic_export);
+	m.def("end_alembic_export", end_alembic_export);
+	m.def("execute_alembic_export", execute_alembic_export);
+	m.def("get_abc_angle_axis", get_abc_angle_axis);
 }
 
-#endif //WITH_ALEMBIC
+#endif // WITH_ALEMBIC
 
 // ---------------------------------------------------------------------------
+// clang-format off
 #ifdef WITH_ALEMBIC
 	void InitAlembic()
 	{
@@ -1247,6 +1288,7 @@ PYBIND11_MODULE(mmdbridge_abc, m) {
 		AlembicArchive::instance().end();
 	}
 #else
-	void InitAlembic(){}
+	void InitAlembic() {}
 	void DisposeAlembic() {}
-#endif //WITH_ALEMBIC
+#endif // WITH_ALEMBIC
+// clang-format on
