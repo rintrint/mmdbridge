@@ -379,8 +379,8 @@ static void init_file_data(FileDataForVMD& data)
 		for (size_t i = 0, isize = bones.size(); i < isize; ++i)
 		{
 			const pmd::PmdBone& bone = bones[i];
-			const int parent_bone = bone.parent_bone_index;
-			data.parent_index_map[i] = parent_bone;
+			const uint16_t parent_bone = bone.parent_bone_index;
+			data.parent_index_map[i] = (parent_bone == 0xFFFF) ? -1 : parent_bone;
 			data.bone_name_map[i] = bone.name;
 			if (bone.bone_type == pmd::BoneType::IkEffectable)
 			{
@@ -402,19 +402,24 @@ static void init_file_data(FileDataForVMD& data)
 		for (size_t i = 0, isize = rigids.size(); i < isize; ++i)
 		{
 			const pmd::PmdRigidBody& rigid = rigids[i];
-			const uint16_t bone_index = rigid.related_bone_index;
-			bone_to_rigid_map[bone_index] = i;
+			const uint16_t related_bone = rigid.related_bone_index;
+			const int target_bone = (related_bone == 0xFFFF) ? -1 : related_bone;
+			if (target_bone < 0)
+			{
+				continue;
+			}
+			bone_to_rigid_map[target_bone] = i;
 			if (rigid.rigid_type != pmd::RigidBodyType::BoneConnected)
 			{
-				if (data.bone_name_map.find(bone_index) != data.bone_name_map.end())
+				if (data.bone_name_map.find(target_bone) != data.bone_name_map.end())
 				{
 					if (rigid.rigid_type == pmd::RigidBodyType::ConnectedPhysics)
 					{
-						data.physics_bone_map[bone_index] = 2;
+						data.physics_bone_map[target_bone] = 2;
 					}
 					else
 					{
-						data.physics_bone_map[bone_index] = 1;
+						data.physics_bone_map[target_bone] = 1;
 					}
 				}
 			}
@@ -424,21 +429,23 @@ static void init_file_data(FileDataForVMD& data)
 			std::vector<int> parent_physics_bone_list;
 			for (const auto& rigid : rigids)
 			{
-				const int target_bone = rigid.related_bone_index;
-
-				if (target_bone != -1) // Avoid dangerous map[-1] access, which auto-creates a buggy {-1, 0} mapping.
+				const uint16_t related_bone = rigid.related_bone_index;
+				const int target_bone = (related_bone == 0xFFFF) ? -1 : related_bone;
+				if (target_bone < 0) // Avoid dangerous map[-1] access, which auto-creates a buggy {-1, 0} mapping.
 				{
-					const int parent_bone = data.parent_index_map[target_bone];
-					if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
-					{
-						if (bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
-						{
-							parent_physics_bone_list.push_back(parent_bone);
-						}
-					}
+					continue;
+				}
+				const int parent_bone = data.parent_index_map[target_bone];
+				if (parent_bone < 0)
+				{
+					continue;
+				}
+				if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end() &&
+					bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
+				{
+					parent_physics_bone_list.push_back(parent_bone);
 				}
 			}
-
 			for (int parent_bone : parent_physics_bone_list)
 			{
 				const pmd::PmdRigidBody& parent_rigid = rigids[bone_to_rigid_map[parent_bone]];
@@ -461,11 +468,19 @@ static void init_file_data(FileDataForVMD& data)
 			for (int k = 0; k < bone.ik_link_count; ++k)
 			{
 				const pmx::PmxIkLink& link = bone.ik_links[k];
+				if (link.link_target < 0)
+				{
+					continue;
+				}
 				data.ik_bone_map[link.link_target] = 1;
 				data.ik_frame_bone_map[i] = 1;
 			}
 			if ((bone.bone_flag & 0x0100) || (bone.bone_flag & 0x0200))
 			{
+				if (bone.grant_parent_index < 0)
+				{
+					continue;
+				}
 				data.fuyo_target_map[bone.grant_parent_index] = 1;
 				data.fuyo_bone_map[i] = 1;
 			}
@@ -476,19 +491,23 @@ static void init_file_data(FileDataForVMD& data)
 		for (int i = 0; i < rigid_count; ++i)
 		{
 			const pmx::PmxRigidBody& rigid = data.pmx->rigid_bodies[i];
-			bone_to_rigid_map[rigid.target_bone] = i;
+			const int target_bone = rigid.target_bone;
+			if (target_bone < 0)
+			{
+				continue;
+			}
+			bone_to_rigid_map[target_bone] = i;
 			if (rigid.physics_calc_type != 0)
 			{
-				const auto bone_index = rigid.target_bone;
-				if (data.bone_name_map.find(bone_index) != data.bone_name_map.end())
+				if (data.bone_name_map.find(target_bone) != data.bone_name_map.end())
 				{
 					if (rigid.physics_calc_type == 2)
 					{
-						data.physics_bone_map[bone_index] = 2;
+						data.physics_bone_map[target_bone] = 2;
 					}
 					else
 					{
-						data.physics_bone_map[bone_index] = 1;
+						data.physics_bone_map[target_bone] = 1;
 					}
 				}
 			}
@@ -500,20 +519,21 @@ static void init_file_data(FileDataForVMD& data)
 			{
 				const pmx::PmxRigidBody& rigid = data.pmx->rigid_bodies[i];
 				const int target_bone = rigid.target_bone;
-
-				if (target_bone != -1) // Avoid dangerous map[-1] access, which auto-creates a buggy {-1, 0} mapping.
+				if (target_bone < 0) // Avoid dangerous map[-1] access, which auto-creates a buggy {-1, 0} mapping.
 				{
-					const int parent_bone = data.parent_index_map[target_bone];
-					if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end())
-					{
-						if (bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
-						{
-							parent_physics_bone_list.push_back(parent_bone);
-						}
-					}
+					continue;
+				}
+				const int parent_bone = data.parent_index_map[target_bone];
+				if (parent_bone < 0)
+				{
+					continue;
+				}
+				if (data.physics_bone_map.find(target_bone) != data.physics_bone_map.end() &&
+					bone_to_rigid_map.find(parent_bone) != bone_to_rigid_map.end())
+				{
+					parent_physics_bone_list.push_back(parent_bone);
 				}
 			}
-
 			for (int parent_bone : parent_physics_bone_list)
 			{
 				const pmx::PmxRigidBody& parent_rigid = data.pmx->rigid_bodies[bone_to_rigid_map[parent_bone]];
@@ -645,8 +665,7 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(model_index, bone_index));
 	UMMat44d local = world;
 	int parent_index = file_data.parent_index_map.count(bone_index) ? file_data.parent_index_map.at(bone_index) : -1;
-
-	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end())
+	if (parent_index >= 0)
 	{
 		UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(model_index, parent_index));
 		local = world * parent_world.inverted();
@@ -658,16 +677,16 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
 	bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
 	// Step 2: Add parent bone's initial position
-	if (parent_index != -1 && file_data.parent_index_map.find(parent_index) != file_data.parent_index_map.end())
+	if (parent_index >= 0)
 	{
-		if (file_data.pmd && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmd->bones.size()))
+		if (file_data.pmd && parent_index < static_cast<int>(file_data.pmd->bones.size()))
 		{
 			const pmd::PmdBone& parent_bone = file_data.pmd->bones[parent_index];
 			bone_frame.position[0] += parent_bone.bone_head_pos[0];
 			bone_frame.position[1] += parent_bone.bone_head_pos[1];
 			bone_frame.position[2] += parent_bone.bone_head_pos[2];
 		}
-		else if (file_data.pmx && parent_index >= 0 && parent_index < static_cast<int>(file_data.pmx->bones.size()))
+		else if (file_data.pmx && parent_index < static_cast<int>(file_data.pmx->bones.size()))
 		{
 			const pmx::PmxBone& parent_bone = file_data.pmx->bones[parent_index];
 			bone_frame.position[0] += parent_bone.position[0];
@@ -831,7 +850,6 @@ static bool execute_vmd_export(const int currentframe)
 					if (grant_flags && current_bone.grant_parent_index >= 0 &&
 						current_bone.grant_parent_index < static_cast<int>(file_data.pmx->bones.size()))
 					{
-
 						// Calculate grant parent bone frame
 						vmd::VmdBoneFrame grant_parent_frame = calculate_bone_frame(
 							i, current_bone.grant_parent_index, currentframe, file_data);
