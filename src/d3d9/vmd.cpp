@@ -705,21 +705,6 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	bone_frame.orientation[2] = static_cast<float>(quat[2]);
 	bone_frame.orientation[3] = static_cast<float>(quat[3]);
 
-	// Set interpolation parameters
-	for (auto& n : bone_frame.interpolation)
-	{
-		for (int m = 0; m < 4; ++m)
-		{
-			n[0][m] = 20;
-			n[1][m] = 20;
-		}
-		for (int m = 0; m < 4; ++m)
-		{
-			n[2][m] = 107;
-			n[3][m] = 107;
-		}
-	}
-
 	return bone_frame;
 }
 
