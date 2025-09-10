@@ -27,12 +27,12 @@ namespace vmd
 		void Read(std::istream* stream)
 		{
 			char buffer[15];
-			stream->read((char*) buffer, sizeof(char)*15);
+			stream->read((char*)buffer, sizeof(char) * 15);
 			name = std::string(buffer);
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) position, sizeof(float)*3);
-			stream->read((char*) orientation, sizeof(float)*4);
-			stream->read((char*) interpolation, sizeof(char) * 4 * 4 * 4);
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)position, sizeof(float) * 3);
+			stream->read((char*)orientation, sizeof(float) * 4);
+			stream->read((char*)interpolation, sizeof(char) * 4 * 4 * 4);
 		}
 
 		void Write(std::ostream* stream)
@@ -59,10 +59,10 @@ namespace vmd
 		void Read(std::istream* stream)
 		{
 			char buffer[15];
-			stream->read((char*) &buffer, sizeof(char) * 15);
+			stream->read((char*)&buffer, sizeof(char) * 15);
 			face_name = std::string(buffer);
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) &weight, sizeof(float));
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)&weight, sizeof(float));
 		}
 
 		void Write(std::ostream* stream)
@@ -92,18 +92,18 @@ namespace vmd
 
 		uint8_t isPerspective;
 
-		void Read(std::istream *stream)
+		void Read(std::istream* stream)
 		{
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) &distance, sizeof(float));
-			stream->read((char*) position, sizeof(float) * 3);
-			stream->read((char*) orientation, sizeof(float) * 3);
-			stream->read((char*) interpolation, sizeof(char) * 24);
-			stream->read((char*) &angle, sizeof(int));
-			stream->read((char*) &isPerspective, sizeof(char));
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)&distance, sizeof(float));
+			stream->read((char*)position, sizeof(float) * 3);
+			stream->read((char*)orientation, sizeof(float) * 3);
+			stream->read((char*)interpolation, sizeof(char) * 24);
+			stream->read((char*)&angle, sizeof(int));
+			stream->read((char*)&isPerspective, sizeof(char));
 		}
 
-		void Write(std::ostream *stream)
+		void Write(std::ostream* stream)
 		{
 			stream->write((char*)&frame, sizeof(int));
 			stream->write((char*)&distance, sizeof(float));
@@ -128,9 +128,9 @@ namespace vmd
 
 		void Read(std::istream* stream)
 		{
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) color, sizeof(float) * 3);
-			stream->read((char*) position, sizeof(float) * 3);
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)color, sizeof(float) * 3);
+			stream->read((char*)position, sizeof(float) * 3);
 		}
 
 		void Write(std::ostream* stream)
@@ -157,23 +157,23 @@ namespace vmd
 		bool display;
 		std::vector<VmdIkEnable> ik_enable;
 
-		void Read(std::istream *stream)
+		void Read(std::istream* stream)
 		{
 			char buffer[20];
-			stream->read((char*) &frame, sizeof(int));
-			stream->read((char*) &display, sizeof(uint8_t));
+			stream->read((char*)&frame, sizeof(int));
+			stream->read((char*)&display, sizeof(uint8_t));
 			int ik_count;
-			stream->read((char*) &ik_count, sizeof(int));
+			stream->read((char*)&ik_count, sizeof(int));
 			ik_enable.resize(ik_count);
 			for (int i = 0; i < ik_count; i++)
 			{
 				stream->read(buffer, 20);
 				ik_enable[i].ik_name = std::string(buffer);
-				stream->read((char*) &ik_enable[i].enable, sizeof(uint8_t));
+				stream->read((char*)&ik_enable[i].enable, sizeof(uint8_t));
 			}
 		}
 
-		void Write(std::ostream *stream)
+		void Write(std::ostream* stream)
 		{
 			stream->write((char*)&frame, sizeof(int));
 			stream->write((char*)&display, sizeof(uint8_t));
@@ -185,7 +185,7 @@ namespace vmd
 
 				// VMD format: IK name field is 20 bytes (15 bytes name + 5 bytes padding)
 				stream->write(current_ik.ik_name.c_str(), 15);
-				char ik_padding[5] = {0};  // Ensure last 5 bytes are zero
+				char ik_padding[5] = { 0 }; // Ensure last 5 bytes are zero
 				stream->write(ik_padding, 5);
 
 				stream->write((char*)&current_ik.enable, sizeof(uint8_t));
@@ -212,7 +212,7 @@ namespace vmd
 		/// IKフレーム
 		std::vector<VmdIkFrame> ik_frames;
 
-		static std::unique_ptr<VmdMotion> LoadFromFile(char const *filename)
+		static std::unique_ptr<VmdMotion> LoadFromFile(char const* filename)
 		{
 			std::ifstream stream(filename, std::ios::binary);
 			auto result = LoadFromStream(&stream);
@@ -220,14 +220,14 @@ namespace vmd
 			return result;
 		}
 
-		static std::unique_ptr<VmdMotion> LoadFromStream(std::ifstream *stream)
+		static std::unique_ptr<VmdMotion> LoadFromStream(std::ifstream* stream)
 		{
 
 			char buffer[30];
 			auto result = std::make_unique<VmdMotion>();
 
 			// magic and version
-			stream->read((char*) buffer, 30);
+			stream->read((char*)buffer, 30);
 			if (strncmp(buffer, "Vocaloid Motion Data", 20))
 			{
 				std::cerr << "invalid vmd file." << std::endl;
@@ -241,7 +241,7 @@ namespace vmd
 
 			// bone frames
 			int bone_frame_num;
-			stream->read((char*) &bone_frame_num, sizeof(int));
+			stream->read((char*)&bone_frame_num, sizeof(int));
 			result->bone_frames.resize(bone_frame_num);
 			for (int i = 0; i < bone_frame_num; i++)
 			{
@@ -250,7 +250,7 @@ namespace vmd
 
 			// face frames
 			int face_frame_num;
-			stream->read((char*) &face_frame_num, sizeof(int));
+			stream->read((char*)&face_frame_num, sizeof(int));
 			result->face_frames.resize(face_frame_num);
 			for (int i = 0; i < face_frame_num; i++)
 			{
@@ -259,7 +259,7 @@ namespace vmd
 
 			// camera frames
 			int camera_frame_num;
-			stream->read((char*) &camera_frame_num, sizeof(int));
+			stream->read((char*)&camera_frame_num, sizeof(int));
 			result->camera_frames.resize(camera_frame_num);
 			for (int i = 0; i < camera_frame_num; i++)
 			{
@@ -268,7 +268,7 @@ namespace vmd
 
 			// light frames
 			int light_frame_num;
-			stream->read((char*) &light_frame_num, sizeof(int));
+			stream->read((char*)&light_frame_num, sizeof(int));
 			result->light_frames.resize(light_frame_num);
 			for (int i = 0; i < light_frame_num; i++)
 			{
@@ -282,7 +282,7 @@ namespace vmd
 			if (stream->peek() != std::ios::traits_type::eof())
 			{
 				int ik_num;
-				stream->read((char*) &ik_num, sizeof(int));
+				stream->read((char*)&ik_num, sizeof(int));
 				result->ik_frames.resize(ik_num);
 				for (int i = 0; i < ik_num; i++)
 				{
@@ -306,7 +306,7 @@ namespace vmd
 			return result;
 		}
 
-		bool SaveToStream(std::ofstream *stream)
+		bool SaveToStream(std::ofstream* stream)
 		{
 			// magic and version
 			stream->write("Vocaloid Motion Data 0002\0\0\0\0", 30);
@@ -361,4 +361,4 @@ namespace vmd
 			return true;
 		}
 	};
-}
+} // namespace vmd
