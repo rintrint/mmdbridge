@@ -647,6 +647,9 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	rotation_matrix[3][0] = rotation_matrix[3][1] = rotation_matrix[3][2] = 0.0;
 	Imath::Quat<double> quat = Imath::extractQuat(rotation_matrix);
 
+	// Normalize result
+	quat.normalize();
+
 	bone_frame.orientation[0] = static_cast<float>(quat.v.x);
 	bone_frame.orientation[1] = static_cast<float>(quat.v.y);
 	bone_frame.orientation[2] = static_cast<float>(quat.v.z);
