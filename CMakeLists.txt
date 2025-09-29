@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 
+set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD ON)
+
 project(mmdbridge) # .sln
 
 set(CMAKE_CXX_STANDARD 17)
