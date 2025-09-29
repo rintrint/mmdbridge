@@ -5,8 +5,6 @@
 #include "bridge_parameter.h"
 #include "UMStringUtil.h"
 #include "UMPath.h"
-#include "UMVector.h"
-#include "UMMatrix.h"
 
 #include <map>
 #include <vector>
@@ -15,7 +13,9 @@
 namespace py = pybind11;
 
 #include <ImathMatrix.h>
+#include <ImathMatrixAlgo.h>
 #include <ImathQuat.h>
+#include <ImathVec.h>
 
 #include <EncodingHelper.h>
 #include <Pmd.h>
@@ -555,66 +555,13 @@ static void init_file_data(FileDataForVMD& data)
 	}
 }
 
-static UMMat44d to_ummat(const D3DMATRIX& mat)
+static Imath::Matrix44<double> to_imath_matrix(const D3DMATRIX& mat)
 {
-	UMMat44d ummat;
-	for (int n = 0; n < 4; ++n)
-	{
-		for (int m = 0; m < 4; ++m)
-		{
-			ummat[n][m] = static_cast<double>(mat.m[n][m]);
-		}
-	}
-	return ummat;
-}
-
-// from Imath
-static UMVec4d extractQuat(const UMMat44d& mat)
-{
-	double s;
-	UMVec4d quat;
-	constexpr int nxt[3] = { 1, 2, 0 };
-
-	// check the diagonal
-	if (const double tr = mat[0][0] + mat[1][1] + mat[2][2]; tr > 0.0)
-	{
-		s = sqrt(tr + 1.0);
-		quat.w = s / 2.0;
-		s = 0.5 / s;
-
-		quat.x = (mat[1][2] - mat[2][1]) * s;
-		quat.y = (mat[2][0] - mat[0][2]) * s;
-		quat.z = (mat[0][1] - mat[1][0]) * s;
-	}
-	else
-	{
-		double q[4];
-		// diagonal is negative
-		int i = 0;
-		if (mat[1][1] > mat[0][0])
-			i = 1;
-		if (mat[2][2] > mat[i][i])
-			i = 2;
-
-		const int j = nxt[i];
-		const int k = nxt[j];
-		s = sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + 1.0);
-
-		q[i] = s * 0.5;
-		if (s != 0.0)
-			s = 0.5 / s;
-
-		q[3] = (mat[j][k] - mat[k][j]) * s;
-		q[j] = (mat[i][j] + mat[j][i]) * s;
-		q[k] = (mat[i][k] + mat[k][i]) * s;
-
-		quat.x = q[0];
-		quat.y = q[1];
-		quat.z = q[2];
-		quat.w = q[3];
-	}
-
-	return quat;
+	return Imath::Matrix44<double>(
+		mat.m[0][0], mat.m[0][1], mat.m[0][2], mat.m[0][3],
+		mat.m[1][0], mat.m[1][1], mat.m[1][2], mat.m[1][3],
+		mat.m[2][0], mat.m[2][1], mat.m[2][2], mat.m[2][3],
+		mat.m[3][0], mat.m[3][1], mat.m[3][2], mat.m[3][3]);
 }
 
 // Helper function: Calculate VMD bone frame based on bone index
@@ -641,7 +588,7 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	}
 
 	// Get initial position
-	UMVec3f initial_trans;
+	Imath::Vec3<float> initial_trans;
 	if (file_data.pmd)
 	{
 		const pmd::PmdBone& bone = file_data.pmd->bones[bone_index];
@@ -649,33 +596,33 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 		{
 			return bone_frame; // Return default values
 		}
-		initial_trans[0] = bone.bone_head_pos[0];
-		initial_trans[1] = bone.bone_head_pos[1];
-		initial_trans[2] = bone.bone_head_pos[2];
+		initial_trans.x = bone.bone_head_pos[0];
+		initial_trans.y = bone.bone_head_pos[1];
+		initial_trans.z = bone.bone_head_pos[2];
 	}
 	else if (file_data.pmx)
 	{
 		const pmx::PmxBone& bone = file_data.pmx->bones[bone_index];
-		initial_trans[0] = bone.position[0];
-		initial_trans[1] = bone.position[1];
-		initial_trans[2] = bone.position[2];
+		initial_trans.x = bone.position[0];
+		initial_trans.y = bone.position[1];
+		initial_trans.z = bone.position[2];
 	}
 
 	// Get transformation matrices
-	UMMat44d world = to_ummat(ExpGetPmdBoneWorldMat(model_index, bone_index));
-	UMMat44d local = world;
+	Imath::Matrix44<double> world = to_imath_matrix(ExpGetPmdBoneWorldMat(model_index, bone_index));
+	Imath::Matrix44<double> local = world;
 	int parent_index = file_data.parent_index_map.count(bone_index) ? file_data.parent_index_map.at(bone_index) : -1;
 	if (parent_index >= 0)
 	{
-		UMMat44d parent_world = to_ummat(ExpGetPmdBoneWorldMat(model_index, parent_index));
-		local = world * parent_world.inverted();
+		Imath::Matrix44<double> parent_world = to_imath_matrix(ExpGetPmdBoneWorldMat(model_index, parent_index));
+		local = world * parent_world.inverse();
 	}
 
 	// Calculate VMD position
 	// Step 1: Subtract own initial position
-	bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans[0];
-	bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans[1];
-	bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans[2];
+	bone_frame.position[0] = static_cast<float>(local[3][0]) - initial_trans.x;
+	bone_frame.position[1] = static_cast<float>(local[3][1]) - initial_trans.y;
+	bone_frame.position[2] = static_cast<float>(local[3][2]) - initial_trans.z;
 	// Step 2: Add parent bone's initial position
 	if (parent_index >= 0)
 	{
@@ -696,14 +643,14 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	}
 
 	// Calculate rotation
-	UMMat44d rotation_matrix = local;
+	Imath::Matrix44<double> rotation_matrix = local;
 	rotation_matrix[3][0] = rotation_matrix[3][1] = rotation_matrix[3][2] = 0.0;
-	UMVec4d quat = extractQuat(rotation_matrix);
+	Imath::Quat<double> quat = Imath::extractQuat(rotation_matrix);
 
-	bone_frame.orientation[0] = static_cast<float>(quat[0]);
-	bone_frame.orientation[1] = static_cast<float>(quat[1]);
-	bone_frame.orientation[2] = static_cast<float>(quat[2]);
-	bone_frame.orientation[3] = static_cast<float>(quat[3]);
+	bone_frame.orientation[0] = static_cast<float>(quat.v.x);
+	bone_frame.orientation[1] = static_cast<float>(quat.v.y);
+	bone_frame.orientation[2] = static_cast<float>(quat.v.z);
+	bone_frame.orientation[3] = static_cast<float>(quat.r);
 
 	return bone_frame;
 }
