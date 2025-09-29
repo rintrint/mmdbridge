@@ -1774,14 +1774,19 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 	{
 		case WM_INITDIALOG:
 		{
+			reload_python_file_paths();
 			for (size_t i = 0; i < parameter.python_script_name_list.size(); i++)
 			{
 				SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)parameter.python_script_name_list[i].c_str());
 			}
 			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)L"実行する");
 			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)L"実行しない");
-			// Specify data to display initially when window is created
+			// Try to restore the previous selection, otherwise default to the first script.
 			LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
+			if (index1 == CB_ERR && !parameter.python_script_name_list.empty())
+			{
+				index1 = 0;
+			}
 			SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
 			SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
 
