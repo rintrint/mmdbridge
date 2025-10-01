@@ -1730,7 +1730,6 @@ LONG_PTR originalWndProc = NULL;
 // Function declarations for this code module:
 static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 HINSTANCE hInstance = NULL;
-HWND pluginDialog = NULL;
 
 static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -1743,16 +1742,13 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				case 1020: // プラグイン設定
 					if (hInstance)
 					{
-						pluginDialog = hWnd;
-						::DialogBoxW(hInstance, L"IDD_DIALOG1", NULL, DialogProc);
+						::DialogBoxW(hInstance, L"IDD_DIALOG1", hWnd, DialogProc);
 					}
 					break;
 			}
 		}
 		break;
 		case WM_DESTROY:
-			::DestroyWindow(pluginDialog);
-
 			break;
 	}
 
