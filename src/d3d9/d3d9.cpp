@@ -1218,7 +1218,6 @@ PYBIND11_MODULE(mmdbridge, m)
 
 void run_python_script()
 {
-	relaod_python_script();
 	if (BridgeParameter::instance().mmdbridge_python_script.empty())
 	{
 		return;
@@ -1809,11 +1808,8 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						const std::wstring& selected_name = parameter.python_script_name_list[num1];
 						mutable_parameter.python_script_name = selected_name;
 						mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
-						if (pythonName != selected_name)
-						{
-							pythonName = selected_name;
-							relaod_python_script();
-						}
+						pythonName = selected_name;
+						relaod_python_script();
 					}
 					UINT num2 = (UINT)SendMessage(hCombo2, CB_GETCURSEL, 0, 0);
 					if (num2 <= 2)
@@ -1971,6 +1967,10 @@ static HRESULT WINAPI present(
 				if (exportedFrames.find(frame) == exportedFrames.end())
 				{
 					process_frame = frame;
+					if (process_frame == parameter.start_frame)
+					{
+						relaod_python_script();
+					}
 					run_python_script();
 					exportedFrames[process_frame] = 1;
 					if (process_frame == parameter.end_frame)
