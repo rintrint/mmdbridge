@@ -64,6 +64,9 @@ target_compile_options(minhook PRIVATE
 # build targets
 add_subdirectory(src)
 
+# set startup project for Visual Studio  
+set_directory_properties(PROPERTIES VS_STARTUP_PROJECT d3d9)
+
 # install runtime dependencies
 install(TARGETS d3d9 d3dx9_43 RUNTIME DESTINATION ${MMD_DIR})
 install(FILES $<TARGET_RUNTIME_DLLS:d3d9> DESTINATION ${MMD_DIR})
@@ -136,3 +139,13 @@ install(DIRECTORY Release/Win32/alembic_assign_scripts
 install(DIRECTORY
     DESTINATION ${MMD_DIR}/out
 )
+
+# visual studio debugger configuration
+if(MSVC)
+    set_target_properties(d3d9 PROPERTIES
+        VS_DEBUGGER_COMMAND "${MMD_DIR}/MikuMikuDance.exe"
+    )
+    set_target_properties(d3d9 PROPERTIES
+        VS_DEBUGGER_WORKING_DIRECTORY "${MMD_DIR}"
+    )
+endif()
