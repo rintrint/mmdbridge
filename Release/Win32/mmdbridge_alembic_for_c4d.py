@@ -11,13 +11,12 @@ import time
 export_normals = True
 export_uvs = True
 is_use_euler_rotation_for_camera = True
-is_use_ogawa = False
+is_use_ogawa = True
 
 # 0 = create buffer every marerials, fixed vertex index for face
 # 1 = create buffer every objects, original vertex index for face
 # 2 = create buffer every marerials, direct vertex index for face
-export_mode = 3
-
+export_mode = 2
 
 
 def export_mtl(mtlpath, export_mode):

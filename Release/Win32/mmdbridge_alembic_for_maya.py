@@ -11,13 +11,11 @@ import time
 export_normals = True
 export_uvs = True
 is_use_euler_rotation_for_camera = True
-is_use_ogawa = True
 
 # 0 = create buffer every marerials, fixed vertex index for face
 # 1 = create buffer every objects, original vertex index for face
 # 2 = create buffer every marerials, direct vertex index for face
-export_mode = 0
-
+export_mode = 1
 
 
 def export_mtl(mtlpath, export_mode):
@@ -81,10 +79,6 @@ def export_mtl(mtlpath, export_mode):
 					texname = texname.split('\\')[-1]
 				if (ext is not ".bmp") and (ext is not ".png") and (ext is not ".tif") and \
 						(ext is not ".BMP") and (ext is not ".PNG") and (ext is not ".TIF"):
-					if '/' in texname:
-						texname = texname.split('/')[-1]
-					if '\\' in texname:
-						texname = texname.split('\\')[-1]
 					export_path = get_base_path() + "out\\" + texname + ".png"
 					if export_texture(buf, mat, export_path):
 						mtlfile.write("map_Kd "+texname + ".png"+"\n")
@@ -107,7 +101,7 @@ if (framenumber == start_frame):
 	messagebox("alembic export started")
 	export_mtl(mtlpath, export_mode)
 	copy_textures(texture_export_dir.replace("/", "\\"))
-	start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
+	start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera)
 
 if (framenumber >= start_frame or framenumber <= end_frame):
 	execute_alembic_export(framenumber)
