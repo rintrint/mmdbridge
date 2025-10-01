@@ -127,7 +127,7 @@ def assignMaterial(abc, mtlDict, relationDict):
 def execute():
     directory = MaxPlus.Core.EvalMAXScript('getSavePath caption:"Select MMDBridge\'s out directory"')
     if directory.Type == 44:
-		return
+        return
     abc = os.path.normpath(directory.Get())
 
     if not os.path.isdir(abc):

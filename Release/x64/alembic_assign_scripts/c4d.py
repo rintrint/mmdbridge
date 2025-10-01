@@ -15,7 +15,7 @@ class Mtl():
         self.trans = 1.0
         self.power = 0.0
         self.lum = 1
-	self.isAccessory = False
+    self.isAccessory = False
 
 def import_mtl(path, result):
 
@@ -55,7 +55,7 @@ def import_mtl(path, result):
             current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
         elif "#" == words[0]:
             if words[1] == "is_accessory":
-		current.isAccessory = True
+                current.isAccessory = True
 
     if current != None and current.name != "":
         result[current.name] = current
@@ -135,39 +135,39 @@ def main():
                 # assign color
                 mat.SetName(mtlData.name)
 
-		if mtlData.isAccessory:
-	                mat[c4d.MATERIAL_COLOR_COLOR] = c4d.Vector(\
-	                    mtlData.diffuse[0] + 0.5 * mtlData.ambient[0], \
-	                    mtlData.diffuse[1] + 0.5 * mtlData.ambient[1], \
-	                    mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
-		else:
-	                mat[c4d.MATERIAL_COLOR_COLOR] = c4d.Vector(\
-	                    mtlData.diffuse[0], \
-	                    mtlData.diffuse[1], \
-	                    mtlData.diffuse[2])
+        if mtlData.isAccessory:
+            mat[c4d.MATERIAL_COLOR_COLOR] = c4d.Vector(\
+                mtlData.diffuse[0] + 0.5 * mtlData.ambient[0], \
+                mtlData.diffuse[1] + 0.5 * mtlData.ambient[1], \
+                mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
+        else:
+            mat[c4d.MATERIAL_COLOR_COLOR] = c4d.Vector(\
+                mtlData.diffuse[0], \
+                mtlData.diffuse[1], \
+                mtlData.diffuse[2])
 
-                mat[c4d.MATERIAL_SPECULAR_COLOR] = c4d.Vector(\
-                    mtlData.specular[0], \
-                    mtlData.specular[1], \
-                    mtlData.specular[2])
+            mat[c4d.MATERIAL_SPECULAR_COLOR] = c4d.Vector(\
+                mtlData.specular[0], \
+                mtlData.specular[1], \
+                mtlData.specular[2])
 
-                if mtlData.trans < 0.9999:
-                    mat[c4d.MATERIAL_USE_ALPHA] = True
-                    mat[c4d.MATERIAL_TRANSPARENCY_BRIGHTNESS] = mtlData.trans
+            if mtlData.trans < 0.9999:
+                mat[c4d.MATERIAL_USE_ALPHA] = True
+                mat[c4d.MATERIAL_TRANSPARENCY_BRIGHTNESS] = mtlData.trans
 
-                mat[c4d.MATERIAL_SPECULAR_TEXTURESTRENGTH] = mtlData.power
+            mat[c4d.MATERIAL_SPECULAR_TEXTURESTRENGTH] = mtlData.power
 
-                mat[c4d.MATERIAL_USE_COLOR] = True
-                mat[c4d.MATERIAL_USE_SPECULAR] = True
-                mat[c4d.MATERIAL_USE_SPECULARCOLOR] = True
+            mat[c4d.MATERIAL_USE_COLOR] = True
+            mat[c4d.MATERIAL_USE_SPECULAR] = True
+            mat[c4d.MATERIAL_USE_SPECULARCOLOR] = True
 
-                mat.Update(True, True)
+            mat.Update(True, True)
 
-                # assign material to object
-                doc.InsertMaterial(mat)
-                doc.SetActiveObject(obj)
-                doc.SetActiveMaterial(mat)
-                c4d.CallCommand(12169)
+            # assign material to object
+            doc.InsertMaterial(mat)
+            doc.SetActiveObject(obj)
+            doc.SetActiveMaterial(mat)
+            c4d.CallCommand(12169)
 
 if __name__=='__main__':
     main()

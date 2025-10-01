@@ -20,14 +20,14 @@ end_frame = get_end_frame()
 
 framenumber = get_frame_number()
 if (framenumber == start_frame):
-	copy_textures(texture_export_dir.replace("/", "\\"))
-	export_uncopied_textures(texture_export_dir.replace("/", "\\"), "png")
-	messagebox("pmx export started")
-	start_pmx_export("", "pmx_export")
+    copy_textures(texture_export_dir.replace("/", "\\"))
+    export_uncopied_textures(texture_export_dir.replace("/", "\\"), "png")
+    messagebox("pmx export started")
+    start_pmx_export("", "pmx_export")
 
 if (start_frame <= framenumber <= end_frame):
-	execute_pmx_export(framenumber)
+    execute_pmx_export(framenumber)
 
 if (framenumber == end_frame):
-	messagebox("pmx export ended at " + str(framenumber))
-	end_pmx_export()
+    messagebox("pmx export ended at " + str(framenumber))
+    end_pmx_export()

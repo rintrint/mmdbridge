@@ -14,7 +14,7 @@ class Mtl():
         self.power = 0.0
         self.lum = 1
         self.faceSize = 0
-	self.isAccessory = False
+    self.isAccessory = False
 
 def import_mtl(path, result, relation):
 
@@ -69,7 +69,7 @@ def import_mtl(path, result, relation):
             if words[1] == "face_size":
                 current.faceSize = int(words[2])
             elif words[1] == "is_accessory":
-		current.isAccessory = True
+                current.isAccessory = True
             elif words[1] == "mode":
                 export_mode = int(words[2])
     mtl.close()

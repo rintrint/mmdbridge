@@ -20,95 +20,95 @@ export_mode = 2
 
 
 def export_mtl(mtlpath, export_mode):
-	if os.path.isfile(mtlpath):
-		os.remove(mtlpath)
+    if os.path.isfile(mtlpath):
+        os.remove(mtlpath)
 
-	mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
 
-	mtlfile.write("# mode "+str(export_mode)+"\n")
+    mtlfile.write("# mode "+str(export_mode)+"\n")
 
-	for buf in range(get_vertex_buffer_size()):
-		for mat in range(get_material_size(buf)):
-			material_name = "material_" + str(buf) + "_" + str(mat)
-			mtlfile.write("newmtl "+material_name+"\n")
+    for buf in range(get_vertex_buffer_size()):
+        for mat in range(get_material_size(buf)):
+            material_name = "material_" + str(buf) + "_" + str(mat)
+            mtlfile.write("newmtl "+material_name+"\n")
 
-			if is_accessory(buf):
-				mtlfile.write("# is_accessory"+"\n")
+            if is_accessory(buf):
+                mtlfile.write("# is_accessory"+"\n")
 
-			if export_mode == 1:
-				face_size = get_face_size(buf, mat)
-				mtlfile.write("# face_size "+str(face_size)+"\n")
+            if export_mode == 1:
+                face_size = get_face_size(buf, mat)
+                mtlfile.write("# face_size "+str(face_size)+"\n")
 
-			ambient = get_ambient(buf, mat)
-			diffuse = get_diffuse(buf, mat)
-			specular = get_specular(buf, mat)
-			emissive = get_emissive(buf, mat)
-			power = get_power(buf, mat)
-			texture = get_texture(buf, mat)
-			if len(texture) == 0:
-				texture = get_exported_texture(buf, mat)
-				if len(texture) > 0:
-					texture = texture + ".png"
+            ambient = get_ambient(buf, mat)
+            diffuse = get_diffuse(buf, mat)
+            specular = get_specular(buf, mat)
+            emissive = get_emissive(buf, mat)
+            power = get_power(buf, mat)
+            texture = get_texture(buf, mat)
+            if len(texture) == 0:
+                texture = get_exported_texture(buf, mat)
+                if len(texture) > 0:
+                    texture = texture + ".png"
 
-			if material_name is "material_0_10":
-				messagebox(texture)
+            if material_name is "material_0_10":
+                messagebox(texture)
 
-			mtlfile.write("Ka "+str(ambient[0])+" "+str(ambient[1])+" "+str(ambient[2])+"\n")
-			if diffuse[0] < 0 or diffuse[1] < 0 or diffuse[2] < 0:
-				diffuse[0] = 1
-				diffuse[1] = 1
-				diffuse[2] = 1
+            mtlfile.write("Ka "+str(ambient[0])+" "+str(ambient[1])+" "+str(ambient[2])+"\n")
+            if diffuse[0] < 0 or diffuse[1] < 0 or diffuse[2] < 0:
+                diffuse[0] = 1
+                diffuse[1] = 1
+                diffuse[2] = 1
 
-			if specular[0] < 0 or specular[1] < 0 or specular[2] < 0:
-				specular[0] = 0
-				specular[1] = 0
-				specular[2] = 0
+            if specular[0] < 0 or specular[1] < 0 or specular[2] < 0:
+                specular[0] = 0
+                specular[1] = 0
+                specular[2] = 0
 
-			mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
-			mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
-			if (diffuse[3] < 1):
-				mtlfile.write("d "+str(diffuse[3])+"\n")
-			mtlfile.write("Ns "+str(power)+"\n")
-			#mtlfile.write("Ni 1.33\n")
-			# lum = 1 no specular highlights, lum = 2 light normaly
-			mtlfile.write("lum 1\n")
-			if len(texture) > 0:
-				texname, ext = os.path.splitext(texture)
-				if '/' in texname:
-					texname = texname.split('/')[-1]
-				if '\\' in texname:
-					texname = texname.split('\\')[-1]
-				if (ext is not ".bmp") and (ext is not ".png") and (ext is not ".tif") and \
-						(ext is not ".BMP") and (ext is not ".PNG") and (ext is not ".TIF"):
-					export_path = get_base_path() + "out\\" + texname + ".png"
-					if export_texture(buf, mat, export_path):
-						mtlfile.write("map_Kd "+texname + ".png"+"\n")
-						if (diffuse[3] < 1):
-							mtlfile.write("map_d "+texname + ".png"+"\n")
-				else:
-					mtlfile.write("map_Kd "+texture+"\n")
-					if (diffuse[3] < 1):
-						mtlfile.write("map_d "+texture+"\n")
+            mtlfile.write("Kd "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+"\n")
+            mtlfile.write("Ks "+str(specular[0])+" "+str(specular[1])+" "+str(specular[2])+"\n")
+            if (diffuse[3] < 1):
+                mtlfile.write("d "+str(diffuse[3])+"\n")
+            mtlfile.write("Ns "+str(power)+"\n")
+            #mtlfile.write("Ni 1.33\n")
+            # lum = 1 no specular highlights, lum = 2 light normaly
+            mtlfile.write("lum 1\n")
+            if len(texture) > 0:
+                texname, ext = os.path.splitext(texture)
+                if '/' in texname:
+                    texname = texname.split('/')[-1]
+                if '\\' in texname:
+                    texname = texname.split('\\')[-1]
+                if (ext is not ".bmp") and (ext is not ".png") and (ext is not ".tif") and \
+                        (ext is not ".BMP") and (ext is not ".PNG") and (ext is not ".TIF"):
+                    export_path = get_base_path() + "out\\" + texname + ".png"
+                    if export_texture(buf, mat, export_path):
+                        mtlfile.write("map_Kd "+texname + ".png"+"\n")
+                        if (diffuse[3] < 1):
+                            mtlfile.write("map_d "+texname + ".png"+"\n")
+                else:
+                    mtlfile.write("map_Kd "+texture+"\n")
+                    if (diffuse[3] < 1):
+                        mtlfile.write("map_d "+texture+"\n")
 
 def export_gnode(gnodepath, export_mode):
-	if os.path.isfile(gnodepath):
-		os.remove(gnodepath)
+    if os.path.isfile(gnodepath):
+        os.remove(gnodepath)
 
-	gnodefile = open(gnodepath, 'a')
-	gnodefile.write('docformatrevision(18)'+"\n")
-	gnodefile.write('oid[1]=create("RenderGraphNodeShader","","Surface")'+"\n")
-	gnodefile.write("\t"+'oid[2]=create("AttributeShader","$1","DiffuseColor")'+"\n")
-	gnodefile.write("\t\t" + 'set("$2.Shader","")'+"\n")
-	gnodefile.write("\t" + 'oid[3]=create("RenderGraphInput","$1","Input1")'+"\n")
-	gnodefile.write("\t\t" + 'set("$3.PlugName","Input")'+"\n")
-	gnodefile.write("\t" + 'oid[4]=create("RenderGraphOutput","$1","Output1")'+"\n")
-	gnodefile.write("\t\t" + 'set("$4.PlugName","Output")'+"\n")
-	gnodefile.write("\t" + 'set("$1.Mode","material")'+"\n")
-	gnodefile.write("\t" + 'set("$1.NodePos",{0,0})'+"\n")
-	gnodefile.write("\t" + 'set("$1.Shader","Surface")'+"\n")
-	gnodefile.write("\t" + 'set("$1.State","active")'+"\n")
-	gnodefile.write("\t" + 'set("$1.SubPrimId",false)'+"\n")
-	gnodefile.write("\t" + 'set("$1.UseReferencePrefix",true)'+"\n")
+    gnodefile = open(gnodepath, 'a')
+    gnodefile.write('docformatrevision(18)'+"\n")
+    gnodefile.write('oid[1]=create("RenderGraphNodeShader","","Surface")'+"\n")
+    gnodefile.write("\t"+'oid[2]=create("AttributeShader","$1","DiffuseColor")'+"\n")
+    gnodefile.write("\t\t" + 'set("$2.Shader","")'+"\n")
+    gnodefile.write("\t" + 'oid[3]=create("RenderGraphInput","$1","Input1")'+"\n")
+    gnodefile.write("\t\t" + 'set("$3.PlugName","Input")'+"\n")
+    gnodefile.write("\t" + 'oid[4]=create("RenderGraphOutput","$1","Output1")'+"\n")
+    gnodefile.write("\t\t" + 'set("$4.PlugName","Output")'+"\n")
+    gnodefile.write("\t" + 'set("$1.Mode","material")'+"\n")
+    gnodefile.write("\t" + 'set("$1.NodePos",{0,0})'+"\n")
+    gnodefile.write("\t" + 'set("$1.Shader","Surface")'+"\n")
+    gnodefile.write("\t" + 'set("$1.State","active")'+"\n")
+    gnodefile.write("\t" + 'set("$1.SubPrimId",false)'+"\n")
+    gnodefile.write("\t" + 'set("$1.UseReferencePrefix",true)'+"\n")
 
 outpath = get_base_path().replace("\\", "/") + "out/"
 mtlpath = outpath + "alembic_file" ".mtl"
@@ -119,15 +119,15 @@ end_frame = get_end_frame()
 
 framenumber = get_frame_number()
 if (framenumber == start_frame):
-	messagebox("alembic export started")
-	export_mtl(mtlpath, export_mode)
-	export_gnode(gnodepath, export_mode)
-	copy_textures(texture_export_dir.replace("/", "\\"))
-	start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
+    messagebox("alembic export started")
+    export_mtl(mtlpath, export_mode)
+    export_gnode(gnodepath, export_mode)
+    copy_textures(texture_export_dir.replace("/", "\\"))
+    start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
 
 if (start_frame <= framenumber <= end_frame):
-	execute_alembic_export(framenumber)
+    execute_alembic_export(framenumber)
 
 if (framenumber == end_frame):
-	messagebox("alembic export ended at " + str(framenumber))
-	end_alembic_export()
+    messagebox("alembic export ended at " + str(framenumber))
+    end_alembic_export()
