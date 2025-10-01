@@ -97,7 +97,7 @@ install(
 )
 
 # install Python scripts
-file(GLOB python_scripts Release/Win32/*.py
+file(GLOB python_scripts Release/x64/*.py
 )
 install(FILES ${python_scripts}
     DESTINATION ${MMD_DIR}
@@ -133,7 +133,7 @@ install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
 )
 
 # install additional resources
-install(DIRECTORY Release/Win32/alembic_assign_scripts
+install(DIRECTORY Release/x64/alembic_assign_scripts
     DESTINATION ${MMD_DIR}
 )
 install(DIRECTORY
