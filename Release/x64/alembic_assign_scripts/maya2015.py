@@ -180,4 +180,3 @@ def execute():
                 # deselect all
                 cmds.select(all=True, deselect=True)
 execute()
-

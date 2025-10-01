@@ -138,4 +138,3 @@ ribpath = tmppath + "out.rib"
 texture_export_dir = tmppath
 copy_textures(texture_export_dir.replace("/", "\\"))
 export_rib(ribpath)
-

@@ -179,4 +179,3 @@ def execute():
                         mtlData.ambient[1],\
                         mtlData.ambient[2])
 execute()
-
