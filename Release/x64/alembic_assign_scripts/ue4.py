@@ -2,7 +2,8 @@ import unreal
 import os
 import sys
 
-class Mtl():
+
+class Mtl:
     def __init__(self):
         self.name = ""
         self.textureMap = ""
@@ -15,11 +16,11 @@ class Mtl():
         self.lum = 1
         self.isAccessory = False
 
-def import_mtl(path, result):
 
+def import_mtl(path, result):
     current = None
 
-    mtl = open(path, "r", encoding = "utf-8")
+    mtl = open(path, "r", encoding="utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -48,9 +49,9 @@ def import_mtl(path, result):
         elif "d" == words[0]:
             current.trans = float(words[1])
         elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]):line.find(".png")+4]
+            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
+            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "#" == words[0]:
             if words[1] == "is_accessory":
                 current.isAccessory = True
@@ -131,7 +132,6 @@ if len(abcActors) > 0:
         importData.set_editor_property("replace_existing", True)
         importedTexList = assetTool.import_assets_automated(importData)
 
-
     for asset in assets:
         materialName = str(asset.asset_name)
         materialKey = materialName.replace("material_", "")
@@ -140,7 +140,6 @@ if len(abcActors) > 0:
         if materialKey in mtlDict.keys():
             mtlData = mtlDict[materialKey]
             if len(mtlData.textureMap) > 0:
-
                 texturePath = os.path.join(abc, mtlData.textureMap)
                 if texturePath in texturePathList:
                     texIndex = texturePathList.index(texturePath)

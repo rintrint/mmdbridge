@@ -1,8 +1,8 @@
-
 import os
 import sys
 
-class Mtl():
+
+class Mtl:
     def __init__(self):
         self.name = ""
         self.textureMap = ""
@@ -16,13 +16,13 @@ class Mtl():
         self.faceSize = 0
         self.isAccessory = False
 
-def import_mtl(path, result, relation):
 
+def import_mtl(path, result, relation):
     current = None
 
     export_mode = 0
 
-    mtl = open(path, "r", encoding = "utf-8")
+    mtl = open(path, "r", encoding="utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -62,9 +62,9 @@ def import_mtl(path, result, relation):
         elif "d" == words[0]:
             current.trans = float(words[1])
         elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]):line.find(".png")+4]
+            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
+            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "#" == words[0]:
             if words[1] == "face_size":
                 current.faceSize = int(words[2])
@@ -89,8 +89,10 @@ def descendants(node):
         for d in descendants(c):
             yield d
 
+
 def allNodes():
     return descendants(MaxPlus.Core.GetRootNode())
+
 
 def assignMaterial(abc, mtlDict, relationDict):
     for n in allNodes():
@@ -98,9 +100,9 @@ def assignMaterial(abc, mtlDict, relationDict):
         print(name)
         if "mesh_" in name and "material_" in name:
             target = n
-            temp = name[name.find("mesh_")+5 : len(name)]
+            temp = name[name.find("mesh_") + 5 : len(name)]
             objectNumber = int(temp[0 : temp.find("_material_")])
-            materialNumber = temp[temp.find("_material_")+10 : len(temp)]
+            materialNumber = temp[temp.find("_material_") + 10 : len(temp)]
             materialName = "material_" + str(objectNumber) + "_" + str(materialNumber)
 
             if materialName in mtlDict.keys():
@@ -123,6 +125,7 @@ def assignMaterial(abc, mtlDict, relationDict):
                     mat.SetActiveTexmap(tex)
 
                 target.Material = mat
+
 
 def execute():
     directory = MaxPlus.Core.EvalMAXScript('getSavePath caption:"Select MMDBridge\'s out directory"')
@@ -153,5 +156,6 @@ def execute():
     relationDict = {}
     import_mtl(mtl, mtlDict, relationDict)
     assignMaterial(abc, mtlDict, relationDict)
+
 
 execute()

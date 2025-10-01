@@ -2,7 +2,8 @@ import maya.cmds as cmds
 import os
 import sys
 
-class Mtl():
+
+class Mtl:
     def __init__(self):
         self.name = ""
         self.textureMap = ""
@@ -14,15 +15,16 @@ class Mtl():
         self.power = 0.0
         self.lum = 1
         self.faceSize = 0
+
     self.isAccessory = False
 
-def import_mtl(path, result, relation):
 
+def import_mtl(path, result, relation):
     current = None
 
     export_mode = 0
 
-    mtl = open(path, "r", encoding = "utf-8")
+    mtl = open(path, "r", encoding="utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -62,9 +64,9 @@ def import_mtl(path, result, relation):
         elif "d" == words[0]:
             current.trans = float(words[1])
         elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]):line.find(".png")+4]
+            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
+            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "#" == words[0]:
             if words[1] == "face_size":
                 current.faceSize = int(words[2])
@@ -81,6 +83,7 @@ def import_mtl(path, result, relation):
         rel.sort()
 
     return export_mode
+
 
 def execute():
     title = "MMDBridge merge tool - Select .abc directory"
@@ -113,25 +116,25 @@ def execute():
     for name in cmds.ls():
         print(name)
         if "xform_" in name and "material_" in name:
-            temp = name[name.find("xform_")+6 : len(name)]
+            temp = name[name.find("xform_") + 6 : len(name)]
             objectNumber = int(temp[0 : temp.find("_material_")])
-            materialNumber = temp[temp.find("_material_")+10 : len(temp)]
+            materialNumber = temp[temp.find("_material_") + 10 : len(temp)]
 
-            #applyFaceNumber = 0
+            # applyFaceNumber = 0
             materialName = "material_" + str(objectNumber) + "_" + str(materialNumber)
 
             if materialName in mtlDict.keys():
                 # new material
                 mtlData = mtlDict[materialName]
                 material = cmds.shadingNode("blinn", asShader=1, name=materialName)
-                sg = cmds.sets(renderable=1, noSurfaceShader=1, empty=1, name=materialName+"SG")
-                cmds.connectAttr((material+".outColor"),(sg+".surfaceShader"),f=1)
+                sg = cmds.sets(renderable=1, noSurfaceShader=1, empty=1, name=materialName + "SG")
+                cmds.connectAttr((material + ".outColor"), (sg + ".surfaceShader"), f=1)
                 # select object
                 cmds.select(name)
 
                 # select face
-                #cmds.select(name + '.f[' + str(applyFaceNumber) + ':' + str(applyFaceNumber + mtlData.faceSize) + ']', r=True)
-                #applyFaceNumber = applyFaceNumber + mtlData.faceSize
+                # cmds.select(name + '.f[' + str(applyFaceNumber) + ':' + str(applyFaceNumber + mtlData.faceSize) + ']', r=True)
+                # applyFaceNumber = applyFaceNumber + mtlData.faceSize
 
                 # assign material to object
                 cmds.hyperShade(a=materialName, assign=1)
@@ -139,26 +142,25 @@ def execute():
                 # assign texture
                 if len(mtlData.textureMap) > 0:
                     texturePath = os.path.join(abc, mtlData.textureMap)
-                    file_node = cmds.shadingNode("file", asTexture=True, n=name+"_tex")
-                    cmds.setAttr((file_node+".fileTextureName"), texturePath, type = "string")
-                    cmds.connectAttr((file_node+".outColor"), (material+".color"))
+                    file_node = cmds.shadingNode("file", asTexture=True, n=name + "_tex")
+                    cmds.setAttr((file_node + ".fileTextureName"), texturePath, type="string")
+                    cmds.connectAttr((file_node + ".outColor"), (material + ".color"))
                 else:
                     if mtlData.isAccessory:
-                        cmds.setAttr(material+".color", \
-                            mtlData.diffuse[0] + 0.5 * mtlData.ambient[0],\
-                            mtlData.diffuse[1] + 0.5 * mtlData.ambient[1],\
-                            mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
+                        cmds.setAttr(
+                            material + ".color",
+                            mtlData.diffuse[0] + 0.5 * mtlData.ambient[0],
+                            mtlData.diffuse[1] + 0.5 * mtlData.ambient[1],
+                            mtlData.diffuse[2] + 0.5 * mtlData.ambient[2],
+                        )
                     else:
-                        cmds.setAttr(material+".color", \
-                            mtlData.diffuse[0],\
-                            mtlData.diffuse[1],\
-                            mtlData.diffuse[2])
+                        cmds.setAttr(material + ".color", mtlData.diffuse[0], mtlData.diffuse[1], mtlData.diffuse[2])
 
                 if len(mtlData.alphaMap) > 0:
                     texturePath = os.path.join(abc, mtlData.alphaMap)
-                    file_node = cmds.shadingNode("file", asTexture=True, n=name+"_atex")
-                    cmds.setAttr((file_node+".fileTextureName"), texturePath, type = "string")
-                    cmds.connectAttr((file_node+".outAlpha"), (material+".translucence"))
+                    file_node = cmds.shadingNode("file", asTexture=True, n=name + "_atex")
+                    cmds.setAttr((file_node + ".fileTextureName"), texturePath, type="string")
+                    cmds.connectAttr((file_node + ".outAlpha"), (material + ".translucence"))
 
                 """
                 cmds.setAttr(material+'.transparency', \
@@ -167,16 +169,12 @@ def execute():
                     mtlData.trans)
                 """
 
-                cmds.setAttr(material+".specularColor", \
-                    mtlData.specular[0],\
-                    mtlData.specular[1],\
-                    mtlData.specular[2])
+                cmds.setAttr(material + ".specularColor", mtlData.specular[0], mtlData.specular[1], mtlData.specular[2])
 
-                cmds.setAttr(material+".ambientColor", \
-                    mtlData.ambient[0],\
-                    mtlData.ambient[1],\
-                    mtlData.ambient[2])
+                cmds.setAttr(material + ".ambientColor", mtlData.ambient[0], mtlData.ambient[1], mtlData.ambient[2])
 
                 # deselect all
                 cmds.select(all=True, deselect=True)
+
+
 execute()

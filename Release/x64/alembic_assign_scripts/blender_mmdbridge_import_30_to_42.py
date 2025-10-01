@@ -13,7 +13,8 @@ bl_info = {
     "category": "Import-Export",
 }
 
-class Mtl():
+
+class Mtl:
     def __init__(self):
         self.name = ""
         self.textureMap = ""
@@ -26,6 +27,7 @@ class Mtl():
         self.lum = 1
         self.faceSize = 0
         self.isAccessory = False
+
 
 def import_mtl(path, result, relation):
     current = None
@@ -68,9 +70,9 @@ def import_mtl(path, result, relation):
                 current.trans = float(words[1])
                 current.diffuse[3] = current.trans
             elif "map_Kd" == words[0]:
-                current.textureMap = line[line.find(words[1]):line.find(".png")+4]
+                current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
             elif "map_d" == words[0]:
-                current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
+                current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
             elif "#" == words[0]:
                 if words[1] == "face_size":
                     current.faceSize = int(words[2])
@@ -87,10 +89,12 @@ def import_mtl(path, result, relation):
 
     return export_mode
 
+
 def match_mesh_and_material(mesh_name, mtl_name):
     mesh_stripped = mesh_name.replace("xform_", "")
     mtl_stripped = mtl_name.replace("mesh_", "")
     return mesh_stripped == mtl_stripped
+
 
 def assign_material(base_path, obj, mesh, mtlmat, image_dict):
     if mtlmat.name in bpy.data.materials:
@@ -149,6 +153,7 @@ def assign_material(base_path, obj, mesh, mtlmat, image_dict):
         bsdf.inputs["Alpha"].default_value = mtlmat.trans
         mat.blend_method = "BLEND"
 
+
 def import_mmdbridge_material(filepath, context):
     image_dict = {}
     mtlDict = {}
@@ -163,6 +168,7 @@ def import_mmdbridge_material(filepath, context):
                 if match_mesh_and_material(obj.name, key):
                     assign_material(base_path, obj, obj.data, mtlmat, image_dict)
                     print(f"Assigned material {mtlmat.name} to object {obj.name}")
+
 
 def import_alembic_and_mtl(filepath, context):
     # Create a new collection called "abc"
@@ -202,6 +208,7 @@ def import_alembic_and_mtl(filepath, context):
     # Update MTL file
     update_mtl_file(mtl_file, original_materials, abc_collection.objects)
 
+
 def update_mtl_file(mtl_file, original_materials, objects):
     with open(mtl_file, "a") as f:
         f.write("\n# Original material information\n")
@@ -219,6 +226,7 @@ def update_mtl_file(mtl_file, original_materials, objects):
                     if slot.material:
                         f.write(f"# Material {i}: {slot.material.name}\n")
 
+
 class MMDBridgeAlembicImportOperator(bpy.types.Operator, ImportHelper):
     bl_idname = "import_scene.mmdbridge_alembic_material"
     bl_label = "MMDBridge Alembic and Material Importer (.abc, .mtl)"
@@ -230,16 +238,20 @@ class MMDBridgeAlembicImportOperator(bpy.types.Operator, ImportHelper):
         import_alembic_and_mtl(self.filepath, context)
         return {"FINISHED"}
 
+
 def menu_func_import(self, context):
     self.layout.operator(MMDBridgeAlembicImportOperator.bl_idname, text="MMDBridge Alembic and Material (.abc, .mtl)")
+
 
 def register():
     bpy.utils.register_class(MMDBridgeAlembicImportOperator)
     bpy.types.TOPBAR_MT_file_import.append(menu_func_import)
 
+
 def unregister():
     bpy.utils.unregister_class(MMDBridgeAlembicImportOperator)
     bpy.types.TOPBAR_MT_file_import.remove(menu_func_import)
+
 
 if __name__ == "__main__":
     register()

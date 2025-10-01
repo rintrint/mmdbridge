@@ -1,4 +1,4 @@
-#thread
+# thread
 
 import mmdbridge
 from mmdbridge import *
@@ -12,6 +12,8 @@ __command_queue_lock = threading.Lock()
 __command_queue_event = threading.Event()
 
 __pyqt_thread = None
+
+
 def queueCommand(callable, arguments=()):
     if use_separate_thread == False:
         callable(*arguments)
@@ -29,6 +31,7 @@ def queueCommand(callable, arguments=()):
     # Signal the PyQt thread to run the task.
     __command_queue_event.set()
 
+
 def __pyQtThreadMain():
     from PyQt4 import QtCore
     from PyQt4 import QtGui
@@ -43,7 +46,10 @@ def __pyQtThreadMain():
         # Run the command.
         command[0].__call__(*command[1])
 
+
 __pyqt_app = None
+
+
 def getApplication():
     from PyQt4 import QtCore
     from PyQt4 import QtGui
@@ -54,13 +60,7 @@ def getApplication():
     return __pyqt_app
 
 
-
-
-
-
-
 def runPyQtTestInThread():
-
     from PyQt4 import QtCore, QtGui
 
     try:
@@ -98,17 +98,15 @@ def runPyQtTestInThread():
             QtCore.QObject.connect(self.materialWidget, QtCore.SIGNAL(_fromUtf8("itemPressed(QListWidgetItem*)")), MainWindow.materialSelected)
             QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-
         def retranslateUi(self, MainWindow):
             MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "MainWindow", None, QtGui.QApplication.UnicodeUTF8))
             self.testRenderButton.setText(QtGui.QApplication.translate("MainWindow", "Test Render", None, QtGui.QApplication.UnicodeUTF8))
             self.okButton.setText(QtGui.QApplication.translate("MainWindow", "OK", None, QtGui.QApplication.UnicodeUTF8))
 
-
     class HelloWindow(QtGui.QMainWindow):
         material_dict = {}
 
-        def __init__(self, win_parent = None):
+        def __init__(self, win_parent=None):
             QtGui.QMainWindow.__init__(self, win_parent)
             self.ui = Ui_MainWindow()
             self.ui.setupUi(self)
@@ -121,10 +119,10 @@ def runPyQtTestInThread():
 
         def testRenderButtonPressed(self):
             messagebox("not implemented")
-            app.exit();
+            app.exit()
 
         def okButtonPressed(self):
-            app.exit();
+            app.exit()
 
         def materialSelected(self, item):
             buf_mat = self.material_dict[item.text()]
@@ -134,5 +132,6 @@ def runPyQtTestInThread():
     main_window = HelloWindow()
     main_window.show()
     app.exec_()
+
 
 queueCommand(runPyQtTestInThread)

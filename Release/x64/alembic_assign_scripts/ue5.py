@@ -75,9 +75,7 @@ def assignTexAndMat(mtlDict, importedTexDict, materialAssets):
                 importedTex = importedTexDict[texKey].get_asset()
                 colorTexNode = ME.get_material_property_input_node(matInstance, unreal.MaterialProperty.MP_BASE_COLOR)
                 if importedTex and colorTexNode == None:
-                    colorTexNode = ME.create_material_expression(
-                        matInstance, unreal.MaterialExpressionTextureSample, -350, -200
-                    )
+                    colorTexNode = ME.create_material_expression(matInstance, unreal.MaterialExpressionTextureSample, -350, -200)
                     ME.connect_material_property(colorTexNode, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
                     ME.connect_material_property(colorTexNode, "A", unreal.MaterialProperty.MP_OPACITY)
                     matInstance.set_editor_property("blend_mode", unreal.BlendMode.BLEND_OPAQUE)
@@ -90,9 +88,7 @@ def assignTexAndMat(mtlDict, importedTexDict, materialAssets):
                     ME.connect_material_property(colorTexNode, "A", unreal.MaterialProperty.MP_OPACITY_MASK)
                     matInstance.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
             else:
-                colorNode = ME.create_material_expression(
-                    matInstance, unreal.MaterialExpressionConstant4Vector, -350, -200
-                )
+                colorNode = ME.create_material_expression(matInstance, unreal.MaterialExpressionConstant4Vector, -350, -200)
                 col = unreal.LinearColor()
                 if mtlData.isAccessory:
                     col.set_editor_property("r", pow(mtlData.diffuse[0] + 0.5 * mtlData.ambient[0], 2.2))

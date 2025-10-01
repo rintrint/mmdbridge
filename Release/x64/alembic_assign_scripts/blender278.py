@@ -11,24 +11,24 @@ bl_info = {
     "warning": "",
     "wiki_url": "",
     "tracker_url": "",
-    "category": "Import-Export"}
+    "category": "Import-Export",
+}
 
 import os
 import sys
 import bpy
 
-from bpy.props import (StringProperty,\
-                        BoolProperty,\
-                        FloatProperty,\
-                        EnumProperty,\
-                        )
+from bpy.props import (
+    StringProperty,
+    BoolProperty,
+    FloatProperty,
+    EnumProperty,
+)
 
-from bpy_extras.io_utils import (ImportHelper,\
-                                ExportHelper,\
-                                path_reference_mode\
-                                )
+from bpy_extras.io_utils import ImportHelper, ExportHelper, path_reference_mode
 
-class Mtl():
+
+class Mtl:
     def __init__(self):
         self.name = ""
         self.textureMap = ""
@@ -42,13 +42,13 @@ class Mtl():
         self.faceSize = 0
         self.isAccessory = False
 
-def import_mtl(path, result, relation):
 
+def import_mtl(path, result, relation):
     current = None
 
     export_mode = 0
 
-    mtl = open(path, "r", encoding = "utf-8")
+    mtl = open(path, "r", encoding="utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -88,9 +88,9 @@ def import_mtl(path, result, relation):
         elif "d" == words[0]:
             current.trans = float(words[1])
         elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]):line.find(".png")+4]
+            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
+            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "#" == words[0]:
             if words[1] == "face_size":
                 current.faceSize = int(words[2])
@@ -107,6 +107,7 @@ def import_mtl(path, result, relation):
         rel.sort()
 
     return export_mode
+
 
 def assign_material(base_path, obj, mesh, mtlmat, image_dict):
     mat = bpy.data.materials.new(mtlmat.name)
@@ -140,6 +141,7 @@ def assign_material(base_path, obj, mesh, mtlmat, image_dict):
     for poly in mesh.polygons:
         poly.use_smooth = True
 
+
 def import_mmdbridge_material(filepath, context):
     image_dict = {}
     mtlDict = {}
@@ -154,6 +156,7 @@ def import_mmdbridge_material(filepath, context):
                 name = name.replace("mesh_", "material_")
                 if key == name:
                     assign_material(base_path, obj, obj.data, mtlDict[key], image_dict)
+
 
 class MMDBridgeImportOperator(bpy.types.Operator, ImportHelper):
     bl_idname = "import_scene.mmdbridge_material"
@@ -174,19 +177,23 @@ class MMDBridgeImportOperator(bpy.types.Operator, ImportHelper):
         context.window_manager.fileselect_add(self)
         return {"RUNNING_MODAL"}
 
+
 #
 # Registration
 #
 def menu_func_import(self, context):
     self.layout.operator(MMDBridgeImportOperator.bl_idname, text="MMDBridge Material (.mtl)")
 
+
 def register():
     bpy.utils.register_module(__name__)
     bpy.types.INFO_MT_file_import.append(menu_func_import)
 
+
 def unregister():
     bpy.utils.unregister_module(__name__)
     bpy.types.INFO_MT_file_import.remove(menu_func_import)
+
 
 if __name__ == "__main__":
     register()

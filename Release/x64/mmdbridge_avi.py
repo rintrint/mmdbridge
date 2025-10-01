@@ -19,13 +19,13 @@ start_frame = get_start_frame()
 end_frame = get_end_frame()
 
 framenumber = get_frame_number()
-if (framenumber == start_frame):
+if framenumber == start_frame:
     messagebox("avi export started")
     start_avi_export("", export_mode)
 
-if (start_frame <= framenumber <= end_frame):
+if start_frame <= framenumber <= end_frame:
     execute_avi_export(framenumber)
 
-if (framenumber == end_frame):
+if framenumber == end_frame:
     messagebox("avi export ended at " + str(framenumber))
     end_avi_export()
