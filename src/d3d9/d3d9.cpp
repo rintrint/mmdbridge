@@ -309,7 +309,7 @@ static void messagebox(std::string title, std::string message)
 
 static void message(std::string message)
 {
-	::MessageBoxA(NULL, message.c_str(), "message", MB_OK);
+	::MessageBoxA(NULL, message.c_str(), "MMDBridge", MB_OK);
 }
 
 static void messagebox_float4(float v[4], const char* title)
