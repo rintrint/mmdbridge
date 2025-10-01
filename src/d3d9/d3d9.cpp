@@ -3018,6 +3018,11 @@ void d3d9_dispose()
 	MH_Uninitialize();
 	// +++++ MINHOOK HOOKING LOGIC END +++++
 
+	if (Py_IsInitialized())
+	{
+		Py_FinalizeEx();
+	}
+
 	renderData.dispose();
 	DisposePMX();
 	DisposeVMD();
