@@ -25,7 +25,7 @@ if (framenumber == start_frame):
 	messagebox("pmx export started")
 	start_pmx_export("", "pmx_export")
 
-if (framenumber >= start_frame or framenumber <= end_frame):
+if (start_frame <= framenumber <= end_frame):
 	execute_pmx_export(framenumber)
 
 if (framenumber == end_frame):

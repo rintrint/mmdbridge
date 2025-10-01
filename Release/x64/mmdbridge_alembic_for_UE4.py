@@ -105,7 +105,7 @@ if (framenumber == start_frame):
 	copy_textures(texture_export_dir.replace("/", "\\"))
 	start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
 
-if (framenumber >= start_frame or framenumber <= end_frame):
+if (start_frame <= framenumber <= end_frame):
 	execute_alembic_export(framenumber)
 
 if (framenumber == end_frame):
