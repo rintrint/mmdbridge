@@ -7,14 +7,14 @@ from math import *
 import time
 
 
-vidropath = 'C://Program Files/vidro100630x64en/vidro.exe'
+vidropath = "C://Program Files/vidro100630x64en/vidro.exe"
 
 
 def export_mtl(mtlpath):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    mtlfile = open(mtlpath, "a", encoding = "utf-8")
 
     for buf in range(get_vertex_buffer_size()):
         for mat in range(get_material_size(buf)):
@@ -50,7 +50,7 @@ def export_obj(objpath, material_file_name):
     if os.path.isfile(objpath):
         os.remove(objpath)
 
-    objfile = open(objpath, 'a')
+    objfile = open(objpath, "a")
 
     objfile.write("mtllib "+material_file_name+"\n")
 
@@ -109,17 +109,17 @@ def export_vdr(vdrpath, objpath, mtlpath):
     if (get_vertex_buffer_size() > 0):
         light = get_light(0)
 
-    vdrfile = open(vdrpath, 'a')
+    vdrfile = open(vdrpath, "a")
 
     vdrline = "vidro110429"+"\n"
-    vdrline += "new Space \"spa0\""+"\n"
-    vdrline += "  new Object \"obj0\""+"\n"
-    vdrline += "    File "+'\"' + objpath + '\"'+"\n"
-    vdrline += "new Volume \"vol0\""+"\n"
-    vdrline += "  new ParallelLight \"light0\""+"\n"
+    vdrline += 'new Space "spa0"'+"\n"
+    vdrline += '  new Object "obj0"'+"\n"
+    vdrline += "    File "+'"' + objpath + '"'+"\n"
+    vdrline += 'new Volume "vol0"'+"\n"
+    vdrline += '  new ParallelLight "light0"'+"\n"
     vdrline += "    Direction " + str(light[0]) + " " + str(light[1]) + " " + str(-light[2]) + "\n"
 
-    vdrline += "new Volume \"vol1\""+"\n"
+    vdrline += 'new Volume "vol1"'+"\n"
     vdrline += "  new Eye \n"
     vdrline += "    Position " + str(eye[0]) + " " + str(eye[1]) + " " + str(-eye[2]) + "\n"
     vdrline += "    Focus " + str(at[0]) + " " + str(at[1]) + " " + str(-at[2]) + "\n"
@@ -130,15 +130,15 @@ def export_vdr(vdrpath, objpath, mtlpath):
 
 def execute_vidro(outpath, vidropath, vdrpath):
 
-    win_command_flag='start /b /normal /WAIT \"\" '
+    win_command_flag='start /b /normal /WAIT "" '
 
-    vidro = '\"' +vidropath + '\"'
-    vidro +=  ' \"' + vdrpath + '\"'
+    vidro = '"' +vidropath + '"'
+    vidro +=  ' "' + vdrpath + '"'
     vidro += " /run "
     vidro += " /gi=128 "
     vidro += " /width=" + str(get_frame_width()) + " "
     vidro += " /height=" + str(get_frame_height()) + " "
-    vidro += " /out= " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"'
+    vidro += " /out= " + '"' + outpath + "%05d" % get_frame_number() + ".png" + '"'
 #    messagebox(vidro)
 
     os.system(win_command_flag + vidro)
@@ -149,7 +149,7 @@ outpath = get_base_path().replace("\\", "/") + "out/"
 objpath = tmppath + "out.obj"
 vdrpath = tmppath + "out.vdr"
 mtlpath = tmppath + "out.mtl"
-mtlfilename = 'out.mtl'
+mtlfilename = "out.mtl"
 texture_export_dir = tmppath
 
 export_mtl(mtlpath)

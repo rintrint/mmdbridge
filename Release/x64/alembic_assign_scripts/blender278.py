@@ -48,7 +48,7 @@ def import_mtl(path, result, relation):
 
     export_mode = 0
 
-    mtl = open(path, 'r', encoding = "utf-8")
+    mtl = open(path, "r", encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -114,13 +114,13 @@ def assign_material(base_path, obj, mesh, mtlmat, image_dict):
     mat.diffuse_color = mtlmat.diffuse
     mat.specular_color = mtlmat.specular
     mat.specular_intensity = mtlmat.power
-    mat.transparency_method = 'RAYTRACE'
+    mat.transparency_method = "RAYTRACE"
     mat.use_transparency = True
     if mtlmat.textureMap != "":
         mat.alpha = 0.0
         tex = mat.texture_slots.create(0)
-        tex.texture = bpy.data.textures.new("diffuse", type='IMAGE')
-        tex.texture_coords = 'UV'
+        tex.texture = bpy.data.textures.new("diffuse", type="IMAGE")
+        tex.texture_coords = "UV"
         tex.use = True
         tex.use_map_color_diffuse = True
         tex.use_map_alpha = True
@@ -150,8 +150,8 @@ def import_mmdbridge_material(filepath, context):
     for key in mtlDict:
         for obj in bpy.data.objects:
             if obj.type == "MESH" and obj.data != None:
-                name = obj.data.name.replace('material_', '')
-                name = name.replace('mesh_', 'material_')
+                name = obj.data.name.replace("material_", "")
+                name = name.replace("mesh_", "material_")
                 if key == name:
                     assign_material(base_path, obj, obj.data, mtlDict[key], image_dict)
 
@@ -168,11 +168,11 @@ class MMDBridgeImportOperator(bpy.types.Operator, ImportHelper):
 
     def execute(self, context):
         import_mmdbridge_material(self.filepath, bpy.context)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
     def invoke(self, context, event):
         context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+        return {"RUNNING_MODAL"}
 
 #
 # Registration

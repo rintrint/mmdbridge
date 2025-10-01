@@ -13,8 +13,8 @@ def export_rib(ribpath):
     if os.path.isfile(ribpath):
         os.remove(ribpath)
 
-    win_command_flag='start /b /normal /WAIT \"\" '
-    ribfile = open(ribpath, 'a')
+    win_command_flag='start /b /normal /WAIT "" '
+    ribfile = open(ribpath, "a")
 
     eye = get_camera_eye()
     up = get_camera_up()
@@ -32,18 +32,18 @@ def export_rib(ribpath):
         light = get_light(0)
 
     ribfile.write("##RenderMan RIB-Structure 1.0\n")
-    ribfile.write("Display "+'\"'+str(get_frame_number())+".tif"+'\"'+" \"file\" \"rgb\"\n")
+    ribfile.write("Display "+'"'+str(get_frame_number())+".tif"+'"'+' "file" "rgb"\n')
     ribfile.write("Format "+str(get_frame_width())+" "+str(get_frame_height())+" 1\n")
-    ribfile.write("Projection \"perspective\" \"fov\" " + '[' +str(fov) + ']' + "\n")
+    ribfile.write('Projection "perspective" "fov" ' + "[" +str(fov) + "]" + "\n")
     ribfile.write("PixelSamples 1 1\n")
 
     ribfile.write("Rotate "+str(rot)+" "+str(axis[0])+" "+str(axis[1])+" "+str(axis[2])+"\n")
     ribfile.write("Translate "+str(-eye[0])+" "+str(-eye[1])+" "+str(-eye[2])+"\n")
     ribfile.write("WorldBegin\n")
-    ribfile.write("Attribute \"visibility\"\n")
+    ribfile.write('Attribute "visibility"\n')
 
-    ribfile.write("LightSource \"ambientlight\" 1 \"intensity\" [0.3]\n")
-    distantlight = "LightSource \"distantlight\" 2 \"string shadowname\" [\"raytrace\"] \"intensity\" [1.5] \"from\" [{0:0.6f} {1:0.6f} {2:0.6f}] \"lightcolor\" [1.0 1.0 1.0]\n"
+    ribfile.write('LightSource "ambientlight" 1 "intensity" [0.3]\n')
+    distantlight = 'LightSource "distantlight" 2 "string shadowname" ["raytrace"] "intensity" [1.5] "from" [{0:0.6f} {1:0.6f} {2:0.6f}] "lightcolor" [1.0 1.0 1.0]\n'
     ribfile.write(distantlight.format(light[0], light[1] , light[2]))
 
     for buf in range(get_vertex_buffer_size()):
@@ -60,7 +60,7 @@ def export_rib(ribpath):
             texture = get_texture(buf, mat)
 
             ribfile.write("AttributeBegin\n")
-            ribfile.write("Attribute \"identifier\" \"name\" \"" + material_name +"\"\n")
+            ribfile.write('Attribute "identifier" "name" "' + material_name +'"\n')
 
 
             if len(texture) > 0:
@@ -89,16 +89,16 @@ def export_rib(ribpath):
                         if export_texture(buf, mat, export_path):
                             intex = export_path
 
-                    ltxmake = '\"' + ltxmakepath + '\"' + " " + '\"' + intex + '\"' + " " + '\"' + outtex + '\"'
+                    ltxmake = '"' + ltxmakepath + '"' + " " + '"' + intex + '"' + " " + '"' + outtex + '"'
                     os.system(win_command_flag + ltxmake)
 
-                ribfile.write("Surface \"paintedplastic\" " + '\"'+"texturename"+'\"'+" "+'\"'+texname + ".ltx"+'\"'+"\n")
+                ribfile.write('Surface "paintedplastic" ' + '"'+"texturename"+'"'+" "+'"'+texname + ".ltx"+'"'+"\n")
             else:
-                ribfile.write("Surface \"paintedplastic\"\n" )
+                ribfile.write('Surface "paintedplastic"\n' )
 
-            ribfile.write("\"Ka\" [ 0.5 ]\n")
-            ribfile.write("\"Kd\" [ 0.7 ]\n")
-            ribfile.write("\"Ks\" [ 0.3 ]\n")
+            ribfile.write('"Ka" [ 0.5 ]\n')
+            ribfile.write('"Kd" [ 0.7 ]\n')
+            ribfile.write('"Ks" [ 0.3 ]\n')
             ribfile.write("Color [ "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+" ]"+"\n")
 
             for findex in range(get_face_size(buf, mat)):
@@ -107,13 +107,13 @@ def export_rib(ribpath):
                 v0 = get_vertex(buf, f[0]-1)
                 v1 = get_vertex(buf, f[1]-1)
                 v2 = get_vertex(buf, f[2]-1)
-                verts = "\"P\" [ {0:0.6f} {1:0.6f} {2:0.6f} {3:0.6f} {4:0.6f} {5:0.6f} {6:0.6f} {7:0.6f} {8:0.6f}] "
+                verts = '"P" [ {0:0.6f} {1:0.6f} {2:0.6f} {3:0.6f} {4:0.6f} {5:0.6f} {6:0.6f} {7:0.6f} {8:0.6f}] '
                 ribfile.write(verts.format(v0[0], v0[1], v0[2], v1[0], v1[1], v1[2], v2[0], v2[1], v2[2]))
 
                 n0 = get_normal(buf, f[0]-1)
                 n1 = get_normal(buf, f[1]-1)
                 n2 = get_normal(buf, f[2]-1)
-                normals = "\"N\" [ {0:0.6f} {1:0.6f} {2:0.6f} {3:0.6f} {4:0.6f} {5:0.6f} {6:0.6f} {7:0.6f} {8:0.6f}] "
+                normals = '"N" [ {0:0.6f} {1:0.6f} {2:0.6f} {3:0.6f} {4:0.6f} {5:0.6f} {6:0.6f} {7:0.6f} {8:0.6f}] '
                 ribfile.write(normals.format(n0[0], n0[1], n0[2], n1[0], n1[1], n1[2], n2[0], n2[1], n2[2]))
 
                 uv0 = [0,0]
@@ -123,7 +123,7 @@ def export_rib(ribpath):
                     uv0 = get_uv(buf, f[0]-1)
                     uv1 = get_uv(buf, f[1]-1)
                     uv2 = get_uv(buf, f[2]-1)
-                uvs = "\"st\" [ {0:0.6f} {1:0.6f} {2:0.6f} {3:0.6f} {4:0.6f} {5:0.6f} ] "
+                uvs = '"st" [ {0:0.6f} {1:0.6f} {2:0.6f} {3:0.6f} {4:0.6f} {5:0.6f} ] '
                 ribfile.write(uvs.format(uv0[0], uv0[1], uv1[0], uv1[1], uv2[0], uv2[1]))
 
             ribfile.write("AttributeEnd\n")

@@ -50,7 +50,7 @@ def getApplication():
 
     global __pyqt_app
     if __pyqt_app is None:
-        __pyqt_app = QtGui.QApplication(['mmdbridge'])
+        __pyqt_app = QtGui.QApplication(["mmdbridge"])
     return __pyqt_app
 
 

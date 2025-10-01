@@ -8,7 +8,7 @@ import time
 from xml.dom import minidom, Node
 
 #octanepath = 'C://Program Files/Refractive Software/OctaneRender 1.024 beta2.46b CUDA 3.2/octane.exe'
-octanepath = 'F:/work/OctaneRender_TEST_1025_beta255_win_x64/octane.exe'
+octanepath = "F:/work/OctaneRender_TEST_1025_beta255_win_x64/octane.exe"
 
 
 class OCSObjImportParams:
@@ -105,7 +105,7 @@ class OCSObjImportParams:
 
     def __init__(self, doc):
         self.doc = doc
-        self.element = doc.createElement('objmeshimportparams')
+        self.element = doc.createElement("objmeshimportparams")
         self.overrideDuringMeshImport = None
         self.importMtlMaterials = None
         self.importSmooth = None
@@ -137,115 +137,115 @@ class OCSObjImportParams:
 
     def setOverrideDuringMeshImport(self, value):
         if self.overrideDuringMeshImport == None:
-            self.overrideDuringMeshImport = self.doc.createElement('overrideDuringMeshImport')
+            self.overrideDuringMeshImport = self.doc.createElement("overrideDuringMeshImport")
         self.overrideDuringMeshImport.appendChild( self.doc.createTextNode(value) )
     def setImportMtlMaterials(self, value):
         if self.importMtlMaterials == None:
-            self.importMtlMaterials = self.doc.createElement('importMtlMaterials')
+            self.importMtlMaterials = self.doc.createElement("importMtlMaterials")
         self.importMtlMaterials.appendChild( self.doc.createTextNode(value) )
     def setImportSmooth(self, value):
         if self.importSmooth == None:
-            self.importSmooth = self.doc.createElement('importSmooth')
+            self.importSmooth = self.doc.createElement("importSmooth")
         self.importSmooth.appendChild( self.doc.createTextNode(value) )
     def setUseSuppliedVertexNormals(self, value):
         if self.useSuppliedVertexNormals == None:
-            self.useSuppliedVertexNormals = self.doc.createElement('useSuppliedVertexNormals')
+            self.useSuppliedVertexNormals = self.doc.createElement("useSuppliedVertexNormals")
         self.useSuppliedVertexNormals.appendChild( self.doc.createTextNode(value) )
     def setUseSuppliedSmoothGroupsAsBoundaries(self, value):
         if self.useSuppliedSmoothGroupsAsBoundaries == None:
-            self.useSuppliedSmoothGroupsAsBoundaries = self.doc.createElement('useSuppliedSmoothGroupsAsBoundaries')
+            self.useSuppliedSmoothGroupsAsBoundaries = self.doc.createElement("useSuppliedSmoothGroupsAsBoundaries")
         self.useSuppliedSmoothGroupsAsBoundaries.appendChild( self.doc.createTextNode(value) )
     def setImportImageTextures(self, value):
         if self.importImageTextures == None:
-            self.importImageTextures = self.doc.createElement('importImageTextures')
+            self.importImageTextures = self.doc.createElement("importImageTextures")
         self.importImageTextures.appendChild( self.doc.createTextNode(value) )
     def setDiffuse(self, value):
         if self.diffuse == None:
-            self.diffuse = self.doc.createElement('diffuse')
+            self.diffuse = self.doc.createElement("diffuse")
         self.diffuse.appendChild( self.doc.createTextNode(value) )
     def setGlossy(self, value):
         if self.glossy == None:
-            self.glossy = self.doc.createElement('glossy')
+            self.glossy = self.doc.createElement("glossy")
         self.glossy.appendChild( self.doc.createTextNode(value) )
     def setSpecular(self, value):
         if self.specular == None:
-            self.specular = self.doc.createElement('specular')
+            self.specular = self.doc.createElement("specular")
         self.specular.appendChild( self.doc.createTextNode(value) )
     def setRoughness(self, value):
         if self.roughness == None:
-            self.roughness = self.doc.createElement('roughness')
+            self.roughness = self.doc.createElement("roughness")
         self.roughness.appendChild( self.doc.createTextNode(value) )
     def setIndex(self, value):
         if self.index == None:
-            self.index = self.doc.createElement('index')
+            self.index = self.doc.createElement("index")
         self.index.appendChild( self.doc.createTextNode(value) )
     def setTextureDiffuse(self, value):
         if self.textureDiffuse == None:
-            self.textureDiffuse = self.doc.createElement('textureDiffuse')
+            self.textureDiffuse = self.doc.createElement("textureDiffuse")
         self.textureDiffuse.appendChild( self.doc.createTextNode(value) )
     def setTextureSpecular(self, value):
         if self.textureSpecular == None:
-            self.textureSpecular = self.doc.createElement('textureSpecular')
+            self.textureSpecular = self.doc.createElement("textureSpecular")
         self.textureSpecular.appendChild( self.doc.createTextNode(value) )
     def setTextureRoughness(self, value):
         if self.textureRoughness == None:
-            self.textureRoughness = self.doc.createElement('textureRoughness')
+            self.textureRoughness = self.doc.createElement("textureRoughness")
         self.textureRoughness.appendChild( self.doc.createTextNode(value) )
     def setTextureBump(self, value):
         if self.textureBump == None:
-            self.textureBump = self.doc.createElement('textureBump')
+            self.textureBump = self.doc.createElement("textureBump")
         self.textureBump.appendChild( self.doc.createTextNode(value) )
     def setTextureOpacity(self, value):
         if self.textureOpacity == None:
-            self.textureOpacity = self.doc.createElement('textureOpacity')
+            self.textureOpacity = self.doc.createElement("textureOpacity")
         self.textureOpacity.appendChild( self.doc.createTextNode(value) )
     def setTextureDiffuseAsFloatImage(self, value):
         if self.textureDiffuseAsFloatImage == None:
-            self.textureDiffuseAsFloatImage = self.doc.createElement('textureDiffuseAsFloatImage')
+            self.textureDiffuseAsFloatImage = self.doc.createElement("textureDiffuseAsFloatImage")
         self.textureDiffuseAsFloatImage.appendChild( self.doc.createTextNode(value) )
     def setTextureSpecularAsFloatImage(self, value):
         if self.textureSpecularAsFloatImage == None:
-            self.textureSpecularAsFloatImage = self.doc.createElement('textureSpecularAsFloatImage')
+            self.textureSpecularAsFloatImage = self.doc.createElement("textureSpecularAsFloatImage")
         self.textureSpecularAsFloatImage.appendChild( self.doc.createTextNode(value) )
     def setTextureRoughnessAsFloatImage(self, value):
         if self.textureRoughnessAsFloatImage == None:
-            self.textureRoughnessAsFloatImage = self.doc.createElement('textureRoughnessAsFloatImage')
+            self.textureRoughnessAsFloatImage = self.doc.createElement("textureRoughnessAsFloatImage")
         self.textureRoughnessAsFloatImage.appendChild( self.doc.createTextNode(value) )
     def setTextureBumpUseScale(self, value):
         if self.textureBumpUseScale == None:
-            self.textureBumpUseScale = self.doc.createElement('textureBumpUseScale')
+            self.textureBumpUseScale = self.doc.createElement("textureBumpUseScale")
         self.textureBumpUseScale.appendChild( self.doc.createTextNode(value) )
     def setTextureBumpAsFloatImage(self, value):
         if self.textureBumpAsFloatImage == None:
-            self.textureBumpAsFloatImage = self.doc.createElement('textureBumpAsFloatImage')
+            self.textureBumpAsFloatImage = self.doc.createElement("textureBumpAsFloatImage")
         self.textureBumpAsFloatImage.appendChild( self.doc.createTextNode(value) )
     def setTextureOpacityInvert(self, value):
         if self.textureOpacityInvert == None:
-            self.textureOpacityInvert = self.doc.createElement('textureOpacityInvert')
+            self.textureOpacityInvert = self.doc.createElement("textureOpacityInvert")
         self.textureOpacityInvert.appendChild( self.doc.createTextNode(value) )
     def setTextureOpacityAsFloatImage(self, value):
         if self.textureOpacityAsFloatImage == None:
-            self.textureOpacityAsFloatImage = self.doc.createElement('textureOpacityAsFloatImage')
+            self.textureOpacityAsFloatImage = self.doc.createElement("textureOpacityAsFloatImage")
         self.textureOpacityAsFloatImage.appendChild( self.doc.createTextNode(value) )
     def setTextureAutoAlphaImage(self, value):
         if self.textureAutoAlphaImage == None:
-            self.textureAutoAlphaImage = self.doc.createElement('textureAutoAlphaImage')
+            self.textureAutoAlphaImage = self.doc.createElement("textureAutoAlphaImage")
         self.textureAutoAlphaImage.appendChild( self.doc.createTextNode(value) )
     def setGlossySpecularScale(self, value):
         if self.glossySpecularScale == None:
-            self.glossySpecularScale = self.doc.createElement('glossySpecularScale')
+            self.glossySpecularScale = self.doc.createElement("glossySpecularScale")
         self.glossySpecularScale.appendChild( self.doc.createTextNode(str(value)) )
     def setUseMetaCameraObject(self, value):
         if self.useMetaCameraObject == None:
-            self.useMetaCameraObject = self.doc.createElement('useMetaCameraObject')
+            self.useMetaCameraObject = self.doc.createElement("useMetaCameraObject")
         self.useMetaCameraObject.appendChild( self.doc.createTextNode(value) )
     def setCameraMetaObjectName(self, value):
         if self.cameraMetaObjectName == None:
-            self.cameraMetaObjectName = self.doc.createElement('cameraMetaObjectName')
+            self.cameraMetaObjectName = self.doc.createElement("cameraMetaObjectName")
         self.cameraMetaObjectName.appendChild( self.doc.createTextNode(value) )
     def setScaleUnitType(self, value):
         if self.scaleUnitType == None:
-            self.scaleUnitType = self.doc.createElement('scaleUnitType')
+            self.scaleUnitType = self.doc.createElement("scaleUnitType")
         self.scaleUnitType.appendChild( self.doc.createTextNode(str(value)) )
 
 
@@ -284,7 +284,7 @@ class OCSParameters:
 
     def __init__(self, doc):
         self.doc = doc
-        self.element = doc.createElement('parameters')
+        self.element = doc.createElement("parameters")
         self.value = None
         self.valuexyz = None
         self.minvalue = None
@@ -295,39 +295,39 @@ class OCSParameters:
         self.modified = None
 
     def setValue(self, value):
-        self.value = self.doc.createElement('value')
+        self.value = self.doc.createElement("value")
         self.value.appendChild( self.doc.createTextNode(str(value)) )
 
     def setValueXyz(self, value):
-        self.valuexyz = self.doc.createElement('valuexyz')
+        self.valuexyz = self.doc.createElement("valuexyz")
         self.valuexyz.appendChild( self.doc.createTextNode(str(value)) )
 
     def setMinValue(self, value):
-        self.minvalue = self.doc.createElement('minvalue')
+        self.minvalue = self.doc.createElement("minvalue")
         self.minvalue.appendChild( self.doc.createTextNode(str(value)) )
 
     def setMaxValue(self, value):
-        self.maxvalue = self.doc.createElement('maxvalue')
+        self.maxvalue = self.doc.createElement("maxvalue")
         self.maxvalue.appendChild( self.doc.createTextNode(str(value)) )
 
     def setUseTextureUi(self, flagstr):
-        self.usetextureui = self.doc.createElement('usetextureui')
+        self.usetextureui = self.doc.createElement("usetextureui")
         self.usetextureui.appendChild( self.doc.createTextNode(str(flagstr).lower()) )
 
     def setUseTextureAlphaUi(self, flagstr):
-        self.usetexturealphaui = self.doc.createElement('usetexturealphaui')
+        self.usetexturealphaui = self.doc.createElement("usetexturealphaui")
         self.usetexturealphaui.appendChild( self.doc.createTextNode(flagstr) )
 
     def setIsLogLinCapable(self, flagstr):
-        self.isloglincapable = self.doc.createElement('isloglincapable')
+        self.isloglincapable = self.doc.createElement("isloglincapable")
         self.isloglincapable.appendChild( self.doc.createTextNode(flagstr) )
 
     def setUseLogScale(self, flagstr):
-        self.uselogscale = self.doc.createElement('uselogscale')
+        self.uselogscale = self.doc.createElement("uselogscale")
         self.uselogscale.appendChild( self.doc.createTextNode(flagstr) )
 
     def setModified(self, flagstr):
-        self.modified = self.doc.createElement('modified')
+        self.modified = self.doc.createElement("modified")
         self.modified.appendChild( self.doc.createTextNode(str(flagstr).lower()) )
 
 class OCSNodePin:
@@ -357,11 +357,11 @@ class OCSNodePin:
 
     def __init__(self, doc):
         self.doc = doc
-        self.element = doc.createElement('NodePin')
-        self.typename = doc.createElement('typename')
-        self.id = doc.createElement('id')
-        self.pintype = doc.createElement('pintype')
-        self.hasinternalnodegraph = doc.createElement('hasinternalnodegraph')
+        self.element = doc.createElement("NodePin")
+        self.typename = doc.createElement("typename")
+        self.id = doc.createElement("id")
+        self.pintype = doc.createElement("pintype")
+        self.hasinternalnodegraph = doc.createElement("hasinternalnodegraph")
         self.basenodeid = None
         self.basenodepinid = None
         self.internalnodegraph = None
@@ -381,19 +381,19 @@ class OCSNodePin:
     def setBaseNodeId(self, basenodeid):
         if (basenodeid != None):
             if (self.basenodeid == None):
-                self.basenodeid = self.doc.createElement('basenodeid')
+                self.basenodeid = self.doc.createElement("basenodeid")
             self.basenodeid.appendChild(self.doc.createTextNode( str(basenodeid) ) )
 
     def setBaseNodePinId(self, basenodepinid):
         if (basenodepinid != None):
             if (self.basenodepinid == None):
-                self.basenodepinid = self.doc.createElement('basenodepinid')
+                self.basenodepinid = self.doc.createElement("basenodepinid")
             self.basenodepinid.appendChild(self.doc.createTextNode( str(basenodepinid) ) )
 
     def addInternalNodeGraph(self, nodegraph):
         if (nodegraph != None):
             if (self.internalnodegraph == None):
-                self.internalnodegraph = self.doc.createElement('internalnodegraph')
+                self.internalnodegraph = self.doc.createElement("internalnodegraph")
             self.internalnodegraph.appendChild(nodegraph)
 
 class OCSNodeGraph:
@@ -421,12 +421,12 @@ class OCSNodeGraph:
 
     def __init__(self, doc):
         self.doc = doc
-        self.element = doc.createElement('NodeGraph')
-        self.name = doc.createElement('name')
-        self.currentnewnodeid = doc.createElement('currentnewnodeid')
-        self.currentnewnodepinconnectionid = doc.createElement('currentnewnodepinconnectionid')
-        self.nodes = doc.createElement('nodes')
-        self.nodepinconnections = doc.createElement('nodepinconnections')
+        self.element = doc.createElement("NodeGraph")
+        self.name = doc.createElement("name")
+        self.currentnewnodeid = doc.createElement("currentnewnodeid")
+        self.currentnewnodepinconnectionid = doc.createElement("currentnewnodepinconnectionid")
+        self.nodes = doc.createElement("nodes")
+        self.nodepinconnections = doc.createElement("nodepinconnections")
 
     def setName(self, name):
         self.name.appendChild( self.doc.createTextNode( name ) )
@@ -478,13 +478,13 @@ class OCSNode:
 
     def __init__(self, doc):
         self.doc = doc
-        self.element = doc.createElement('Node')
-        self.name = doc.createElement('name')
-        self.typename = doc.createElement('typename')
-        self.id = doc.createElement('id')
-        self.position = doc.createElement('position')
-        self.inputnodepins = doc.createElement('inputnodepins')
-        self.childgraph = self.doc.createElement('childgraph')
+        self.element = doc.createElement("Node")
+        self.name = doc.createElement("name")
+        self.typename = doc.createElement("typename")
+        self.id = doc.createElement("id")
+        self.position = doc.createElement("position")
+        self.inputnodepins = doc.createElement("inputnodepins")
+        self.childgraph = self.doc.createElement("childgraph")
         self.parameters = None
         self.childgraph = None
         self.objmeshimportparams = None
@@ -507,12 +507,12 @@ class OCSNode:
 
     def addChildGraph(self, graph):
         if (self.childgraph == None):
-            self.childgraph = self.doc.createElement('childgraph')
+            self.childgraph = self.doc.createElement("childgraph")
         self.childgraph.appendChild(graph)
 
     def addParameter(self, nodename, parameter):
         if (self.parameters == None):
-            self.parameters = self.doc.createElement('parameters')
+            self.parameters = self.doc.createElement("parameters")
         node = doc.createElement(nodename)
         node.appendChild( self.doc.createTextNode( str(parameter).lower() ) )
         self.parameters.appendChild(  node )
@@ -525,7 +525,7 @@ class OCSNode:
 
     def setLinkedFileName(self, str):
         if (self.linkedfilename == None):
-            self.linkedfilename = self.doc.createElement('linkedfilename')
+            self.linkedfilename = self.doc.createElement("linkedfilename")
         self.linkedfilename.appendChild( self.doc.createTextNode( str ) )
 
 class OCSScene:
@@ -543,7 +543,7 @@ class OCSScene:
 
     def __init__(self, doc):
         self.doc = doc
-        self.element = doc.createElement('OCS_1_0_23_Scene')
+        self.element = doc.createElement("OCS_1_0_23_Scene")
 
     def addNode(self, node):
         self.element.appendChild(node)
@@ -565,10 +565,10 @@ def createNode(doc, name, typename, id, position):
 
 def createNodePinConnectionElement(doc, sourceid, sourcepinid, destid, destpinid):
     element = doc.createElement("nodepinconnection")
-    esourceid = doc.createElement('sourceid')
-    esourcepinid = doc.createElement('sourcepinid')
-    edestid = doc.createElement('destid')
-    edestpinid = doc.createElement('destpinid')
+    esourceid = doc.createElement("sourceid")
+    esourcepinid = doc.createElement("sourcepinid")
+    edestid = doc.createElement("destid")
+    edestpinid = doc.createElement("destpinid")
     esourceid.appendChild( doc.createTextNode( str(sourceid) ) )
     esourcepinid.appendChild( doc.createTextNode( str(sourcepinid) ) )
     edestid.appendChild( doc.createTextNode( str(destid) ) )
@@ -1119,18 +1119,18 @@ class MaterialNodePin:
         return len(self.nodePinGraph.nodes.childNodes) + 1
 
     def setDiffuse(self, rgbValue = [1, 1, 1]):
-        node = createNode(self.doc, 'diffuse', 'RGBspectrum', self.getNextNodeId(), [0, 0])
+        node = createNode(self.doc, "diffuse", "RGBspectrum", self.getNextNodeId(), [0, 0])
         node.addParameter("rgbvalue", str(rgbValue[0])+" "+str(rgbValue[1])+" "+str(rgbValue[2]))
         self.nodePinGraph.addNode(node.getElement())
 
     def setSmooth(self, issmooth):
-        node = createNode(self.doc, 'smooth', 'bool', self.getNextNodeId(), [0, 0])
+        node = createNode(self.doc, "smooth", "bool", self.getNextNodeId(), [0, 0])
         node.addParameter("value", issmooth)
         node.addParameter("modified", True)
         self.nodePinGraph.addNode(node.getElement())
 
     def setBump(self, isbump):
-        node = createNode(self.doc, 'bump', 'floattexture', self.getNextNodeId(), [0, 0])
+        node = createNode(self.doc, "bump", "floattexture", self.getNextNodeId(), [0, 0])
         params = None
         if isbump:
             params = createParameters(doc, 1, 1, None, "false", "false", "false", "true")
@@ -1141,7 +1141,7 @@ class MaterialNodePin:
         self.nodePinGraph.addNode(node.getElement())
 
     def setOpacity(self, opacity):
-        node = createNode(self.doc, 'opacity', 'floattexture', self.getNextNodeId(), [0, 0])
+        node = createNode(self.doc, "opacity", "floattexture", self.getNextNodeId(), [0, 0])
         params = createParameters(doc, opacity, 0, 1, None, "false", "false", "false", "true")
         node.addParameters(params.getElement())
         node.addParameter("resolution", 0.001)
@@ -1321,7 +1321,7 @@ def export_mtl(mtlpath):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    mtlfile = open(mtlpath, "a", encoding = "utf-8")
 
     for buf in range(get_vertex_buffer_size()):
         for mat in range(get_material_size(buf)):
@@ -1362,7 +1362,7 @@ def export_obj(objpath, material_file_name):
     if os.path.isfile(objpath):
         os.remove(objpath)
 
-    objfile = open(objpath, 'a')
+    objfile = open(objpath, "a")
 
     objfile.write("mtllib "+material_file_name+"\n")
 
@@ -1428,7 +1428,7 @@ def export_ocs(ocspath, objrelativepath):
     if os.path.isfile(ocspath):
         os.remove(ocspath)
 
-    ocsfile = open(ocspath, 'a')
+    ocsfile = open(ocspath, "a")
     doc = minidom.Document()
     scene = OCSScene(doc)
     rootNode = createNode(doc, "mmdbridge_ocs", "projectroot", 0, [0, 0])
@@ -1492,10 +1492,10 @@ def execute_octane(outpath, octanepath, objpath, mtlpath, samples):
     if (get_vertex_buffer_size() > 0):
         light = get_light(0)
 
-    win_command_flag='start /b /normal /WAIT \"\" '
-    octane = '\"' +octanepath + '\"'
-    octane += ' -m \"mmdbridge\"'
-    octane += ' -l \"%s\"' % (objpath)
+    win_command_flag='start /b /normal /WAIT "" '
+    octane = '"' +octanepath + '"'
+    octane += ' -m "mmdbridge"'
+    octane += ' -l "%s"' % (objpath)
     octane += " -s " + str(samples)
     octane += " --cam-pos-x " + str(eye[0])
     octane += " --cam-pos-y " + str(eye[1])
@@ -1514,7 +1514,7 @@ def execute_octane(outpath, octanepath, objpath, mtlpath, samples):
         octane += " --daylight-sundir-y " + str( 0.3 )
         octane += " --daylight-sundir-z " + str(light[2])
     #octane += " -q"
-    octane += " -o " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"'
+    octane += " -o " + '"' + outpath + "%05d" % get_frame_number() + ".png" + '"'
     octane += " -e "
 
     #messagebox(octane)
@@ -1523,9 +1523,9 @@ def execute_octane(outpath, octanepath, objpath, mtlpath, samples):
 
 tmppath = get_base_path().replace("\\", "/") + "tmp/"
 outpath = get_base_path().replace("\\", "/") + "out/"
-objfilename = 'out.obj'
-mtlfilename = 'out.mtl'
-ocsfilename = 'out.ocs'
+objfilename = "out.obj"
+mtlfilename = "out.mtl"
+ocsfilename = "out.ocs"
 objpath = tmppath + objfilename
 mtlpath = tmppath + mtlfilename
 ocspath = tmppath + ocsfilename

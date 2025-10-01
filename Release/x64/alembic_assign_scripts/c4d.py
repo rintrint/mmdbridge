@@ -21,7 +21,7 @@ def import_mtl(path, result):
 
     current = None
 
-    mtl = open(path, 'r', encoding = "utf-8")
+    mtl = open(path, "r", encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -109,9 +109,9 @@ def main():
     for obj in doc.GetObjects():
         #gui.MessageDialog(obj.GetName())
         name = obj.GetName()
-        if 'xform' in name:
-            materialName = name.replace('material_', '')
-            materialName = materialName.replace('xform', 'material')
+        if "xform" in name:
+            materialName = name.replace("material_", "")
+            materialName = materialName.replace("xform", "material")
             if materialName in mtlDict.keys():
                 # new material
                 mat = c4d.BaseMaterial(c4d.Mmaterial)
@@ -169,6 +169,6 @@ def main():
             doc.SetActiveMaterial(mat)
             c4d.CallCommand(12169)
 
-if __name__=='__main__':
+if __name__=="__main__":
     main()
 

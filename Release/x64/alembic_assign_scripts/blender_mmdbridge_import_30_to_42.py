@@ -31,7 +31,7 @@ def import_mtl(path, result, relation):
     current = None
     export_mode = 0
 
-    with open(path, 'r', encoding="utf-8") as mtl:
+    with open(path, "r", encoding="utf-8") as mtl:
         for line in mtl.readlines():
             words = line.split()
             if len(words) < 2:
@@ -108,30 +108,30 @@ def assign_material(base_path, obj, mesh, mtlmat, image_dict):
 
     nodes.clear()
 
-    bsdf = nodes.new(type='ShaderNodeBsdfPrincipled')
-    material_output = nodes.new(type='ShaderNodeOutputMaterial')
+    bsdf = nodes.new(type="ShaderNodeBsdfPrincipled")
+    material_output = nodes.new(type="ShaderNodeOutputMaterial")
 
     bsdf.location = (0, 0)
     material_output.location = (400, 0)
 
-    links.new(bsdf.outputs['BSDF'], material_output.inputs['Surface'])
+    links.new(bsdf.outputs["BSDF"], material_output.inputs["Surface"])
 
-    bsdf.inputs['Base Color'].default_value = mtlmat.diffuse
+    bsdf.inputs["Base Color"].default_value = mtlmat.diffuse
 
     # Check Blender version and adjust specular input accordingly
     if bpy.app.version >= (4, 0, 0):
         # For Blender 4.0 and above
-        if 'Specular IOR Level' in bsdf.inputs:
-            bsdf.inputs['Specular IOR Level'].default_value = sum(mtlmat.specular) / 3
+        if "Specular IOR Level" in bsdf.inputs:
+            bsdf.inputs["Specular IOR Level"].default_value = sum(mtlmat.specular) / 3
     else:
         # For Blender 3.6 and below
-        if 'Specular' in bsdf.inputs:
-            bsdf.inputs['Specular'].default_value = sum(mtlmat.specular) / 3
+        if "Specular" in bsdf.inputs:
+            bsdf.inputs["Specular"].default_value = sum(mtlmat.specular) / 3
 
-    bsdf.inputs['Roughness'].default_value = 1.0 - (mtlmat.power / 100)
+    bsdf.inputs["Roughness"].default_value = 1.0 - (mtlmat.power / 100)
 
     if mtlmat.textureMap:
-        tex_image_node = nodes.new('ShaderNodeTexImage')
+        tex_image_node = nodes.new("ShaderNodeTexImage")
         tex_image_node.location = (-300, 0)
 
         texture_file_path = os.path.normpath(bpy.path.abspath(os.path.join(base_path, mtlmat.textureMap)))
@@ -143,11 +143,11 @@ def assign_material(base_path, obj, mesh, mtlmat, image_dict):
             image_dict[texture_file_path] = tex_image_node.image
 
         if tex_image_node.image:
-            links.new(tex_image_node.outputs['Color'], bsdf.inputs['Base Color'])
+            links.new(tex_image_node.outputs["Color"], bsdf.inputs["Base Color"])
 
     if mtlmat.trans < 1.0:
-        bsdf.inputs['Alpha'].default_value = mtlmat.trans
-        mat.blend_method = 'BLEND'
+        bsdf.inputs["Alpha"].default_value = mtlmat.trans
+        mat.blend_method = "BLEND"
 
 def import_mmdbridge_material(filepath, context):
     image_dict = {}
@@ -181,12 +181,12 @@ def import_alembic_and_mtl(filepath, context):
     # Record original materials
     original_materials = {}
     for obj in abc_collection.objects:
-        if obj.type == 'MESH':
+        if obj.type == "MESH":
             original_materials[obj.name] = [slot.material.name if slot.material else None for slot in obj.material_slots]
 
     # Clear all materials
     for obj in abc_collection.objects:
-        if obj.type == 'MESH':
+        if obj.type == "MESH":
             obj.data.materials.clear()
 
     # Find .mtl file in the same directory
@@ -203,7 +203,7 @@ def import_alembic_and_mtl(filepath, context):
     update_mtl_file(mtl_file, original_materials, abc_collection.objects)
 
 def update_mtl_file(mtl_file, original_materials, objects):
-    with open(mtl_file, 'a') as f:
+    with open(mtl_file, "a") as f:
         f.write("\n# Original material information\n")
         for obj_name, materials in original_materials.items():
             f.write(f"# Object: {obj_name}\n")
@@ -213,7 +213,7 @@ def update_mtl_file(mtl_file, original_materials, objects):
 
         f.write("\n# New material assignments\n")
         for obj in objects:
-            if obj.type == 'MESH':
+            if obj.type == "MESH":
                 f.write(f"# Object: {obj.name}\n")
                 for i, slot in enumerate(obj.material_slots):
                     if slot.material:
@@ -224,11 +224,11 @@ class MMDBridgeAlembicImportOperator(bpy.types.Operator, ImportHelper):
     bl_label = "MMDBridge Alembic and Material Importer (.abc, .mtl)"
 
     filename_ext = ".abc"
-    filter_glob: StringProperty(default="*.abc", options={'HIDDEN'})
+    filter_glob: StringProperty(default="*.abc", options={"HIDDEN"})
 
     def execute(self, context):
         import_alembic_and_mtl(self.filepath, context)
-        return {'FINISHED'}
+        return {"FINISHED"}
 
 def menu_func_import(self, context):
     self.layout.operator(MMDBridgeAlembicImportOperator.bl_idname, text="MMDBridge Alembic and Material (.abc, .mtl)")

@@ -19,7 +19,7 @@ def import_mtl(path, result):
 
     current = None
 
-    mtl = open(path, 'r', encoding = "utf-8")
+    mtl = open(path, "r", encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -68,7 +68,7 @@ abcActors = unreal.EditorFilterLibrary.by_class(actors, unreal.GeometryCacheAbcF
 if len(abcActors) > 0:
     actor = abcActors[0]
     comp = actor.get_component_by_class(unreal.GeometryCacheAbcFileComponent)
-    abcPath = comp.get_editor_property('alembic_file_path').file_path
+    abcPath = comp.get_editor_property("alembic_file_path").file_path
     abc = os.path.dirname(abcPath)
     docName = os.path.splitext(os.path.basename(abcPath))[0]
 
@@ -98,12 +98,12 @@ if len(abcActors) > 0:
     print(mtlDict.keys())
 
     # create Textures folder
-    texPath = '/Game/GeometryCacheAbcFile/Textures/' + docName
+    texPath = "/Game/GeometryCacheAbcFile/Textures/" + docName
     if not unreal.EditorAssetLibrary.does_directory_exist(texPath):
         unreal.EditorAssetLibrary.make_directory(texPath)
 
     registory = unreal.AssetRegistryHelpers.get_asset_registry()
-    assetPath = '/Game/GeometryCacheAbcFile/Materials/' + docName
+    assetPath = "/Game/GeometryCacheAbcFile/Materials/" + docName
 
     ME = unreal.MaterialEditingLibrary
 
@@ -113,8 +113,8 @@ if len(abcActors) > 0:
     texturePathList = []
     for asset in assets:
         materialName = str(asset.asset_name)
-        materialKey = materialName.replace('material_', '')
-        materialKey = materialKey.replace('mesh_', 'material_')
+        materialKey = materialName.replace("material_", "")
+        materialKey = materialKey.replace("mesh_", "material_")
 
         if materialKey in mtlDict.keys():
             mtlData = mtlDict[materialKey]
@@ -126,16 +126,16 @@ if len(abcActors) > 0:
     importedTexList = []
     if len(texturePathList) > 0:
         importData = unreal.AutomatedAssetImportData()
-        importData.set_editor_property('destination_path', texPath)
-        importData.set_editor_property('filenames', texturePathList)
-        importData.set_editor_property('replace_existing', True)
+        importData.set_editor_property("destination_path", texPath)
+        importData.set_editor_property("filenames", texturePathList)
+        importData.set_editor_property("replace_existing", True)
         importedTexList = assetTool.import_assets_automated(importData)
 
 
     for asset in assets:
         materialName = str(asset.asset_name)
-        materialKey = materialName.replace('material_', '')
-        materialKey = materialKey.replace('mesh_', 'material_')
+        materialKey = materialName.replace("material_", "")
+        materialKey = materialKey.replace("mesh_", "material_")
         matInstance = asset.get_asset()
         if materialKey in mtlDict.keys():
             mtlData = mtlDict[materialKey]
@@ -155,7 +155,7 @@ if len(abcActors) > 0:
 
                     if len(mtlData.alphaMap) > 0:
                         ME.connect_material_property(colorTexNode, "A", unreal.MaterialProperty.MP_OPACITY_MASK)
-                        matInstance.set_editor_property('blend_mode', unreal.BlendMode.BLEND_MASKED)
+                        matInstance.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
             else:
                 colorNode = ME.create_material_expression(matInstance, unreal.MaterialExpressionConstant4Vector, -350, -200)
                 col = unreal.LinearColor()

@@ -19,7 +19,7 @@ is_use_ogawa = True
 export_mode = 2
 
 txmakepath = "txmake"
-alembic_dll_path = 'C:\\\\Program Files\\\\Pixar\\\\RenderManProServer-19.0\\\\etc\\\\AlembicProcPrim.dll'
+alembic_dll_path = "C:\\\\Program Files\\\\Pixar\\\\RenderManProServer-19.0\\\\etc\\\\AlembicProcPrim.dll"
 
 start_frame = get_start_frame()
 end_frame = get_end_frame()
@@ -39,7 +39,7 @@ def mult_matrix(m, mm):
 """
 
 def export_rib(ribpath, framenumber):
-    ribfile = open(ribpath, 'a')
+    ribfile = open(ribpath, "a")
 
     eye = get_camera_eye()
     up = get_camera_up()
@@ -60,19 +60,19 @@ def export_rib(ribpath, framenumber):
 
     ribfile.write("FrameBegin " + str(get_frame_number()-start_frame+1) +"\n")
 
-    ribfile.write("Display "+'\"'+str(get_frame_number())+".tif"+'\"'+" \"file\" \"rgb\"\n")
+    ribfile.write("Display "+'"'+str(get_frame_number())+".tif"+'"'+' "file" "rgb"\n')
     ribfile.write("Format "+str(get_frame_width())+" "+str(get_frame_height())+" 1\n")
-    ribfile.write("Projection \"perspective\" \"fov\" " + '[' +str(fov) + ']' + "\n")
+    ribfile.write('Projection "perspective" "fov" ' + "[" +str(fov) + "]" + "\n")
     ribfile.write("PixelSamples 1 1\n")
 
     ribfile.write("Rotate "+str(rot)+" "+str(axis[0])+" "+str(axis[1])+" "+str(axis[2])+"\n")
     ribfile.write("Translate "+str(-eye[0])+" "+str(-eye[1])+" "+str(-eye[2])+"\n")
     ribfile.write("Scale 1 1 -1\n")
     ribfile.write("WorldBegin\n")
-    ribfile.write("Attribute \"visibility\"\n")
+    ribfile.write('Attribute "visibility"\n')
 
-    ribfile.write("LightSource \"ambientlight\" 1 \"intensity\" [0.3]\n")
-    distantlight = "LightSource \"distantlight\" 2 \"from\" [{0:0.6f} {1:0.6f} {2:0.6f}] \"to\" [0 0 0]\n"
+    ribfile.write('LightSource "ambientlight" 1 "intensity" [0.3]\n')
+    distantlight = 'LightSource "distantlight" 2 "from" [{0:0.6f} {1:0.6f} {2:0.6f}] "to" [0 0 0]\n'
     ribfile.write(distantlight.format(-light[0], -light[1] , -light[2]))
 
     for buf in range(get_vertex_buffer_size()):
@@ -90,18 +90,18 @@ def export_rib(ribpath, framenumber):
             texture = get_texture(buf, mat)
 
             ribfile.write("AttributeBegin\n")
-            ribfile.write("Attribute \"identifier\" \"name\" \"" + material_name +"\"\n")
+            ribfile.write('Attribute "identifier" "name" "' + material_name +'"\n')
 
 
             if len(texture) > 0:
                 texname, ext = os.path.splitext(texture)
-                ribfile.write("Surface \"paintedplastic\" " + '\"'+"texturename"+'\"'+" "+'\"'+texname + ".tex"+'\"'+"\n")
+                ribfile.write('Surface "paintedplastic" ' + '"'+"texturename"+'"'+" "+'"'+texname + ".tex"+'"'+"\n")
             else:
-                ribfile.write("Surface \"paintedplastic\"\n" )
+                ribfile.write('Surface "paintedplastic"\n' )
 
-            ribfile.write("\"Ka\" [ 0.5 ]\n")
-            ribfile.write("\"Kd\" [ 0.7 ]\n")
-            ribfile.write("\"Ks\" [ 0.3 ]\n")
+            ribfile.write('"Ka" [ 0.5 ]\n')
+            ribfile.write('"Kd" [ 0.7 ]\n')
+            ribfile.write('"Ks" [ 0.3 ]\n')
             #ribfile.write("Color [ "+str(diffuse[0])+" "+str(diffuse[1])+" "+str(diffuse[2])+" ]"+"\n")
 
             # calculate bbox
@@ -116,9 +116,9 @@ def export_rib(ribpath, framenumber):
                     box_min[i] = min([v0[i], v1[i], v2[i], box_min[i]])
                     box_max[i] = max([v0[i], v1[i], v2[i], box_max[i]])
 
-            ribfile.write("Procedural \"DynamicLoad\" [ \"" + alembic_dll_path + "\""\
-                            +" \" -filename alembic_file.abc -fps 30 -frame " + str(framenumber)\
-                            +" -flipv -objectpath /" + object_name + "\" ] "\
+            ribfile.write('Procedural "DynamicLoad" [ "' + alembic_dll_path + '"'\
+                            +' " -filename alembic_file.abc -fps 30 -frame ' + str(framenumber)\
+                            +" -flipv -objectpath /" + object_name + '" ] '\
                             +"[ "\
                             + str(box_min[0]) +" "+ str(box_max[0]) +" "\
                             + str(box_min[1]) +" "+ str(box_max[1]) +" "\
@@ -133,8 +133,8 @@ def export_mtl(mtlpath, export_mode):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    win_command_flag='start /b /normal /WAIT \"\" '
-    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    win_command_flag='start /b /normal /WAIT "" '
+    mtlfile = open(mtlpath, "a", encoding = "utf-8")
 
     mtlfile.write("# mode "+str(export_mode)+"\n")
 
@@ -182,10 +182,10 @@ def export_mtl(mtlpath, export_mode):
             mtlfile.write("lum 1\n")
             if len(texture) > 0:
                 texname, ext = os.path.splitext(texture)
-                if '/' in texname:
-                    texname = texname.split('/')[-1]
-                if '\\' in texname:
-                    texname = texname.split('\\')[-1]
+                if "/" in texname:
+                    texname = texname.split("/")[-1]
+                if "\\" in texname:
+                    texname = texname.split("\\")[-1]
                 if (ext is not ".bmp") and (ext is not ".png") and (ext is not ".tif") and \
                         (ext is not ".BMP") and (ext is not ".PNG") and (ext is not ".TIF"):
                     export_path = get_base_path() + "out\\" + texname + ".png"
@@ -201,7 +201,7 @@ def export_mtl(mtlpath, export_mode):
                 # for renderman
                 outtex = get_base_path() + "out\\" + texname + ".tex"
                 intex = get_base_path() + "out\\" + texture
-                txmake = '\"' + txmakepath + '\"' + " " + '\"' + intex + '\"' + " " + '\"' + outtex + '\"'
+                txmake = '"' + txmakepath + '"' + " " + '"' + intex + '"' + " " + '"' + outtex + '"'
                 os.system(win_command_flag + txmake)
 
 

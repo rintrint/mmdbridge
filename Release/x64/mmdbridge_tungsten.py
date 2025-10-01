@@ -11,7 +11,7 @@ def export_mtl(mtlpath):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    mtlfile = open(mtlpath, "a", encoding = "utf-8")
 
     for buf in range(get_vertex_buffer_size()):
         for mat in range(get_material_size(buf)):
@@ -56,7 +56,7 @@ def export_obj(objpath, material_file_name):
     if os.path.isfile(objpath):
         os.remove(objpath)
 
-    objfile = open(objpath, 'a')
+    objfile = open(objpath, "a")
 
     objfile.write("mtllib "+material_file_name+"\n")
 
@@ -100,10 +100,10 @@ def export_obj(objpath, material_file_name):
         last_findex = max_findex_in_buf
 
 def execute_obj2json(jsonpath, obj2jsonpath, objpath):
-    win_command_flag='start /b /normal /WAIT \"\" '
-    obj2json = '\"' +obj2jsonpath + '\"'
-    obj2json += ' \"%s\"' % (objpath)
-    obj2json += ' \"%s\"' % (jsonpath)
+    win_command_flag='start /b /normal /WAIT "" '
+    obj2json = '"' +obj2jsonpath + '"'
+    obj2json += ' "%s"' % (objpath)
+    obj2json += ' "%s"' % (jsonpath)
     #messagebox(obj2json)
     os.system(win_command_flag + obj2json)
 
@@ -116,29 +116,29 @@ def execute_tungsten(outfile, tangstenpath, jsonpath, samples):
     fov = math.degrees(2*atan(tan(camera_fov/2)*(aspect)))
 
     data = {}
-    with open(jsonpath, mode='r') as f:
+    with open(jsonpath, mode="r") as f:
         data = json.loads(f.read())
 
     if "renderer" in data:
-        renderer_desc = data['renderer']
-        renderer_desc['output_file'] = outfile
-        renderer_desc['spp'] = samples
+        renderer_desc = data["renderer"]
+        renderer_desc["output_file"] = outfile
+        renderer_desc["spp"] = samples
 
     if "primitives" in data:
-        for prim in data['primitives']:
-            prim['backface_culling'] = True
+        for prim in data["primitives"]:
+            prim["backface_culling"] = True
 
     if "camera" in data:
-        camera = data['camera']
-        camera['fov'] = fov
-        camera['resolution'] = [ get_frame_width(), get_frame_height() ]
-        transform = camera['transform']
-        transform['position'] = [ eye[0], eye[1], -eye[2] ]
-        transform['look_at'] = [ at[0], at[1], -at[2] ]
-        transform['up'] = [ up[0], up[1], -up[2] ]
+        camera = data["camera"]
+        camera["fov"] = fov
+        camera["resolution"] = [ get_frame_width(), get_frame_height() ]
+        transform = camera["transform"]
+        transform["position"] = [ eye[0], eye[1], -eye[2] ]
+        transform["look_at"] = [ at[0], at[1], -at[2] ]
+        transform["up"] = [ up[0], up[1], -up[2] ]
 
 
-    with open(jsonpath, mode='w') as f:
+    with open(jsonpath, mode="w") as f:
         text = json.dumps(data, sort_keys=True, indent=2)
         f.write(text)
 
@@ -150,15 +150,15 @@ def execute_tungsten(outfile, tangstenpath, jsonpath, samples):
 #        octane += " --daylight-sundir-y " + str( 0.3 )
 #        octane += " --daylight-sundir-z " + str(light[2])
 
-    win_command_flag='start /b /normal /WAIT \"\" '
-    tungsten = '\"' +tangstenpath + '\"'
-    tungsten += ' \"%s\"' % (jsonpath)
+    win_command_flag='start /b /normal /WAIT "" '
+    tungsten = '"' +tangstenpath + '"'
+    tungsten += ' "%s"' % (jsonpath)
 
     #messagebox(tungsten)
 
     os.system(win_command_flag + tungsten)
 
-framenumber = '%05d' % get_frame_number()
+framenumber = "%05d" % get_frame_number()
 basepath = get_base_path().replace("\\", "/")
 tmppath = basepath + "tmp/"
 outpath = basepath + "out/"

@@ -6,13 +6,13 @@ import math
 from math import *
 import time
 
-octanepath = 'C://Program Files/Refractive Software/OctaneRender 1.024 beta2.46b CUDA 3.2/octane.exe'
+octanepath = "C://Program Files/Refractive Software/OctaneRender 1.024 beta2.46b CUDA 3.2/octane.exe"
 
 def export_mtl(mtlpath):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    mtlfile = open(mtlpath, "a", encoding = "utf-8")
 
     for buf in range(get_vertex_buffer_size()):
         for mat in range(get_material_size(buf)):
@@ -55,7 +55,7 @@ def export_obj(objpath, material_file_name):
     if os.path.isfile(objpath):
         os.remove(objpath)
 
-    objfile = open(objpath, 'a')
+    objfile = open(objpath, "a")
 
     objfile.write("mtllib "+material_file_name+"\n")
 
@@ -112,10 +112,10 @@ def execute_octane(outpath, octanepath, objpath, mtlpath, samples):
     if (get_vertex_buffer_size() > 0):
         light = get_light(0)
 
-    win_command_flag='start /b /normal /WAIT \"\" '
-    octane = '\"' +octanepath + '\"'
-    octane += ' -m \"mmdbridge\"'
-    octane += ' -l \"%s\"' % (objpath)
+    win_command_flag='start /b /normal /WAIT "" '
+    octane = '"' +octanepath + '"'
+    octane += ' -m "mmdbridge"'
+    octane += ' -l "%s"' % (objpath)
     octane += " -s " + str(samples)
     octane += " --cam-pos-x " + str(eye[0])
     octane += " --cam-pos-y " + str(eye[1])
@@ -134,7 +134,7 @@ def execute_octane(outpath, octanepath, objpath, mtlpath, samples):
         octane += " --daylight-sundir-y " + str( 0.3 )
         octane += " --daylight-sundir-z " + str(light[2])
     #octane += " -q"
-    octane += " -o " + '\"' + outpath + '%05d' % get_frame_number() + ".png" + '\"'
+    octane += " -o " + '"' + outpath + "%05d" % get_frame_number() + ".png" + '"'
     octane += " -e "
 
     #messagebox(octane)
@@ -145,7 +145,7 @@ tmppath = get_base_path().replace("\\", "/") + "tmp/"
 outpath = get_base_path().replace("\\", "/") + "out/"
 objpath = tmppath + "out.obj"
 mtlpath = tmppath + "out.mtl"
-mtlfilename = 'out.mtl'
+mtlfilename = "out.mtl"
 texture_export_dir = tmppath
 
 export_mtl(mtlpath)

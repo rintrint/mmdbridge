@@ -22,7 +22,7 @@ def import_mtl(path, result, relation):
 
     export_mode = 0
 
-    mtl = open(path, 'r', encoding = "utf-8")
+    mtl = open(path, "r", encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -112,27 +112,27 @@ def execute():
 
     for name in cmds.ls():
 #        if 'xform_' in name and 'material_' in name:
-        if 'mesh_' in name:
-            objectNumber = int(name.replace('mesh_', ''))
+        if "mesh_" in name:
+            objectNumber = int(name.replace("mesh_", ""))
             materialNumbers = []
             if objectNumber in relationDict.keys():
                 materialNumbers = relationDict[objectNumber]
 
             applyFaceNumber = 0
             for materialNumber in materialNumbers:
-                materialName = 'material_' + str(objectNumber) + '_' + str(materialNumber)
+                materialName = "material_" + str(objectNumber) + "_" + str(materialNumber)
 
                 if materialName in mtlDict.keys():
                     # new material
                     mtlData = mtlDict[materialName]
-                    material = cmds.shadingNode('blinn', asShader=1, name=materialName)
-                    sg = cmds.sets(renderable=1, noSurfaceShader=1, empty=1, name=materialName+'SG')
-                    cmds.connectAttr((material+'.outColor'),(sg+'.surfaceShader'),f=1)
+                    material = cmds.shadingNode("blinn", asShader=1, name=materialName)
+                    sg = cmds.sets(renderable=1, noSurfaceShader=1, empty=1, name=materialName+"SG")
+                    cmds.connectAttr((material+".outColor"),(sg+".surfaceShader"),f=1)
                     # select object
                     cmds.select(name)
 
                     # select face
-                    cmds.select(name + '.f[' + str(applyFaceNumber) + ':' + str(applyFaceNumber + mtlData.faceSize) + ']', r=True)
+                    cmds.select(name + ".f[" + str(applyFaceNumber) + ":" + str(applyFaceNumber + mtlData.faceSize) + "]", r=True)
                     applyFaceNumber = applyFaceNumber + mtlData.faceSize
 
                     # assign material to object
@@ -142,16 +142,16 @@ def execute():
                     if len(mtlData.textureMap) > 0:
                         texturePath = os.path.join(abc, mtlData.textureMap)
                         file_node = cmds.shadingNode("file", asTexture=True, n=name+"_tex")
-                        cmds.setAttr((file_node+'.fileTextureName'), texturePath, type = "string")
-                        cmds.connectAttr((file_node+'.outColor'), (material+'.color'))
+                        cmds.setAttr((file_node+".fileTextureName"), texturePath, type = "string")
+                        cmds.connectAttr((file_node+".outColor"), (material+".color"))
                     else:
                         if mtlData.isAccessory:
-                            cmds.setAttr(material+'.color', \
+                            cmds.setAttr(material+".color", \
                                 mtlData.diffuse[0] + 0.5 * mtlData.ambient[0],\
                                 mtlData.diffuse[1] + 0.5 * mtlData.ambient[1],\
                                 mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
                         else:
-                            cmds.setAttr(material+'.color', \
+                            cmds.setAttr(material+".color", \
                                 mtlData.diffuse[0],\
                                 mtlData.diffuse[1],\
                                 mtlData.diffuse[2])
@@ -159,8 +159,8 @@ def execute():
                     if len(mtlData.alphaMap) > 0:
                         texturePath = os.path.join(abc, mtlData.alphaMap)
                         file_node = cmds.shadingNode("file", asTexture=True, n=name+"_atex")
-                        cmds.setAttr((file_node+'.fileTextureName'), texturePath, type = "string")
-                        cmds.connectAttr((file_node+'.outAlpha'), (material+'.translucence'))
+                        cmds.setAttr((file_node+".fileTextureName"), texturePath, type = "string")
+                        cmds.connectAttr((file_node+".outAlpha"), (material+".translucence"))
 
                     """
                     cmds.setAttr(material+'.transparency', \
@@ -169,12 +169,12 @@ def execute():
                         1.0-mtlData.trans)
                     """
 
-                    cmds.setAttr(material+'.specularColor', \
+                    cmds.setAttr(material+".specularColor", \
                         mtlData.specular[0],\
                         mtlData.specular[1],\
                         mtlData.specular[2])
 
-                    cmds.setAttr(material+'.ambientColor', \
+                    cmds.setAttr(material+".ambientColor", \
                         mtlData.ambient[0],\
                         mtlData.ambient[1],\
                         mtlData.ambient[2])

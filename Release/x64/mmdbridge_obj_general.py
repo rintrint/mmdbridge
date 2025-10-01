@@ -10,7 +10,7 @@ def export_mtl(mtlpath):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    mtlfile = open(mtlpath, 'a', encoding = "utf-8")
+    mtlfile = open(mtlpath, "a", encoding = "utf-8")
 
     for buf in range(get_vertex_buffer_size()):
         for mat in range(get_material_size(buf)):
@@ -46,7 +46,7 @@ def export_obj(objpath, material_file_name):
     if os.path.isfile(objpath):
         os.remove(objpath)
 
-    objfile = open(objpath, 'a')
+    objfile = open(objpath, "a")
 
     objfile.write("mtllib "+material_file_name+"\n")
 
@@ -89,7 +89,7 @@ def export_obj(objpath, material_file_name):
                 objfile.write("f "+f0+"/"+f0+"/"+f0+" "+f1+"/"+f1+"/"+f1+" "+f2+"/"+f2+"/"+f2+"\n")
         last_findex = max_findex_in_buf
 
-framenumber = '%05d' % get_frame_number()
+framenumber = "%05d" % get_frame_number()
 tmppath = get_base_path().replace("\\", "/") + "tmp/"
 outpath = get_base_path().replace("\\", "/") + "out/"
 objpath = outpath + framenumber + ".obj"

@@ -22,7 +22,7 @@ def import_mtl(path, result, relation):
 
     export_mode = 0
 
-    mtl = open(path, 'r', encoding = "utf-8")
+    mtl = open(path, "r", encoding = "utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -96,12 +96,12 @@ def assignMaterial(abc, mtlDict, relationDict):
     for n in allNodes():
         name = n.Name
         print(name)
-        if 'mesh_' in name and 'material_' in name:
+        if "mesh_" in name and "material_" in name:
             target = n
-            temp = name[name.find('mesh_')+5 : len(name)]
-            objectNumber = int(temp[0 : temp.find('_material_')])
-            materialNumber = temp[temp.find('_material_')+10 : len(temp)]
-            materialName = 'material_' + str(objectNumber) + '_' + str(materialNumber)
+            temp = name[name.find("mesh_")+5 : len(name)]
+            objectNumber = int(temp[0 : temp.find("_material_")])
+            materialNumber = temp[temp.find("_material_")+10 : len(temp)]
+            materialName = "material_" + str(objectNumber) + "_" + str(materialNumber)
 
             if materialName in mtlDict.keys():
                 # new material
