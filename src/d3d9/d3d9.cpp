@@ -884,19 +884,9 @@ namespace
 			return "";
 		}
 
-		const int cp932_len = static_cast<int>(strlen(cp932));
-		if (cp932_len == 0)
-			return "";
-
-		const int size_needed = ::MultiByteToWideChar(932, 0, cp932, cp932_len, NULL, 0);
-		if (size_needed <= 0)
-		{
-			return "";
-		}
-
-		std::wstring utf16_str(size_needed, L'\0');
-		::MultiByteToWideChar(932, 0, cp932, cp932_len, &utf16_str[0], size_needed);
-		return umbase::UMStringUtil::wstring_to_utf8(utf16_str);
+		std::string utf8_filename;
+		oguna::EncodingConverter::Cp932ToUtf8(cp932, static_cast<int>(strlen(cp932)), &utf8_filename);
+		return utf8_filename;
 	}
 
 	std::string get_object_filename(int at)
@@ -938,19 +928,9 @@ namespace
 			return "";
 		}
 
-		const int cp932_len = static_cast<int>(strlen(cp932));
-		if (cp932_len == 0)
-			return "";
-
-		const int size_needed = ::MultiByteToWideChar(932, 0, cp932, cp932_len, NULL, 0);
-		if (size_needed <= 0)
-		{
-			return "";
-		}
-
-		std::wstring utf16_str(size_needed, L'\0');
-		::MultiByteToWideChar(932, 0, cp932, cp932_len, &utf16_str[0], size_needed);
-		return umbase::UMStringUtil::wstring_to_utf8(utf16_str);
+		std::string utf8_name;
+		oguna::EncodingConverter::Cp932ToUtf8(cp932, static_cast<int>(strlen(cp932)), &utf8_name);
+		return utf8_name;
 	}
 
 	std::vector<float> get_bone_matrix(int at, int bone_index)
@@ -1341,13 +1321,9 @@ void run_python_script()
 		}
 		std::string error_report_utf8 = error_report.str();
 
-		int wide_char_size = ::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, NULL, 0);
-		if (wide_char_size > 0)
-		{
-			std::wstring wide_error_message(wide_char_size, L'\0');
-			::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, &wide_error_message[0], wide_char_size);
-			::MessageBoxW(NULL, wide_error_message.c_str(), L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
-		}
+		std::wstring wide_error_message;
+		oguna::EncodingConverter::Utf8ToUtf16(error_report_utf8.c_str(), static_cast<int>(error_report_utf8.length()), &wide_error_message);
+		::MessageBoxW(NULL, wide_error_message.c_str(), L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
 	}
 }
 //-----------------------------------------------------------Hook function pointers-----------------------------------------------------------
