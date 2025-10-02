@@ -275,7 +275,7 @@ static void export_pmx(int currentframe, bool isfirst)
 
 	{
 		PMXPtr pmx = archive.file_data.pmx;
-		PmxMorphPtr morph = PmxMorphPtr(new pmx::PmxMorph);
+		PmxMorphPtr morph = std::make_shared<pmx::PmxMorph>();
 		const size_t vertex_count = archive.base_vertex_list.size();
 		morph->morph_type = pmx::MorphType::Vertex;
 		morph->category = pmx::MorphCategory::Other;
