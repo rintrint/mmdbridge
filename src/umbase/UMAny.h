@@ -42,7 +42,7 @@ public:
 	{
 	public:
 		virtual ~placeholder() {}
-		virtual placeholder* clone() const = 0;
+		virtual std::unique_ptr<placeholder> clone() const = 0;
 	};
 
 	template<typename  T>
@@ -55,9 +55,9 @@ public:
 
 		~holder() {}
 
-		placeholder* clone() const
+		std::unique_ptr<placeholder> clone() const override
 		{
-			return new holder<T>(content);
+			return std::make_unique<holder<T>>(content);
 		}
 
 		T content;
