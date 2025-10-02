@@ -12,6 +12,7 @@
 
 #include <memory>
 #include <utility>
+#include <typeinfo>
 
 /// uimac base library
 namespace umbase
@@ -95,10 +96,70 @@ public:
 	std::unique_ptr<placeholder> content;
 };
 
+/**
+ * @brief Safely casts the content of a UMAny object to a specified type.
+ * @tparam T The type to cast to.
+ * @param umany A pointer to the UMAny object.
+ * @return A pointer to the contained value if the cast is successful, otherwise nullptr.
+ */
+template<typename T>
+T* any_cast(UMAny* umany)
+{
+	if (!umany) return nullptr;
+	auto* holder_ptr = dynamic_cast<UMAny::holder<T>*>(umany->content.get());
+	return holder_ptr ? &holder_ptr->content : nullptr;
+}
+
+/**
+ * @brief Safely casts the content of a const UMAny object to a specified type.
+ * @tparam T The type to cast to.
+ * @param umany A pointer to the const UMAny object.
+ * @return A const pointer to the contained value if the cast is successful, otherwise nullptr.
+ */
+template<typename T>
+const T* any_cast(const UMAny* umany)
+{
+	if (!umany) return nullptr;
+	const auto* holder_ptr = dynamic_cast<const UMAny::holder<T>*>(umany->content.get());
+	return holder_ptr ? &holder_ptr->content : nullptr;
+}
+
+/**
+ * @brief Safely casts the content of a UMAny object to a specified type.
+ * This version takes a reference and throws std::bad_cast on failure.
+ * @tparam T The type to cast to.
+ * @param umany A reference to the UMAny object.
+ * @return A reference to the contained value.
+ * @throws std::bad_cast if the cast fails.
+ */
 template<typename T>
 T& any_cast(UMAny& umany)
 {
-	return reinterpret_cast< UMAny::holder<T> * >(&(*umany.content))->content;
+	auto* pointer = any_cast<T>(&umany);
+	if (!pointer)
+	{
+		throw std::bad_cast();
+	}
+	return *pointer;
+}
+
+/**
+ * @brief Safely casts the content of a const UMAny object to a specified type.
+ * This version takes a const reference and throws std::bad_cast on failure.
+ * @tparam T The type to cast to.
+ * @param umany A const reference to the UMAny object.
+ * @return A const reference to the contained value.
+ * @throws std::bad_cast if the cast fails.
+ */
+template<typename T>
+const T& any_cast(const UMAny& umany)
+{
+    const auto* pointer = any_cast<const T>(&umany);
+    if (!pointer)
+    {
+        throw std::bad_cast();
+    }
+    return *pointer;
 }
 
 } // umbase
