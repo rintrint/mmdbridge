@@ -295,12 +295,6 @@ std::wstring to_wstring(T value)
 	return umbase::UMStringUtil::number_to_wstring(value);
 }
 
-// Convert wide string to utf8 string
-static void to_string(std::string& dest, const std::wstring& src)
-{
-	dest = oguna::EncodingConverter::wstringTostring(src);
-}
-
 static void messagebox(const std::wstring& message, const std::wstring& title = L"MMDBridge")
 {
 	::MessageBoxW(NULL, message.c_str(), title.c_str(), MB_OK);
