@@ -133,7 +133,7 @@ install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
 )
 
 # install additional resources
-install(DIRECTORY Release/x64/alembic_assign_scripts
+install(DIRECTORY Release/x64/mmdbridge_alembic_assign_scripts
     DESTINATION ${MMD_DIR}
 )
 install(DIRECTORY
