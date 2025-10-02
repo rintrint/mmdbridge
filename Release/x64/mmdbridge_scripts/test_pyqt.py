@@ -15,7 +15,7 @@ __pyqt_thread = None
 
 
 def queueCommand(callable, arguments=()):
-    if use_separate_thread == False:
+    if use_separate_thread is False:
         callable(*arguments)
         return
 
@@ -66,7 +66,9 @@ def runPyQtTestInThread():
     try:
         _fromUtf8 = QtCore.QString.fromUtf8
     except AttributeError:
-        _fromUtf8 = lambda s: s
+
+        def _fromUtf8(s):
+            return s
 
     class Ui_MainWindow(object):
         def setupUi(self, MainWindow):

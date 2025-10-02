@@ -29,7 +29,7 @@ def import_mtl(path, result):
             continue
         if "newmtl" in words[0]:
             # save previous mtl
-            if current != None and current.name != "":
+            if current is not None and current.name != "":
                 result[current.name] = current
             # new mtl
             current = Mtl()
@@ -58,7 +58,7 @@ def import_mtl(path, result):
             if words[1] == "is_accessory":
                 current.isAccessory = True
 
-    if current != None and current.name != "":
+    if current is not None and current.name != "":
         result[current.name] = current
 
     mtl.close()

@@ -45,61 +45,61 @@ class OCSObjImportParams:
     scaleUnitType = None
 
     def getElement(self):
-        if self.overrideDuringMeshImport != None:
+        if self.overrideDuringMeshImport is not None:
             self.element.appendChild(self.overrideDuringMeshImport)
-        if self.importMtlMaterials != None:
+        if self.importMtlMaterials is not None:
             self.element.appendChild(self.importMtlMaterials)
-        if self.importSmooth != None:
+        if self.importSmooth is not None:
             self.element.appendChild(self.importSmooth)
-        if self.useSuppliedVertexNormals != None:
+        if self.useSuppliedVertexNormals is not None:
             self.element.appendChild(self.useSuppliedVertexNormals)
-        if self.useSuppliedSmoothGroupsAsBoundaries != None:
+        if self.useSuppliedSmoothGroupsAsBoundaries is not None:
             self.element.appendChild(self.useSuppliedSmoothGroupsAsBoundaries)
-        if self.importImageTextures != None:
+        if self.importImageTextures is not None:
             self.element.appendChild(self.importImageTextures)
-        if self.diffuse != None:
+        if self.diffuse is not None:
             self.element.appendChild(self.diffuse)
-        if self.glossy != None:
+        if self.glossy is not None:
             self.element.appendChild(self.glossy)
-        if self.specular != None:
+        if self.specular is not None:
             self.element.appendChild(self.specular)
-        if self.roughness != None:
+        if self.roughness is not None:
             self.element.appendChild(self.roughness)
-        if self.index != None:
+        if self.index is not None:
             self.element.appendChild(self.index)
-        if self.textureDiffuse != None:
+        if self.textureDiffuse is not None:
             self.element.appendChild(self.textureDiffuse)
-        if self.textureSpecular != None:
+        if self.textureSpecular is not None:
             self.element.appendChild(self.textureSpecular)
-        if self.textureRoughness != None:
+        if self.textureRoughness is not None:
             self.element.appendChild(self.textureRoughness)
-        if self.textureBump != None:
+        if self.textureBump is not None:
             self.element.appendChild(self.textureBump)
-        if self.textureOpacity != None:
+        if self.textureOpacity is not None:
             self.element.appendChild(self.textureOpacity)
-        if self.textureDiffuseAsFloatImage != None:
+        if self.textureDiffuseAsFloatImage is not None:
             self.element.appendChild(self.textureDiffuseAsFloatImage)
-        if self.textureSpecularAsFloatImage != None:
+        if self.textureSpecularAsFloatImage is not None:
             self.element.appendChild(self.textureSpecularAsFloatImage)
-        if self.textureRoughnessAsFloatImage != None:
+        if self.textureRoughnessAsFloatImage is not None:
             self.element.appendChild(self.textureRoughnessAsFloatImage)
-        if self.textureBumpUseScale != None:
+        if self.textureBumpUseScale is not None:
             self.element.appendChild(self.textureBumpUseScale)
-        if self.textureBumpAsFloatImage != None:
+        if self.textureBumpAsFloatImage is not None:
             self.element.appendChild(self.textureBumpAsFloatImage)
-        if self.textureOpacityInvert != None:
+        if self.textureOpacityInvert is not None:
             self.element.appendChild(self.textureOpacityInvert)
-        if self.textureOpacityAsFloatImage != None:
+        if self.textureOpacityAsFloatImage is not None:
             self.element.appendChild(self.textureOpacityAsFloatImage)
-        if self.textureAutoAlphaImage != None:
+        if self.textureAutoAlphaImage is not None:
             self.element.appendChild(self.textureAutoAlphaImage)
-        if self.glossySpecularScale != None:
+        if self.glossySpecularScale is not None:
             self.element.appendChild(self.glossySpecularScale)
-        if self.useMetaCameraObject != None:
+        if self.useMetaCameraObject is not None:
             self.element.appendChild(self.useMetaCameraObject)
-        if self.cameraMetaObjectName != None:
+        if self.cameraMetaObjectName is not None:
             self.element.appendChild(self.cameraMetaObjectName)
-        if self.scaleUnitType != None:
+        if self.scaleUnitType is not None:
             self.element.appendChild(self.scaleUnitType)
         return self.element
 
@@ -136,142 +136,142 @@ class OCSObjImportParams:
         self.scaleUnitType = None
 
     def setOverrideDuringMeshImport(self, value):
-        if self.overrideDuringMeshImport == None:
+        if self.overrideDuringMeshImport is None:
             self.overrideDuringMeshImport = self.doc.createElement("overrideDuringMeshImport")
         self.overrideDuringMeshImport.appendChild(self.doc.createTextNode(value))
 
     def setImportMtlMaterials(self, value):
-        if self.importMtlMaterials == None:
+        if self.importMtlMaterials is None:
             self.importMtlMaterials = self.doc.createElement("importMtlMaterials")
         self.importMtlMaterials.appendChild(self.doc.createTextNode(value))
 
     def setImportSmooth(self, value):
-        if self.importSmooth == None:
+        if self.importSmooth is None:
             self.importSmooth = self.doc.createElement("importSmooth")
         self.importSmooth.appendChild(self.doc.createTextNode(value))
 
     def setUseSuppliedVertexNormals(self, value):
-        if self.useSuppliedVertexNormals == None:
+        if self.useSuppliedVertexNormals is None:
             self.useSuppliedVertexNormals = self.doc.createElement("useSuppliedVertexNormals")
         self.useSuppliedVertexNormals.appendChild(self.doc.createTextNode(value))
 
     def setUseSuppliedSmoothGroupsAsBoundaries(self, value):
-        if self.useSuppliedSmoothGroupsAsBoundaries == None:
+        if self.useSuppliedSmoothGroupsAsBoundaries is None:
             self.useSuppliedSmoothGroupsAsBoundaries = self.doc.createElement("useSuppliedSmoothGroupsAsBoundaries")
         self.useSuppliedSmoothGroupsAsBoundaries.appendChild(self.doc.createTextNode(value))
 
     def setImportImageTextures(self, value):
-        if self.importImageTextures == None:
+        if self.importImageTextures is None:
             self.importImageTextures = self.doc.createElement("importImageTextures")
         self.importImageTextures.appendChild(self.doc.createTextNode(value))
 
     def setDiffuse(self, value):
-        if self.diffuse == None:
+        if self.diffuse is None:
             self.diffuse = self.doc.createElement("diffuse")
         self.diffuse.appendChild(self.doc.createTextNode(value))
 
     def setGlossy(self, value):
-        if self.glossy == None:
+        if self.glossy is None:
             self.glossy = self.doc.createElement("glossy")
         self.glossy.appendChild(self.doc.createTextNode(value))
 
     def setSpecular(self, value):
-        if self.specular == None:
+        if self.specular is None:
             self.specular = self.doc.createElement("specular")
         self.specular.appendChild(self.doc.createTextNode(value))
 
     def setRoughness(self, value):
-        if self.roughness == None:
+        if self.roughness is None:
             self.roughness = self.doc.createElement("roughness")
         self.roughness.appendChild(self.doc.createTextNode(value))
 
     def setIndex(self, value):
-        if self.index == None:
+        if self.index is None:
             self.index = self.doc.createElement("index")
         self.index.appendChild(self.doc.createTextNode(value))
 
     def setTextureDiffuse(self, value):
-        if self.textureDiffuse == None:
+        if self.textureDiffuse is None:
             self.textureDiffuse = self.doc.createElement("textureDiffuse")
         self.textureDiffuse.appendChild(self.doc.createTextNode(value))
 
     def setTextureSpecular(self, value):
-        if self.textureSpecular == None:
+        if self.textureSpecular is None:
             self.textureSpecular = self.doc.createElement("textureSpecular")
         self.textureSpecular.appendChild(self.doc.createTextNode(value))
 
     def setTextureRoughness(self, value):
-        if self.textureRoughness == None:
+        if self.textureRoughness is None:
             self.textureRoughness = self.doc.createElement("textureRoughness")
         self.textureRoughness.appendChild(self.doc.createTextNode(value))
 
     def setTextureBump(self, value):
-        if self.textureBump == None:
+        if self.textureBump is None:
             self.textureBump = self.doc.createElement("textureBump")
         self.textureBump.appendChild(self.doc.createTextNode(value))
 
     def setTextureOpacity(self, value):
-        if self.textureOpacity == None:
+        if self.textureOpacity is None:
             self.textureOpacity = self.doc.createElement("textureOpacity")
         self.textureOpacity.appendChild(self.doc.createTextNode(value))
 
     def setTextureDiffuseAsFloatImage(self, value):
-        if self.textureDiffuseAsFloatImage == None:
+        if self.textureDiffuseAsFloatImage is None:
             self.textureDiffuseAsFloatImage = self.doc.createElement("textureDiffuseAsFloatImage")
         self.textureDiffuseAsFloatImage.appendChild(self.doc.createTextNode(value))
 
     def setTextureSpecularAsFloatImage(self, value):
-        if self.textureSpecularAsFloatImage == None:
+        if self.textureSpecularAsFloatImage is None:
             self.textureSpecularAsFloatImage = self.doc.createElement("textureSpecularAsFloatImage")
         self.textureSpecularAsFloatImage.appendChild(self.doc.createTextNode(value))
 
     def setTextureRoughnessAsFloatImage(self, value):
-        if self.textureRoughnessAsFloatImage == None:
+        if self.textureRoughnessAsFloatImage is None:
             self.textureRoughnessAsFloatImage = self.doc.createElement("textureRoughnessAsFloatImage")
         self.textureRoughnessAsFloatImage.appendChild(self.doc.createTextNode(value))
 
     def setTextureBumpUseScale(self, value):
-        if self.textureBumpUseScale == None:
+        if self.textureBumpUseScale is None:
             self.textureBumpUseScale = self.doc.createElement("textureBumpUseScale")
         self.textureBumpUseScale.appendChild(self.doc.createTextNode(value))
 
     def setTextureBumpAsFloatImage(self, value):
-        if self.textureBumpAsFloatImage == None:
+        if self.textureBumpAsFloatImage is None:
             self.textureBumpAsFloatImage = self.doc.createElement("textureBumpAsFloatImage")
         self.textureBumpAsFloatImage.appendChild(self.doc.createTextNode(value))
 
     def setTextureOpacityInvert(self, value):
-        if self.textureOpacityInvert == None:
+        if self.textureOpacityInvert is None:
             self.textureOpacityInvert = self.doc.createElement("textureOpacityInvert")
         self.textureOpacityInvert.appendChild(self.doc.createTextNode(value))
 
     def setTextureOpacityAsFloatImage(self, value):
-        if self.textureOpacityAsFloatImage == None:
+        if self.textureOpacityAsFloatImage is None:
             self.textureOpacityAsFloatImage = self.doc.createElement("textureOpacityAsFloatImage")
         self.textureOpacityAsFloatImage.appendChild(self.doc.createTextNode(value))
 
     def setTextureAutoAlphaImage(self, value):
-        if self.textureAutoAlphaImage == None:
+        if self.textureAutoAlphaImage is None:
             self.textureAutoAlphaImage = self.doc.createElement("textureAutoAlphaImage")
         self.textureAutoAlphaImage.appendChild(self.doc.createTextNode(value))
 
     def setGlossySpecularScale(self, value):
-        if self.glossySpecularScale == None:
+        if self.glossySpecularScale is None:
             self.glossySpecularScale = self.doc.createElement("glossySpecularScale")
         self.glossySpecularScale.appendChild(self.doc.createTextNode(str(value)))
 
     def setUseMetaCameraObject(self, value):
-        if self.useMetaCameraObject == None:
+        if self.useMetaCameraObject is None:
             self.useMetaCameraObject = self.doc.createElement("useMetaCameraObject")
         self.useMetaCameraObject.appendChild(self.doc.createTextNode(value))
 
     def setCameraMetaObjectName(self, value):
-        if self.cameraMetaObjectName == None:
+        if self.cameraMetaObjectName is None:
             self.cameraMetaObjectName = self.doc.createElement("cameraMetaObjectName")
         self.cameraMetaObjectName.appendChild(self.doc.createTextNode(value))
 
     def setScaleUnitType(self, value):
-        if self.scaleUnitType == None:
+        if self.scaleUnitType is None:
             self.scaleUnitType = self.doc.createElement("scaleUnitType")
         self.scaleUnitType.appendChild(self.doc.createTextNode(str(value)))
 
@@ -291,21 +291,21 @@ class OCSParameters:
     modified = None
 
     def getElement(self):
-        if self.value != None:
+        if self.value is not None:
             self.element.appendChild(self.value)
-        if self.valuexyz != None:
+        if self.valuexyz is not None:
             self.element.appendChild(self.valuexyz)
-        if self.minvalue != None:
+        if self.minvalue is not None:
             self.element.appendChild(self.minvalue)
-        if self.maxvalue != None:
+        if self.maxvalue is not None:
             self.element.appendChild(self.maxvalue)
-        if self.usetextureui != None:
+        if self.usetextureui is not None:
             self.element.appendChild(self.usetextureui)
-        if self.usetexturealphaui != None:
+        if self.usetexturealphaui is not None:
             self.element.appendChild(self.usetexturealphaui)
-        if self.isloglincapable != None:
+        if self.isloglincapable is not None:
             self.element.appendChild(self.isloglincapable)
-        if self.modified != None:
+        if self.modified is not None:
             self.element.appendChild(self.modified)
         return self.element
 
@@ -375,11 +375,11 @@ class OCSNodePin:
         self.element.appendChild(self.id)
         self.element.appendChild(self.pintype)
         self.element.appendChild(self.hasinternalnodegraph)
-        if self.basenodeid != None:
+        if self.basenodeid is not None:
             self.element.appendChild(self.basenodeid)
-        if self.basenodepinid != None:
+        if self.basenodepinid is not None:
             self.element.appendChild(self.basenodepinid)
-        if self.internalnodegraph != None:
+        if self.internalnodegraph is not None:
             self.element.appendChild(self.internalnodegraph)
         return self.element
 
@@ -407,20 +407,20 @@ class OCSNodePin:
         self.hasinternalnodegraph.appendChild(self.doc.createTextNode(hasnodegraph))
 
     def setBaseNodeId(self, basenodeid):
-        if basenodeid != None:
-            if self.basenodeid == None:
+        if basenodeid is not None:
+            if self.basenodeid is None:
                 self.basenodeid = self.doc.createElement("basenodeid")
             self.basenodeid.appendChild(self.doc.createTextNode(str(basenodeid)))
 
     def setBaseNodePinId(self, basenodepinid):
-        if basenodepinid != None:
-            if self.basenodepinid == None:
+        if basenodepinid is not None:
+            if self.basenodepinid is None:
                 self.basenodepinid = self.doc.createElement("basenodepinid")
             self.basenodepinid.appendChild(self.doc.createTextNode(str(basenodepinid)))
 
     def addInternalNodeGraph(self, nodegraph):
-        if nodegraph != None:
-            if self.internalnodegraph == None:
+        if nodegraph is not None:
+            if self.internalnodegraph is None:
                 self.internalnodegraph = self.doc.createElement("internalnodegraph")
             self.internalnodegraph.appendChild(nodegraph)
 
@@ -461,11 +461,11 @@ class OCSNodeGraph:
         self.name.appendChild(self.doc.createTextNode(name))
 
     def setCurrentNewNodeId(self, id):
-        if id != None:
+        if id is not None:
             self.currentnewnodeid.appendChild(self.doc.createTextNode(str(id)))
 
     def setCurrentNewNodePinConnectionId(self, id):
-        if id != None:
+        if id is not None:
             self.currentnewnodepinconnectionid.appendChild(self.doc.createTextNode(str(id)))
 
     def addNode(self, node):
@@ -495,14 +495,14 @@ class OCSNode:
         self.element.appendChild(self.typename)
         self.element.appendChild(self.id)
         self.element.appendChild(self.position)
-        if self.parameters != None:
+        if self.parameters is not None:
             self.element.appendChild(self.parameters)
         self.element.appendChild(self.inputnodepins)
-        if self.childgraph != None:
+        if self.childgraph is not None:
             self.element.appendChild(self.childgraph)
-        if self.objmeshimportparams != None:
+        if self.objmeshimportparams is not None:
             self.element.appendChild(self.objmeshimportparams)
-        if self.linkedfilename != None:
+        if self.linkedfilename is not None:
             self.element.appendChild(self.linkedfilename)
         return self.element
 
@@ -536,12 +536,12 @@ class OCSNode:
         self.inputnodepins.appendChild(nodepin)
 
     def addChildGraph(self, graph):
-        if self.childgraph == None:
+        if self.childgraph is None:
             self.childgraph = self.doc.createElement("childgraph")
         self.childgraph.appendChild(graph)
 
     def addParameter(self, nodename, parameter):
-        if self.parameters == None:
+        if self.parameters is None:
             self.parameters = self.doc.createElement("parameters")
         node = doc.createElement(nodename)
         node.appendChild(self.doc.createTextNode(str(parameter).lower()))
@@ -554,7 +554,7 @@ class OCSNode:
         self.objmeshimportparams = importparameters
 
     def setLinkedFileName(self, str):
-        if self.linkedfilename == None:
+        if self.linkedfilename is None:
             self.linkedfilename = self.doc.createElement("linkedfilename")
         self.linkedfilename.appendChild(self.doc.createTextNode(str))
 
@@ -1363,7 +1363,7 @@ def export_mtl(mtlpath):
                 mtlfile.write("map_Kd " + texture + "\n")
                 if diffuse[3] < 1:
                     texname, ext = os.path.splitext(texture)
-                    if (ext is not "bmp") and (ext is not "png") and (ext is not "tif") and (ext is not "BMP") and (ext is not "PNG") and (ext is not "TIF"):
+                    if (ext != "bmp") and (ext != "png") and (ext != "tif") and (ext != "BMP") and (ext != "PNG") and (ext != "TIF"):
                         export_path = get_base_path() + "tmp\\" + texname + ".png"
                         export_texture(buf, mat, export_path)
                         mtlfile.write("map_d " + texname + ".png" + "\n")
@@ -1481,7 +1481,7 @@ def export_ocs(ocspath, objrelativepath):
                 mtlfile.write("map_Kd " + texture + "\n")
                 if diffuse[3] < 1:
                     texname, ext = os.path.splitext(texture)
-                    if (ext is not "bmp") and (ext is not "png") and (ext is not "tif") and (ext is not "BMP") and (ext is not "PNG") and (ext is not "TIF"):
+                    if (ext != "bmp") and (ext != "png") and (ext != "tif") and (ext != "BMP") and (ext != "PNG") and (ext != "TIF"):
                         export_path = get_base_path() + "tmp\\" + texname + ".png"
                         export_texture(buf, mat, export_path)
                         mtlfile.write("map_d " + texname + ".png" + "\n")

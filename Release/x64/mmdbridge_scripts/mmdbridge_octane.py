@@ -44,7 +44,7 @@ def export_mtl(mtlpath):
                 mtlfile.write("map_Kd " + texture + "\n")
                 if diffuse[3] < 1:
                     texname, ext = os.path.splitext(texture)
-                    if (ext is not "bmp") and (ext is not "png") and (ext is not "tif") and (ext is not "BMP") and (ext is not "PNG") and (ext is not "TIF"):
+                    if (ext != "bmp") and (ext != "png") and (ext != "tif") and (ext != "BMP") and (ext != "PNG") and (ext != "TIF"):
                         export_path = get_base_path() + "tmp\\" + texname + ".png"
                         export_texture(buf, mat, export_path)
                         mtlfile.write("map_d " + texname + ".png" + "\n")

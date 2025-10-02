@@ -26,7 +26,7 @@ def import_mtl(path, result):
             continue
         if "newmtl" in words[0]:
             # save previous mtl
-            if current != None and current.name != "":
+            if current is not None and current.name != "":
                 result[current.name] = current
             # new mtl
             current = Mtl()
@@ -55,7 +55,7 @@ def import_mtl(path, result):
             if words[1] == "is_accessory":
                 current.isAccessory = True
 
-    if current != None and current.name != "":
+    if current is not None and current.name != "":
         result[current.name] = current
 
     mtl.close()
@@ -74,7 +74,7 @@ def assignTexAndMat(mtlDict, importedTexDict, materialAssets):
                 texKey = mtlData.textureMap.replace(".png", "")
                 importedTex = importedTexDict[texKey].get_asset()
                 colorTexNode = ME.get_material_property_input_node(matInstance, unreal.MaterialProperty.MP_BASE_COLOR)
-                if importedTex and colorTexNode == None:
+                if importedTex and colorTexNode is None:
                     colorTexNode = ME.create_material_expression(matInstance, unreal.MaterialExpressionTextureSample, -350, -200)
                     ME.connect_material_property(colorTexNode, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
                     ME.connect_material_property(colorTexNode, "A", unreal.MaterialProperty.MP_OPACITY)

@@ -205,7 +205,7 @@ def export_mtl(mtlpath, export_mode):
                     texname = texname.split("/")[-1]
                 if "\\" in texname:
                     texname = texname.split("\\")[-1]
-                if (ext is not ".bmp") and (ext is not ".png") and (ext is not ".tif") and (ext is not ".BMP") and (ext is not ".PNG") and (ext is not ".TIF"):
+                if (ext != ".bmp") and (ext != ".png") and (ext != ".tif") and (ext != ".BMP") and (ext != ".PNG") and (ext != ".TIF"):
                     export_path = get_base_path() + "out\\" + texname + ".png"
                     if export_texture(buf, mat, export_path):
                         mtlfile.write("map_Kd " + texname + ".png" + "\n")

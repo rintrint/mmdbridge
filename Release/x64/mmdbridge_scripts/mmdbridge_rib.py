@@ -84,7 +84,7 @@ def export_rib(ribpath):
                     os.system(win_command_flag + tdlmake)
                     """
 
-                    if (ext is not "jpg") or (ext is not "png") or (ext is not "hdr"):
+                    if (ext != "jpg") or (ext != "png") or (ext != "hdr"):
                         export_path = get_base_path() + "tmp\\" + texname + ".png"
                         if export_texture(buf, mat, export_path):
                             intex = export_path

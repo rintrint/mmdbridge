@@ -29,7 +29,7 @@ def import_mtl(path, result, relation):
             continue
         if "newmtl" in words[0]:
             # save previous mtl
-            if current != None and current.name != "":
+            if current is not None and current.name != "":
                 # save previous mtl
                 result[current.name] = current
             # new mtl
@@ -40,7 +40,7 @@ def import_mtl(path, result, relation):
             nameSplits = current.name.split("_")
             objectNumber = int(nameSplits[1])
             materialNumber = int(nameSplits[2])
-            if not objectNumber in relation.keys():
+            if objectNumber not in relation.keys():
                 relation[objectNumber] = []
 
             relation[objectNumber].append(materialNumber)
@@ -74,7 +74,7 @@ def import_mtl(path, result, relation):
                 export_mode = int(words[2])
     mtl.close()
 
-    if current != None and current.name != "":
+    if current is not None and current.name != "":
         result[current.name] = current
 
     for rel in relation.values():
