@@ -72,7 +72,7 @@ function import_mtl(path)
         result[current.name] = current
     end
 
-    file:close()
+
     return result
 end
 

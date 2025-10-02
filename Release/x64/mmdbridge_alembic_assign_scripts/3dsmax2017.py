@@ -22,57 +22,56 @@ def import_mtl(path, result, relation):
 
     export_mode = 0
 
-    mtl = open(path, "r", encoding="utf-8")
-    for line in mtl.readlines():
-        words = line.split()
-        if len(words) < 2:
-            continue
-        if "newmtl" in words[0]:
-            # save previous mtl
-            if current is not None and current.name != "":
+    with open(path, "r", encoding="utf-8") as mtl:
+        for line in mtl.readlines():
+            words = line.split()
+            if len(words) < 2:
+                continue
+            if "newmtl" in words[0]:
                 # save previous mtl
-                result[current.name] = current
-            # new mtl
-            current = Mtl()
-            current.name = str(words[1])
+                if current is not None and current.name != "":
+                    # save previous mtl
+                    result[current.name] = current
+                # new mtl
+                current = Mtl()
+                current.name = str(words[1])
 
-            # object relations
-            nameSplits = current.name.split("_")
-            objectNumber = int(nameSplits[1])
-            materialNumber = int(nameSplits[2])
-            if objectNumber not in relation.keys():
-                relation[objectNumber] = []
+                # object relations
+                nameSplits = current.name.split("_")
+                objectNumber = int(nameSplits[1])
+                materialNumber = int(nameSplits[2])
+                if objectNumber not in relation.keys():
+                    relation[objectNumber] = []
 
-            relation[objectNumber].append(materialNumber)
+                relation[objectNumber].append(materialNumber)
 
-        if "Ka" == words[0]:
-            current.ambient[0] = float(words[1])
-            current.ambient[1] = float(words[2])
-            current.ambient[2] = float(words[3])
-        elif "Kd" == words[0]:
-            current.diffuse[0] = float(words[1])
-            current.diffuse[1] = float(words[2])
-            current.diffuse[2] = float(words[3])
-        elif "Ks" == words[0]:
-            current.specular[0] = float(words[1])
-            current.specular[1] = float(words[2])
-            current.specular[2] = float(words[3])
-        elif "Ns" == words[0]:
-            current.power = float(words[1])
-        elif "d" == words[0]:
-            current.trans = float(words[1])
-        elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
-        elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
-        elif "#" == words[0]:
-            if words[1] == "face_size":
-                current.faceSize = int(words[2])
-            elif words[1] == "is_accessory":
-                current.isAccessory = True
-            elif words[1] == "mode":
-                export_mode = int(words[2])
-    mtl.close()
+            if "Ka" == words[0]:
+                current.ambient[0] = float(words[1])
+                current.ambient[1] = float(words[2])
+                current.ambient[2] = float(words[3])
+            elif "Kd" == words[0]:
+                current.diffuse[0] = float(words[1])
+                current.diffuse[1] = float(words[2])
+                current.diffuse[2] = float(words[3])
+            elif "Ks" == words[0]:
+                current.specular[0] = float(words[1])
+                current.specular[1] = float(words[2])
+                current.specular[2] = float(words[3])
+            elif "Ns" == words[0]:
+                current.power = float(words[1])
+            elif "d" == words[0]:
+                current.trans = float(words[1])
+            elif "map_Kd" == words[0]:
+                current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
+            elif "map_d" == words[0]:
+                current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
+            elif "#" == words[0]:
+                if words[1] == "face_size":
+                    current.faceSize = int(words[2])
+                elif words[1] == "is_accessory":
+                    current.isAccessory = True
+                elif words[1] == "mode":
+                    export_mode = int(words[2])
 
     if current is not None and current.name != "":
         result[current.name] = current

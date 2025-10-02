@@ -22,71 +22,69 @@ def export_mtl(mtlpath, export_mode):
     if os.path.isfile(mtlpath):
         os.remove(mtlpath)
 
-    mtlfile = open(mtlpath, "a", encoding="utf-8")
+    with open(mtlpath, "a", encoding="utf-8") as mtlfile:
+        mtlfile.write("# mode " + str(export_mode) + "\n")
+        for buf in range(get_vertex_buffer_size()):
+            for mat in range(get_material_size(buf)):
+                material_name = "material_" + str(buf) + "_" + str(mat)
+                mtlfile.write("newmtl " + material_name + "\n")
 
-    mtlfile.write("# mode " + str(export_mode) + "\n")
+                if is_accessory(buf):
+                    mtlfile.write("# is_accessory" + "\n")
 
-    for buf in range(get_vertex_buffer_size()):
-        for mat in range(get_material_size(buf)):
-            material_name = "material_" + str(buf) + "_" + str(mat)
-            mtlfile.write("newmtl " + material_name + "\n")
+                if export_mode == 1:
+                    face_size = get_face_size(buf, mat)
+                    mtlfile.write("# face_size " + str(face_size) + "\n")
 
-            if is_accessory(buf):
-                mtlfile.write("# is_accessory" + "\n")
+                ambient = get_ambient(buf, mat)
+                diffuse = get_diffuse(buf, mat)
+                specular = get_specular(buf, mat)
+                emissive = get_emissive(buf, mat)
+                power = get_power(buf, mat)
+                texture = get_texture(buf, mat)
+                if len(texture) == 0:
+                    texture = get_exported_texture(buf, mat)
+                    if len(texture) > 0:
+                        texture = texture + ".png"
 
-            if export_mode == 1:
-                face_size = get_face_size(buf, mat)
-                mtlfile.write("# face_size " + str(face_size) + "\n")
+                if material_name == "material_0_10":
+                    messagebox(texture)
 
-            ambient = get_ambient(buf, mat)
-            diffuse = get_diffuse(buf, mat)
-            specular = get_specular(buf, mat)
-            emissive = get_emissive(buf, mat)
-            power = get_power(buf, mat)
-            texture = get_texture(buf, mat)
-            if len(texture) == 0:
-                texture = get_exported_texture(buf, mat)
+                mtlfile.write("Ka " + str(ambient[0]) + " " + str(ambient[1]) + " " + str(ambient[2]) + "\n")
+                if diffuse[0] < 0 or diffuse[1] < 0 or diffuse[2] < 0:
+                    diffuse[0] = 1
+                    diffuse[1] = 1
+                    diffuse[2] = 1
+
+                if specular[0] < 0 or specular[1] < 0 or specular[2] < 0:
+                    specular[0] = 0
+                    specular[1] = 0
+                    specular[2] = 0
+
+                mtlfile.write("Kd " + str(diffuse[0]) + " " + str(diffuse[1]) + " " + str(diffuse[2]) + "\n")
+                mtlfile.write("Ks " + str(specular[0]) + " " + str(specular[1]) + " " + str(specular[2]) + "\n")
+                if diffuse[3] < 1:
+                    mtlfile.write("d " + str(diffuse[3]) + "\n")
+                mtlfile.write("Ns " + str(power) + "\n")
+                # mtlfile.write("Ni 1.33\n")
+                # lum = 1 no specular highlights, lum = 2 light normaly
+                mtlfile.write("lum 1\n")
                 if len(texture) > 0:
-                    texture = texture + ".png"
-
-            if material_name == "material_0_10":
-                messagebox(texture)
-
-            mtlfile.write("Ka " + str(ambient[0]) + " " + str(ambient[1]) + " " + str(ambient[2]) + "\n")
-            if diffuse[0] < 0 or diffuse[1] < 0 or diffuse[2] < 0:
-                diffuse[0] = 1
-                diffuse[1] = 1
-                diffuse[2] = 1
-
-            if specular[0] < 0 or specular[1] < 0 or specular[2] < 0:
-                specular[0] = 0
-                specular[1] = 0
-                specular[2] = 0
-
-            mtlfile.write("Kd " + str(diffuse[0]) + " " + str(diffuse[1]) + " " + str(diffuse[2]) + "\n")
-            mtlfile.write("Ks " + str(specular[0]) + " " + str(specular[1]) + " " + str(specular[2]) + "\n")
-            if diffuse[3] < 1:
-                mtlfile.write("d " + str(diffuse[3]) + "\n")
-            mtlfile.write("Ns " + str(power) + "\n")
-            # mtlfile.write("Ni 1.33\n")
-            # lum = 1 no specular highlights, lum = 2 light normaly
-            mtlfile.write("lum 1\n")
-            if len(texture) > 0:
-                texname, ext = os.path.splitext(texture)
-                if "/" in texname:
-                    texname = texname.split("/")[-1]
-                if "\\" in texname:
-                    texname = texname.split("\\")[-1]
-                if (ext != ".bmp") and (ext != ".png") and (ext != ".tif") and (ext != ".BMP") and (ext != ".PNG") and (ext != ".TIF"):
-                    export_path = get_base_path() + "out\\" + texname + ".png"
-                    if export_texture(buf, mat, export_path):
-                        mtlfile.write("map_Kd " + texname + ".png" + "\n")
+                    texname, ext = os.path.splitext(texture)
+                    if "/" in texname:
+                        texname = texname.split("/")[-1]
+                    if "\\" in texname:
+                        texname = texname.split("\\")[-1]
+                    if (ext != ".bmp") and (ext != ".png") and (ext != ".tif") and (ext != ".BMP") and (ext != ".PNG") and (ext != ".TIF"):
+                        export_path = get_base_path() + "out\\" + texname + ".png"
+                        if export_texture(buf, mat, export_path):
+                            mtlfile.write("map_Kd " + texname + ".png" + "\n")
+                            if diffuse[3] < 1:
+                                mtlfile.write("map_d " + texname + ".png" + "\n")
+                    else:
+                        mtlfile.write("map_Kd " + texture + "\n")
                         if diffuse[3] < 1:
-                            mtlfile.write("map_d " + texname + ".png" + "\n")
-                else:
-                    mtlfile.write("map_Kd " + texture + "\n")
-                    if diffuse[3] < 1:
-                        mtlfile.write("map_d " + texture + "\n")
+                            mtlfile.write("map_d " + texture + "\n")
 
 
 outpath = get_base_path().replace("\\", "/") + "out/"

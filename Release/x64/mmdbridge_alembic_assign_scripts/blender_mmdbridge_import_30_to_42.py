@@ -210,7 +210,7 @@ def import_alembic_and_mtl(filepath, context):
 
 
 def update_mtl_file(mtl_file, original_materials, objects):
-    with open(mtl_file, "a") as f:
+    with open(mtl_file, "a", encoding="utf-8") as f:
         f.write("\n# Original material information\n")
         for obj_name, materials in original_materials.items():
             f.write(f"# Object: {obj_name}\n")

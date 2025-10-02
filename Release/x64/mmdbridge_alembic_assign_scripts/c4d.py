@@ -22,46 +22,44 @@ class Mtl:
 def import_mtl(path, result):
     current = None
 
-    mtl = open(path, "r", encoding="utf-8")
-    for line in mtl.readlines():
-        words = line.split()
-        if len(words) < 2:
-            continue
-        if "newmtl" in words[0]:
-            # save previous mtl
-            if current is not None and current.name != "":
-                result[current.name] = current
-            # new mtl
-            current = Mtl()
-            current.name = str(words[1])
-        if "Ka" == words[0]:
-            current.ambient[0] = float(words[1])
-            current.ambient[1] = float(words[2])
-            current.ambient[2] = float(words[3])
-        elif "Kd" == words[0]:
-            current.diffuse[0] = float(words[1])
-            current.diffuse[1] = float(words[2])
-            current.diffuse[2] = float(words[3])
-        elif "Ks" == words[0]:
-            current.specular[0] = float(words[1])
-            current.specular[1] = float(words[2])
-            current.specular[2] = float(words[3])
-        elif "Ns" == words[0]:
-            current.power = float(words[1])
-        elif "d" == words[0]:
-            current.trans = float(words[1])
-        elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
-        elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
-        elif "#" == words[0]:
-            if words[1] == "is_accessory":
-                current.isAccessory = True
+    with open(path, "r", encoding="utf-8") as mtl:
+        for line in mtl.readlines():
+            words = line.split()
+            if len(words) < 2:
+                continue
+            if "newmtl" in words[0]:
+                # save previous mtl
+                if current is not None and current.name != "":
+                    result[current.name] = current
+                # new mtl
+                current = Mtl()
+                current.name = str(words[1])
+            if "Ka" == words[0]:
+                current.ambient[0] = float(words[1])
+                current.ambient[1] = float(words[2])
+                current.ambient[2] = float(words[3])
+            elif "Kd" == words[0]:
+                current.diffuse[0] = float(words[1])
+                current.diffuse[1] = float(words[2])
+                current.diffuse[2] = float(words[3])
+            elif "Ks" == words[0]:
+                current.specular[0] = float(words[1])
+                current.specular[1] = float(words[2])
+                current.specular[2] = float(words[3])
+            elif "Ns" == words[0]:
+                current.power = float(words[1])
+            elif "d" == words[0]:
+                current.trans = float(words[1])
+            elif "map_Kd" == words[0]:
+                current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
+            elif "map_d" == words[0]:
+                current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
+            elif "#" == words[0]:
+                if words[1] == "is_accessory":
+                    current.isAccessory = True
 
     if current is not None and current.name != "":
         result[current.name] = current
-
-    mtl.close()
 
 
 def main():
