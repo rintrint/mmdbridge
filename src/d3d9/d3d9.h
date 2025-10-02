@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <map>
+#include <memory>
 
 #include "UMMathTypes.h"
 #include "UMMath.h"
@@ -165,8 +166,8 @@ typedef struct RenderedBuffer
 	typedef std::vector<D3DXVECTOR3> VertexList;
 	typedef std::vector<D3DXVECTOR3> NormalList;
 	typedef std::vector<DWORD> DiffuseList;
-	typedef std::vector<RenderedMaterial*> MaterialList;
-	typedef std::map<int, RenderedMaterial*> MaterialMap;
+	typedef std::vector<std::shared_ptr<RenderedMaterial>> MaterialList;
+	typedef std::map<int, std::shared_ptr<RenderedMaterial>> MaterialMap;
 
 	VertexList vertecies;
 	NormalList normals;
@@ -181,10 +182,8 @@ typedef struct RenderedBuffer
 
 	virtual ~RenderedBuffer()
 	{
-		// for (size_t i = 0; i < materials.size(); ++i) {
-		//	if (materials[i]) { delete materials[i]; }
-		// }
 	}
+
 	UMVec3f light;
 	UMVec3f light_color;
 	D3DXMATRIX world;

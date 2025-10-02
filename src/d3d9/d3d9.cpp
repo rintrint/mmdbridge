@@ -350,7 +350,7 @@ RenderData renderData;
 std::vector<std::pair<IDirect3DTexture9*, bool>> finishTextureBuffers;
 
 std::map<IDirect3DTexture9*, RenderedTexture> renderedTextures;
-std::map<int, std::map<int, RenderedMaterial*>> renderedMaterials;
+std::map<int, std::map<int, std::shared_ptr<RenderedMaterial>>> renderedMaterials;
 //-----------------------------------------------------------------------------------------------------------------
 
 static bool writeTextureToFile(const wchar_t* texturePath, IDirect3DTexture9* texture, D3DXIMAGE_FILEFORMAT fileFormat);
@@ -557,7 +557,7 @@ namespace
 
 	std::vector<float> get_diffuse(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		std::vector<float> result;
 		result.push_back(mat->diffuse.x);
 		result.push_back(mat->diffuse.y);
@@ -568,7 +568,7 @@ namespace
 
 	std::vector<float> get_ambient(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		std::vector<float> result;
 		result.push_back(mat->ambient.x);
 		result.push_back(mat->ambient.y);
@@ -578,7 +578,7 @@ namespace
 
 	std::vector<float> get_specular(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		std::vector<float> result;
 		result.push_back(mat->specular.x);
 		result.push_back(mat->specular.y);
@@ -588,7 +588,7 @@ namespace
 
 	std::vector<float> get_emissive(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		std::vector<float> result;
 		result.push_back(mat->emissive.x);
 		result.push_back(mat->emissive.y);
@@ -598,20 +598,20 @@ namespace
 
 	float get_power(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		float power = mat->power;
 		return power;
 	}
 
 	std::wstring get_texture(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		return mat->texture;
 	}
 
 	std::string get_exported_texture(int at, int mpos)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 		return mat->memoryTexture;
 	}
 
@@ -664,7 +664,7 @@ namespace
 
 	bool export_texture(int at, int mpos, const std::wstring& dst)
 	{
-		RenderedMaterial* mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
+		const auto& mat = BridgeParameter::instance().render_buffer(at).materials[mpos];
 
 		std::wstring_view textureType{ dst.c_str() + dst.size() - 3, 3 };
 		D3DXIMAGE_FILEFORMAT fileFormat;
@@ -2246,7 +2246,7 @@ static bool writeMaterialsToMemory(TextureParameter& textureParameter)
 		D3DMATERIAL9 material = ExpGetPmdMaterial(currentObject, currentMaterial);
 		// p_device->lpVtbl->GetMaterial(p_device, &material);
 
-		RenderedMaterial* mat = new RenderedMaterial();
+		auto mat = std::make_shared<RenderedMaterial>();
 		mat->diffuse.x = material.Diffuse.r;
 		mat->diffuse.y = material.Diffuse.g;
 		mat->diffuse.z = material.Diffuse.b;
@@ -2386,7 +2386,7 @@ static bool writeMaterialsToMemory(TextureParameter& textureParameter)
 	}
 	else
 	{
-		std::map<int, RenderedMaterial*>& materialMap = renderedMaterials[currentObject];
+		auto& materialMap = renderedMaterials[currentObject];
 		renderedBuffers[pStreamData].materials.push_back(materialMap[currentMaterial]);
 		renderedBuffers[pStreamData].material_map[currentMaterial] = materialMap[currentMaterial];
 		renderedMaterials[currentObject][currentMaterial] = materialMap[currentMaterial];

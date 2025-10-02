@@ -163,7 +163,7 @@ static void export_pmx(int currentframe, bool isfirst)
 			material_count += material_size;
 			for (int k = 0; k < material_size; ++k)
 			{
-				RenderedMaterial* material = renderedBuffer.materials.at(k);
+				const auto& material = renderedBuffer.materials.at(k);
 				index_count += static_cast<int>(material->surface.faces.size() * 3);
 				if (texture_map.find(material->memoryTexture) == texture_map.end())
 				{
@@ -212,7 +212,7 @@ static void export_pmx(int currentframe, bool isfirst)
 			const int material_size = static_cast<int>(renderedBuffer.materials.size());
 			for (int k = 0; k < material_size; ++k)
 			{
-				RenderedMaterial* material = renderedBuffer.materials.at(k);
+				const auto& material = renderedBuffer.materials.at(k);
 				const int materialSurfaceSize = static_cast<int>(material->surface.faces.size());
 				if (materialSurfaceSize <= 0) continue;
 				pmx::PmxMaterial& mat = pmx->materials[material_offset + k];

@@ -499,7 +499,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 		RenderedBuffer::UVList uvListByMaterial;
 		RenderedBuffer::NormalList normalListByMaterial;
 
-		RenderedMaterial* material = renderedBuffer.materials.at(k);
+		const auto& material = renderedBuffer.materials.at(k);
 		const int materialSurfaceSize = static_cast<int>(material->surface.faces.size());
 		vertexListByMaterial.resize(materialSurfaceSize * 3);
 		faceList.resize(materialSurfaceSize * 3);
@@ -749,7 +749,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 		RenderedBuffer::UVList uvListByMaterial;
 		RenderedBuffer::NormalList normalListByMaterial;
 
-		RenderedMaterial* material = renderedBuffer.materials.at(k);
+		const auto& material = renderedBuffer.materials.at(k);
 		const int materialSurfaceSize = static_cast<int>(material->surface.faces.size());
 		vertexListByMaterial.resize(materialSurfaceSize * 3);
 		faceList.resize(materialSurfaceSize * 3);
@@ -908,7 +908,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	size_t totalFaceCount = 0;
 	for (size_t k = 0; k < materialSize; ++k)
 	{
-		RenderedMaterial* material = renderedBuffer.materials.at(k);
+		const auto& material = renderedBuffer.materials.at(k);
 		totalFaceCount += material->surface.faces.size();
 	}
 
@@ -930,7 +930,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	int faceCounter = 0;
 	for (int k = 0; k < materialSize; ++k)
 	{
-		RenderedMaterial* material = renderedBuffer.materials.at(k);
+		const auto& material = renderedBuffer.materials.at(k);
 		const size_t faceSize = material->surface.faces.size();
 		for (size_t n = 0; n < faceSize; ++n)
 		{
