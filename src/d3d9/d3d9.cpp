@@ -1,4 +1,3 @@
-#pragma execution_character_set("utf-8")
 #define CINTERFACE
 
 #include "d3d9.h"
