@@ -301,41 +301,9 @@ static void to_string(std::string& dest, const std::wstring& src)
 	dest = oguna::EncodingConverter::wstringTostring(src);
 }
 
-static void messagebox(std::string title, std::string message)
+static void messagebox(const std::wstring& message, const std::wstring& title = L"MMDBridge")
 {
-	::MessageBoxA(NULL, message.c_str(), title.c_str(), MB_OK);
-}
-
-static void message(std::string message)
-{
-	::MessageBoxA(NULL, message.c_str(), "MMDBridge", MB_OK);
-}
-
-static void messagebox_float4(float v[4], const char* title)
-{
-	// clang-format off
-	::MessageBoxA(NULL,
-				  std::string(to_string(v[0]) + " " +
-							  to_string(v[1]) + " " +
-							  to_string(v[2]) + " " +
-							  to_string(v[3]) + "\n")
-					  .c_str(),
-				  title, MB_OK);
-	// clang-format on
-}
-
-static void messagebox_matrix(D3DXMATRIX& mat, const char* title)
-{
-	// clang-format off
-	::MessageBoxA(
-		NULL,
-		std::string(to_string(mat._11) + " " + to_string(mat._12) + " " + to_string(mat._13) + " " + to_string(mat._14) + "\n" +
-					to_string(mat._21) + " " + to_string(mat._22) + " " + to_string(mat._23) + " " + to_string(mat._24) + "\n" +
-					to_string(mat._31) + " " + to_string(mat._32) + " " + to_string(mat._33) + " " + to_string(mat._34) + "\n" +
-					to_string(mat._41) + " " + to_string(mat._42) + " " + to_string(mat._43) + " " + to_string(mat._44) + "\n")
-			.c_str(),
-		title, MB_OK);
-	// clang-format on
+	::MessageBoxW(NULL, message.c_str(), title.c_str(), MB_OK);
 }
 
 // Hook functions for IDirect3DDevice9
@@ -1176,7 +1144,9 @@ PYBIND11_MODULE(mmdbridge, m)
 	m.def("get_camera_aspect", get_camera_aspect);
 	m.def("get_camera_near", get_camera_near);
 	m.def("get_camera_far", get_camera_far);
-	m.def("messagebox", message);
+	m.def("messagebox", messagebox,
+		  py::arg("message"),
+		  py::arg("title") = L"MMDBridge");
 	m.def("export_texture", export_texture);
 	m.def("export_textures", export_textures);
 	m.def("export_uncopied_textures", export_textures);
