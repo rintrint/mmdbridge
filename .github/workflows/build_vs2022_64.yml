@@ -136,8 +136,8 @@ jobs:
         run: |
           # 0. Pack original
           7z a -t7z -mx5 _original.7z "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
-          # 1. Delete all .py files except mmdbridge_vmd*.py
-          find "$GITHUB_WORKSPACE/MikuMikuDance_v932x64" -maxdepth 1 -type f -name "*.py" ! -name "mmdbridge_vmd*.py" -delete
+          # 1. Delete all .py files except *mmdbridge_vmd*.py
+          find "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_scripts" -maxdepth 1 -type f -name "*.py" ! -name "*mmdbridge_vmd*.py" -delete
           # 2. Delete alembic_assign_scripts folder
           rm -rf "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/alembic_assign_scripts"
           # 3. Create the 'out' folder

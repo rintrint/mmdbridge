@@ -431,7 +431,7 @@ namespace
 		mutable_parameter.python_script_name_list.clear();
 		mutable_parameter.python_script_path_list.clear();
 
-		std::wstring searchPath = mutable_parameter.base_path;
+		std::wstring searchPath = mutable_parameter.base_path + L"mmdbridge_scripts/";
 		std::wstring searchStr(searchPath + _T("*.py"));
 
 		std::vector<std::pair<std::wstring, std::wstring>> found_scripts;

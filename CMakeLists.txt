@@ -97,10 +97,10 @@ install(
 )
 
 # install Python scripts
-file(GLOB python_scripts Release/x64/*.py
+file(GLOB python_scripts Release/x64/mmdbridge_scripts/*.py
 )
 install(FILES ${python_scripts}
-    DESTINATION ${MMD_DIR}
+    DESTINATION "${MMD_DIR}/mmdbridge_scripts"
 )
 
 # install Python runtime
