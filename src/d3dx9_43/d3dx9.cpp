@@ -6776,8 +6776,10 @@ BOOL APIENTRY DllMain(HINSTANCE, DWORD reason, LPVOID)
 	{
 		case DLL_PROCESS_ATTACH:
 			init();
+			break;
 		case DLL_PROCESS_DETACH:
 			dispose();
+			break;
 	}
 	return TRUE;
 }
