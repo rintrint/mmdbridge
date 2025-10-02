@@ -15,8 +15,7 @@ class Mtl:
         self.power = 0.0
         self.lum = 1
         self.faceSize = 0
-
-    self.isAccessory = False
+        self.isAccessory = False
 
 
 def import_mtl(path, result, relation):

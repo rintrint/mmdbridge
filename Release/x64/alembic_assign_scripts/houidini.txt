@@ -2,7 +2,8 @@ import hou
 import os
 import sys
 
-class Mtl():
+
+class Mtl:
     def __init__(self):
         self.name = ""
         self.textureMap = ""
@@ -13,13 +14,13 @@ class Mtl():
         self.trans = 1.0
         self.power = 0.0
         self.lum = 1
-    self.isAccessory = False
+        self.isAccessory = False
+
 
 def import_mtl(path, result):
-
     current = None
 
-    mtl = open(path, 'r', encoding = "utf-8")
+    mtl = open(path, "r", encoding="utf-8")
     for line in mtl.readlines():
         words = line.split()
         if len(words) < 2:
@@ -48,9 +49,9 @@ def import_mtl(path, result):
         elif "d" == words[0]:
             current.trans = float(words[1])
         elif "map_Kd" == words[0]:
-            current.textureMap = line[line.find(words[1]):line.find(".png")+4]
+            current.textureMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "map_d" == words[0]:
-            current.alphaMap = line[line.find(words[1]):line.find(".png")+4]
+            current.alphaMap = line[line.find(words[1]) : line.find(".png") + 4]
         elif "#" == words[0]:
             if words[1] == "is_accessory":
                 current.isAccessory = True
@@ -60,11 +61,9 @@ def import_mtl(path, result):
 
     mtl.close()
 
+
 def main():
-    directory = hou.ui.selectFile(\
-        title="Select .abc directory",\
-        file_type=hou.fileType.Directory,\
-        chooser_mode=hou.fileChooserMode.Read)
+    directory = hou.ui.selectFile(title="Select .abc directory", file_type=hou.fileType.Directory, chooser_mode=hou.fileChooserMode.Read)
 
     if len(directory) <= 0:
         return
@@ -93,23 +92,23 @@ def main():
     mtlDict = {}
     import_mtl(mtl, mtlDict)
 
-    shop = hou.node('/obj').createNode('shopnet', 'abcSHOP')
+    shop = hou.node("/obj").createNode("shopnet", "abcSHOP")
     shop.moveToGoodPosition()
 
-    for obj in hou.node('/obj').children():
+    for obj in hou.node("/obj").children():
         for xform in obj.children():
-            if not xform.type().name() == 'alembicxform':
+            if not xform.type().name() == "alembicxform":
                 continue
             for geometry in xform.children():
-                if not geometry.type().name() == 'geo':
+                if not geometry.type().name() == "geo":
                     continue
-                materialName = xform.name().replace('material_', '')
-                materialName = materialName.replace('xform', 'material')
+                materialName = xform.name().replace("material_", "")
+                materialName = materialName.replace("xform", "material")
                 if materialName in mtlDict.keys():
                     mtlData = mtlDict[materialName]
 
                     # get clay material from gallary
-                    entries = hou.galleries.galleryEntries('clay')
+                    entries = hou.galleries.galleryEntries("clay")
                     if len(entries) <= 0:
                         continue
                     clay = entries[0]
@@ -122,41 +121,41 @@ def main():
                     if len(mtlData.textureMap) > 0:
                         texturePath = os.path.join(abc, mtlData.textureMap)
                         root, ext = os.path.splitext(texturePath)
-                        if ext == '.bmp' or ext == '.tga':
-                            searchPath = root + '.png'
+                        if ext == ".bmp" or ext == ".tga":
+                            searchPath = root + ".png"
                             if os.path.exists(searchPath):
                                 texturePath = searchPath
-                        mat.parm('useColorMap').set(True)
-                        mat.parm('baseColorMap').set(texturePath)
-                        mat.parm('ogl_tex1').set(texturePath)
+                        mat.parm("useColorMap").set(True)
+                        mat.parm("baseColorMap").set(texturePath)
+                        mat.parm("ogl_tex1").set(texturePath)
 
                     if mtlData.isAccessory:
-                    mat.parm('baseColorr').set(mtlData.diffuse[0] + 0.5 * mtlData.ambient[0])
-                    mat.parm('baseColorg').set(mtlData.diffuse[1] + 0.5 * mtlData.ambient[1])
-                    mat.parm('baseColorb').set(mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
-                    mat.parm('ogl_diffr').set(mtlData.diffuse[0] + 0.5 * mtlData.ambient[0])
-                    mat.parm('ogl_diffg').set(mtlData.diffuse[1] + 0.5 * mtlData.ambient[1])
-                    mat.parm('ogl_diffb').set(mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
+                        mat.parm("baseColorr").set(mtlData.diffuse[0] + 0.5 * mtlData.ambient[0])
+                        mat.parm("baseColorg").set(mtlData.diffuse[1] + 0.5 * mtlData.ambient[1])
+                        mat.parm("baseColorb").set(mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
+                        mat.parm("ogl_diffr").set(mtlData.diffuse[0] + 0.5 * mtlData.ambient[0])
+                        mat.parm("ogl_diffg").set(mtlData.diffuse[1] + 0.5 * mtlData.ambient[1])
+                        mat.parm("ogl_diffb").set(mtlData.diffuse[2] + 0.5 * mtlData.ambient[2])
                     else:
-                    mat.parm('baseColorr').set(mtlData.diffuse[0])
-                    mat.parm('baseColorg').set(mtlData.diffuse[1])
-                    mat.parm('baseColorb').set(mtlData.diffuse[2])
-                    mat.parm('ogl_diffr').set(mtlData.diffuse[0])
-                    mat.parm('ogl_diffg').set(mtlData.diffuse[1])
-                    mat.parm('ogl_diffb').set(mtlData.diffuse[2])
+                        mat.parm("baseColorr").set(mtlData.diffuse[0])
+                        mat.parm("baseColorg").set(mtlData.diffuse[1])
+                        mat.parm("baseColorb").set(mtlData.diffuse[2])
+                        mat.parm("ogl_diffr").set(mtlData.diffuse[0])
+                        mat.parm("ogl_diffg").set(mtlData.diffuse[1])
+                        mat.parm("ogl_diffb").set(mtlData.diffuse[2])
 
-                    mat.parm('ogl_specr').set(mtlData.specular[0])
-                    mat.parm('ogl_specg').set(mtlData.specular[1])
-                    mat.parm('ogl_specb').set(mtlData.specular[2])
-                    mat.parm('ogl_ambr').set(mtlData.ambient[0])
-                    mat.parm('ogl_ambg').set(mtlData.ambient[1])
-                    mat.parm('ogl_ambb').set(mtlData.ambient[2])
+                    mat.parm("ogl_specr").set(mtlData.specular[0])
+                    mat.parm("ogl_specg").set(mtlData.specular[1])
+                    mat.parm("ogl_specb").set(mtlData.specular[2])
+                    mat.parm("ogl_ambr").set(mtlData.ambient[0])
+                    mat.parm("ogl_ambg").set(mtlData.ambient[1])
+                    mat.parm("ogl_ambb").set(mtlData.ambient[2])
 
                     isUseTextureAlpha = mtlData.trans > 0.9999
-                    mat.parm('ogl_cutout').set(isUseTextureAlpha)
-                    mat.parm('ogl_alpha').set(mtlData.trans)
+                    mat.parm("ogl_cutout").set(isUseTextureAlpha)
+                    mat.parm("ogl_alpha").set(mtlData.trans)
 
-                    geometry.parm('shop_materialpath').set(geometry.relativePathTo(mat))
+                    geometry.parm("shop_materialpath").set(geometry.relativePathTo(mat))
+
 
 main()
-
