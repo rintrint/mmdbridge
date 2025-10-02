@@ -39,7 +39,7 @@ public:
 	}
 
 	FileData file_data;
-	std::string output_path;
+	std::wstring output_path;
 	std::string model_name;
 	RenderedBuffer::VertexList base_vertex_list;
 
@@ -68,11 +68,11 @@ static bool start_pmx_export(const std::string& directory_path, const std::strin
 
 	if (directory_path.empty())
 	{
-		archive.output_path = oguna::EncodingConverter::wstringTostring(parameter.base_path) + "out/";
+		archive.output_path = parameter.base_path + L"out/";
 	}
 	else
 	{
-		archive.output_path = directory_path;
+		archive.output_path = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(directory_path));
 	}
 	return true;
 }
@@ -83,7 +83,7 @@ static bool end_pmx_export()
 	const BridgeParameter& parameter = BridgeParameter::instance();
 
 	umstring filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".pmx");
-	auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename);
+	std::wstring output_filepath = archive.output_path + umbase::UMStringUtil::utf16_to_wstring(filename);
 
 	PMXPtr pmx = archive.file_data.pmx;
 	oguna::EncodingConverter::Utf8ToUtf16(archive.model_name.c_str(), archive.model_name.size(), &pmx->model_name);
@@ -134,8 +134,8 @@ static bool end_pmx_export()
 	stream.close();
 
 	umstring vmd_filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".vmd");
-	auto vmd_output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + vmd_filename);
-	vmd->SaveToFile(vmd_output_filepath.c_str());
+	std::wstring vmd_output_filepath = archive.output_path + umbase::UMStringUtil::utf16_to_wstring(vmd_filename);
+	vmd->SaveToFile(vmd_output_filepath);
 
 	PMXArchive::instance().end();
 	return true;

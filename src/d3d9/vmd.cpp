@@ -83,7 +83,7 @@ public:
 
 	std::vector<FileDataForVMD> data_list;
 
-	std::string output_path;
+	std::wstring output_path;
 
 	int export_mode = 0;
 
@@ -110,16 +110,16 @@ static bool start_vmd_export(const int export_mode)
 		return false;
 	}
 
-	std::wstring wide_output_path = parameter.base_path + L"out/";
+	std::wstring output_path = parameter.base_path + L"out/";
 
 	// Make sure the output folder exists.
-	if (!CreateDirectoryW(wide_output_path.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
+	if (!CreateDirectoryW(output_path.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
 	{
-		std::wstring error_message = L"Cannot create output folder: " + wide_output_path;
+		std::wstring error_message = L"Cannot create output folder: " + output_path;
 		::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 	}
 
-	oguna::EncodingConverter::Utf16ToUtf8(wide_output_path.c_str(), static_cast<int>(wide_output_path.length()), &VMDArchive::instance().output_path);
+	VMDArchive::instance().output_path = output_path;
 
 	archive.export_mode = export_mode;
 	const int pmd_num = ExpGetPmdNum();
@@ -363,7 +363,8 @@ static bool end_vmd_export()
 		{
 			filename_string += extension;
 		}
-		auto output_filepath = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.output_path) + filename_string);
+		std::wstring final_filename = umbase::UMStringUtil::utf16_to_wstring(filename_string);
+		std::wstring output_filepath = archive.output_path + final_filename;
 		file_data.vmd->SaveToFile(output_filepath);
 	}
 
