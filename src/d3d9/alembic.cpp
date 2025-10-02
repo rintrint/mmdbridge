@@ -70,7 +70,7 @@ public:
 		return instance;
 	}
 
-	Alembic::Abc::OArchive* archive;
+	std::unique_ptr<Alembic::Abc::OArchive> archive;
 	AbcA::uint32_t timeindex;
 	AbcA::TimeSamplingPtr timesampling;
 	std::shared_ptr<std::ofstream> m_stream;
@@ -132,10 +132,9 @@ public:
 		temporary_uv_list.clear();
 		temporary_normal_list.clear();
 		temporary_vertex_list.clear();
-		{
-			delete archive;
-			archive = nullptr;
-		}
+
+		archive.reset();
+
 		m_stream = {};
 	}
 
@@ -169,7 +168,7 @@ static bool start_alembic_export(
 		{
 			// Abc::OArchive doesn't accept wide string path. so create file stream with wide string path and pass it.
 			// (VisualC++'s std::ifstream accepts wide string)
-			alembic_archive.m_stream.reset(new std::ofstream());
+			alembic_archive.m_stream = std::make_shared<std::ofstream>();
 			alembic_archive.m_stream->open(output_path, std::ios::out | std::ios::binary);
 			if (!alembic_archive.m_stream->is_open())
 			{
@@ -177,16 +176,17 @@ static bool start_alembic_export(
 				return false;
 			}
 			const Alembic::AbcCoreOgawa::WriteArchive archive_writer;
-			alembic_archive.archive =
-				new Alembic::Abc::OArchive(archive_writer(alembic_archive.m_stream.get(),
-														  Alembic::AbcCoreAbstract::MetaData()),
-										   Alembic::Abc::kWrapExisting, Alembic::Abc::ErrorHandler::kThrowPolicy);
+			alembic_archive.archive = std::make_unique<Alembic::Abc::OArchive>(
+				archive_writer(alembic_archive.m_stream.get(), Alembic::AbcCoreAbstract::MetaData()),
+				Alembic::Abc::kWrapExisting,
+				Alembic::Abc::ErrorHandler::kThrowPolicy);
 		}
 		else
 		{
 			alembic_archive.archive =
-				new Alembic::Abc::OArchive(Alembic::AbcCoreHDF5::WriteArchive(),
-										   oguna::EncodingConverter::wstringTostring(output_path));
+				std::make_unique<Alembic::Abc::OArchive>(
+					Alembic::AbcCoreHDF5::WriteArchive(),
+					oguna::EncodingConverter::wstringTostring(output_path));
 		}
 
 		const double dt = 1.0 / parameter.export_fps;
