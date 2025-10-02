@@ -11,6 +11,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
 /// uimac base library
 namespace umbase
@@ -19,20 +20,48 @@ namespace umbase
 class UMAny
 {
 public:
-	explicit UMAny(const UMAny& other) :
-	  content(other.content->clone())
+	// Default constructor
+	UMAny() noexcept : content(nullptr) {}
+
+	// Copy constructor
+	UMAny(const UMAny& other) :
+	  content(other.content ? other.content->clone() : nullptr)
 	{}
 
+	// Copy assignment operator
+	UMAny& operator=(const UMAny& other)
+	{
+		if (this != &other)
+		{
+			content = other.content ? other.content->clone() : nullptr;
+		}
+		return *this;
+	}
+
+	// Move constructor
+	UMAny(UMAny&& other) noexcept :
+		content(std::move(other.content))
+	{}
+
+	// Move assignment operator
+	UMAny& operator=(UMAny&& other) noexcept
+	{
+		if (this != &other)
+		{
+			content = std::move(other.content);
+		}
+		return *this;
+	}
+
 	template<typename  T>
-	UMAny(const T& value) :
-	  content()
+	explicit UMAny(const T& value) :
+	  content(std::make_unique<holder<T>>(value))
 	{}
 
 	template<typename  T>
 	UMAny& operator=(T&& value)
 	{
-		content.release();
-		content = std::make_unique<holder<T>>(value);
+		content = std::make_unique<holder<T>>(std::forward<T>(value));
 		return *this;
 	}
 
