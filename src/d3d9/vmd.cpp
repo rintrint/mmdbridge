@@ -1,3 +1,5 @@
+#include "vmd.h"
+
 #ifdef WITH_VMD
 
 #include "d3d9.h"

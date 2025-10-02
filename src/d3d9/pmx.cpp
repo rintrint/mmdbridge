@@ -1,3 +1,5 @@
+#include "pmx.h"
+
 #ifdef WITH_PMX
 
 #include "d3d9.h"
