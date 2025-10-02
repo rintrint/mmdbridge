@@ -1,3 +1,5 @@
+#include "alembic.h"
+
 #ifdef WITH_ALEMBIC
 
 #include "d3d9.h"
