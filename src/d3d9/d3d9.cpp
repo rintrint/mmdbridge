@@ -879,13 +879,24 @@ namespace
 	std::string get_accessory_filename(int at)
 	{
 		const char* cp932 = ExpGetAcsFilename(at);
-		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
-		wchar_t* utf16 = new wchar_t[size];
-		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
-		std::wstring wchar(utf16);
-		delete[] utf16;
-		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
-		return utf8str;
+		if (!cp932 || *cp932 == '\0')
+		{
+			return "";
+		}
+
+		const int cp932_len = static_cast<int>(strlen(cp932));
+		if (cp932_len == 0)
+			return "";
+
+		const int size_needed = ::MultiByteToWideChar(932, 0, cp932, cp932_len, NULL, 0);
+		if (size_needed <= 0)
+		{
+			return "";
+		}
+
+		std::wstring utf16_str(size_needed, L'\0');
+		::MultiByteToWideChar(932, 0, cp932, cp932_len, &utf16_str[0], size_needed);
+		return umbase::UMStringUtil::wstring_to_utf8(utf16_str);
 	}
 
 	std::string get_object_filename(int at)
@@ -893,14 +904,13 @@ namespace
 		const int count = get_bone_size(at);
 		if (count <= 0)
 			return "";
-		const char* cp932 = ExpGetPmdFilename(at);
-		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
-		wchar_t* utf16 = new wchar_t[size];
-		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
-		std::wstring wchar(utf16);
-		delete[] utf16;
-		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
-		return utf8str;
+
+		const char* utf8_filename = ExpGetPmdFilename(at);
+		if (utf8_filename)
+		{
+			return std::string(utf8_filename);
+		}
+		return "";
 	}
 
 	std::string get_buffer_filename(int at)
@@ -921,14 +931,26 @@ namespace
 		const int count = get_bone_size(at);
 		if (count <= 0)
 			return "";
+
 		const char* cp932 = ExpGetPmdBoneName(at, bone_index);
-		const int size = ::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, NULL, 0);
-		wchar_t* utf16 = new wchar_t[size];
-		::MultiByteToWideChar(932, 0, (LPCSTR)cp932, -1, (LPWSTR)utf16, size);
-		std::wstring wchar(utf16);
-		delete[] utf16;
-		std::string utf8str = umbase::UMStringUtil::wstring_to_utf8(wchar);
-		return utf8str;
+		if (!cp932 || *cp932 == '\0')
+		{
+			return "";
+		}
+
+		const int cp932_len = static_cast<int>(strlen(cp932));
+		if (cp932_len == 0)
+			return "";
+
+		const int size_needed = ::MultiByteToWideChar(932, 0, cp932, cp932_len, NULL, 0);
+		if (size_needed <= 0)
+		{
+			return "";
+		}
+
+		std::wstring utf16_str(size_needed, L'\0');
+		::MultiByteToWideChar(932, 0, cp932, cp932_len, &utf16_str[0], size_needed);
+		return umbase::UMStringUtil::wstring_to_utf8(utf16_str);
 	}
 
 	std::vector<float> get_bone_matrix(int at, int bone_index)
@@ -1322,10 +1344,9 @@ void run_python_script()
 		int wide_char_size = ::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, NULL, 0);
 		if (wide_char_size > 0)
 		{
-			wchar_t* wide_char_buffer = new wchar_t[wide_char_size];
-			::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, wide_char_buffer, wide_char_size);
-			::MessageBoxW(NULL, wide_char_buffer, L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
-			delete[] wide_char_buffer;
+			std::wstring wide_error_message(wide_char_size, L'\0');
+			::MultiByteToWideChar(CP_UTF8, 0, error_report_utf8.c_str(), -1, &wide_error_message[0], wide_char_size);
+			::MessageBoxW(NULL, wide_error_message.c_str(), L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
 		}
 	}
 }
