@@ -1,6 +1,13 @@
 name: build_vs2022_64
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches:
+      - "**"
+    tags-ignore:
+      - "**"
+  pull_request:
+  workflow_dispatch:
 
 concurrency:
   group: nuget-vcpkg-cache
