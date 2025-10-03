@@ -1315,8 +1315,7 @@ void run_python_script()
 		}
 		std::string error_report_utf8 = error_report.str();
 
-		std::wstring wide_error_message;
-		oguna::EncodingConverter::Utf8ToUtf16(error_report_utf8.c_str(), static_cast<int>(error_report_utf8.length()), &wide_error_message);
+		std::wstring wide_error_message = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(error_report_utf8));
 		::MessageBoxW(NULL, wide_error_message.c_str(), L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
 	}
 }

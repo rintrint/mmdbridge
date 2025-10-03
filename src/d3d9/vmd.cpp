@@ -140,8 +140,7 @@ static bool start_vmd_export(const int export_mode)
 		}
 		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), [](unsigned char c) { return std::tolower(c); });
 
-		std::wstring filename_wstring;
-		oguna::EncodingConverter::Utf8ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+		std::wstring filename_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(std::string(filename)));
 
 		if (filename_ext == ".pmd")
 		{

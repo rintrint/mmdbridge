@@ -86,7 +86,7 @@ static bool end_pmx_export()
 	std::wstring output_filepath = archive.output_path + umbase::UMStringUtil::utf16_to_wstring(filename);
 
 	PMXPtr pmx = archive.file_data.pmx;
-	oguna::EncodingConverter::Utf8ToUtf16(archive.model_name.c_str(), archive.model_name.size(), &pmx->model_name);
+	pmx->model_name = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(archive.model_name));
 	pmx->morphs.resize(archive.morph_list.size());
 
 	archive.file_data.vmd = std::make_unique<vmd::VmdMotion>();
