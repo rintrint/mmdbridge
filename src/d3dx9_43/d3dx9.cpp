@@ -5,14 +5,15 @@
 #include "d3dx9.h"
 
 #include <windows.h>
-#include <string>
-#include <sstream>
-#include <tchar.h>
-#include <fstream>
-#include <algorithm>
 #include <shlwapi.h>
-#include <vector>
+#include <tchar.h>
+
+#include <algorithm>
+#include <fstream>
 #include <map>
+#include <sstream>
+#include <string>
+#include <vector>
 
 template <class T>
 std::string to_string(T value)

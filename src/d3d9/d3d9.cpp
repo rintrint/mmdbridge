@@ -2,26 +2,27 @@
 
 #include "d3d9.h"
 #include "d3dx9.h"
+
 #include <windows.h>
+#include <shlwapi.h>
 #include <intrin.h>
+#include <tchar.h>
+#include <commctrl.h>
+#include <richedit.h>
+#include <process.h>
+#include <direct.h>
+
 #include <vector>
 #include <string>
 #include <sstream>
-#include <tchar.h>
 #include <fstream>
 #include <regex>
 #include <algorithm>
-#include <shlwapi.h>
 
 #include <pybind11/eval.h>
 #include <pybind11/stl_bind.h>
 namespace py = pybind11;
 
-#include <commctrl.h>
-#include <richedit.h>
-
-#include <process.h>
-#include <direct.h>
 #include "bridge_parameter.h"
 #include "alembic.h"
 #include "vmd.h"

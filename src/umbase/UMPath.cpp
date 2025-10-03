@@ -10,8 +10,8 @@
 #if !defined(WITH_EMSCRIPTEN)
 #include <windows.h>
 #include <Mmsystem.h>
-#include <tchar.h>
 #include <shlwapi.h>
+#include <tchar.h>
 #endif
 
 #include <string>
