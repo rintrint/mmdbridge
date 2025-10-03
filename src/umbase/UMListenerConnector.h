@@ -19,41 +19,43 @@
 namespace umbase
 {
 
-class UMListenerConnector;
-typedef std::shared_ptr<UMListenerConnector> UMListenerConnectorPtr;
+	class UMListenerConnector;
+	typedef std::shared_ptr<UMListenerConnector> UMListenerConnectorPtr;
 
-class UMListenerConnector
-{
-	DISALLOW_COPY_AND_ASSIGN(UMListenerConnector);
+	class UMListenerConnector
+	{
+		DISALLOW_COPY_AND_ASSIGN(UMListenerConnector);
 
-public:
-	typedef umbase::UMAny Parameter;
+	public:
+		typedef umbase::UMAny Parameter;
 
-	/**
-	 * connect listener to events
-	 */
-	void connect(UMListenerPtr listener) {
-		if (!listener) return;
-		for (UMEventList::iterator it = event_list_.begin(); it != event_list_.end(); ++it)
+		/**
+		 * connect listener to events
+		 */
+		void connect(UMListenerPtr listener)
 		{
-			(*it)->add_listener(listener);
+			if (!listener)
+				return;
+			for (UMEventList::iterator it = event_list_.begin(); it != event_list_.end(); ++it)
+			{
+				(*it)->add_listener(listener);
+			}
+			listeners_.push_back(listener);
 		}
-		listeners_.push_back(listener);
-	}
 
-	UMListenerList& listener_list() { return listeners_; }
+		UMListenerList& listener_list() { return listeners_; }
 
-protected:
-	UMListenerConnector() {}
+	protected:
+		UMListenerConnector() {}
 
-	/**
-	 * get event list
-	 */
-	UMEventList& mutable_event_list() { return event_list_; }
+		/**
+		 * get event list
+		 */
+		UMEventList& mutable_event_list() { return event_list_; }
 
-private:
-	UMEventList event_list_;
-	UMListenerList listeners_;
-};
+	private:
+		UMEventList event_list_;
+		UMListenerList listeners_;
+	};
 
-} // umbase
+} // namespace umbase

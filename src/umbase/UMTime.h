@@ -16,41 +16,40 @@
 namespace umbase
 {
 
-class UMTime;
-typedef std::shared_ptr<UMTime> UMTimePtr;
-
-/**
- * print time on destructor
- */
-class UMTime
-{
-	DISALLOW_COPY_AND_ASSIGN(UMTime);
-
-public:
+	class UMTime;
+	typedef std::shared_ptr<UMTime> UMTimePtr;
 
 	/**
-	 * constructor
-	 * @param [in] print_time print time on destructor
+	 * print time on destructor
 	 */
-	UMTime(const std::string& message);
+	class UMTime
+	{
+		DISALLOW_COPY_AND_ASSIGN(UMTime);
 
-	/**
-	 * constructor
-	 * @param [in] print_time print time on destructor
-	 */
-	UMTime(const std::string& message, bool show_message_box);
+	public:
+		/**
+		 * constructor
+		 * @param [in] print_time print time on destructor
+		 */
+		UMTime(const std::string& message);
 
-	/**
-	 * get time
-	 */
-	static unsigned int current_time();
+		/**
+		 * constructor
+		 * @param [in] print_time print time on destructor
+		 */
+		UMTime(const std::string& message, bool show_message_box);
 
-	~UMTime();
+		/**
+		 * get time
+		 */
+		static unsigned int current_time();
 
-private:
-	bool show_message_box_;
-	std::string message_;
-	unsigned long initial_time_;
-};
+		~UMTime();
 
-} // umbase
+	private:
+		bool show_message_box_;
+		std::string message_;
+		unsigned long initial_time_;
+	};
+
+} // namespace umbase

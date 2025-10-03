@@ -14,49 +14,49 @@
 namespace umbase
 {
 
-/**
- * notify to all listeners
- */
-void UMEvent::notify()
-{
-	for (UMListenerList::iterator it = listeners_.begin(); it != listeners_.end(); ++it)
+	/**
+	 * notify to all listeners
+	 */
+	void UMEvent::notify()
 	{
-		if (UMListenerPtr listener = (*it).lock())
+		for (UMListenerList::iterator it = listeners_.begin(); it != listeners_.end(); ++it)
 		{
-			listener->update(key_, parameter_);
+			if (UMListenerPtr listener = (*it).lock())
+			{
+				listener->update(key_, parameter_);
+			}
 		}
 	}
-}
 
-/**
- * add listener (attach)
- */
-void UMEvent::add_listener(UMListenerWeakPtr listener)
-{
-	listeners_.push_back(listener);
-}
-
-/**
- * delete objserver (detach)
- */
-void UMEvent::delete_listener(UMListenerWeakPtr listener)
-{
-	UMListenerList::iterator it = listeners_.begin();
-	for (int i = static_cast<int>(listeners_.size() - 1); i >= 0; --i)
+	/**
+	 * add listener (attach)
+	 */
+	void UMEvent::add_listener(UMListenerWeakPtr listener)
 	{
-		if (listeners_.at(i).lock() == listener.lock())
+		listeners_.push_back(listener);
+	}
+
+	/**
+	 * delete objserver (detach)
+	 */
+	void UMEvent::delete_listener(UMListenerWeakPtr listener)
+	{
+		UMListenerList::iterator it = listeners_.begin();
+		for (int i = static_cast<int>(listeners_.size() - 1); i >= 0; --i)
 		{
-			listeners_.erase(listeners_.begin() + i);
+			if (listeners_.at(i).lock() == listener.lock())
+			{
+				listeners_.erase(listeners_.begin() + i);
+			}
 		}
 	}
-}
 
-/**
- * clear all listeners
- */
-void UMEvent::clear_listeners()
-{
-	listeners_.clear();
-}
+	/**
+	 * clear all listeners
+	 */
+	void UMEvent::clear_listeners()
+	{
+		listeners_.clear();
+	}
 
-} // umbase
+} // namespace umbase

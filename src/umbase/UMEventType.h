@@ -3,6 +3,6 @@
 namespace umbase
 {
 
-typedef unsigned int UMEventType;
+	typedef unsigned int UMEventType;
 
-} // umbase
+} // namespace umbase

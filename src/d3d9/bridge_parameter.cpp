@@ -29,7 +29,8 @@ const RenderedBuffer& BridgeParameter::first_noaccessory_buffer() const
 			RenderBufferMap::const_iterator it = render_buffer_map.find(buffer);
 			if (it != render_buffer_map.end())
 			{
-				if (!it->second.isAccessory) {
+				if (!it->second.isAccessory)
+				{
 					return it->second;
 				}
 			}

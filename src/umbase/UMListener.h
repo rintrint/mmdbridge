@@ -17,18 +17,18 @@
 namespace umbase
 {
 
-class UMListener;
-typedef std::shared_ptr<UMListener> UMListenerPtr;
-typedef std::weak_ptr<UMListener> UMListenerWeakPtr;
-typedef std::vector<UMListenerWeakPtr> UMListenerList;
+	class UMListener;
+	typedef std::shared_ptr<UMListener> UMListenerPtr;
+	typedef std::weak_ptr<UMListener> UMListenerWeakPtr;
+	typedef std::vector<UMListenerWeakPtr> UMListenerList;
 
-/**
- * listener (observer)
- */
-class UMListener
-{
-public:
-	virtual void update(UMEventType event_type, umbase::UMAny& parameter) = 0;
-};
+	/**
+	 * listener (observer)
+	 */
+	class UMListener
+	{
+	public:
+		virtual void update(UMEventType event_type, umbase::UMAny& parameter) = 0;
+	};
 
-} // umbase
+} // namespace umbase

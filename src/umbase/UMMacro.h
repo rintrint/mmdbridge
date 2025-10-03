@@ -19,19 +19,27 @@ namespace umbase
  * Restrict copy constructor
  */
 #ifndef DISALLOW_COPY_AND_ASSIGN
-	#ifdef WITH_EMSCRIPTEN
-		#define DISALLOW_COPY_AND_ASSIGN(TypeName)
-	#else
-		#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
-			private: TypeName(const TypeName&); \
-			void operator=(const TypeName&)
-	#endif // WITH_EMSCRIPTEN
+#ifdef WITH_EMSCRIPTEN
+#define DISALLOW_COPY_AND_ASSIGN(TypeName)
+#else
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+private:                                   \
+	TypeName(const TypeName&);             \
+	void operator=(const TypeName&)
+#endif // WITH_EMSCRIPTEN
 #endif
 
 /**
  * for directx com release
  */
-#define SAFE_RELEASE(p) { if(p) { (p)->Release(); (p)=NULL; } }
+#define SAFE_RELEASE(p)     \
+	{                       \
+		if (p)              \
+		{                   \
+			(p)->Release(); \
+			(p) = NULL;     \
+		}                   \
+	}
 
 /**
  * PI
@@ -44,16 +52,15 @@ namespace umbase
 #define M_PI_INV 0.31830988618379069
 #endif
 
-} // umbase
-
+} // namespace umbase
 
 /**
  * string
  */
 #ifdef WITH_EMSCRIPTEN
-	typedef std::string umstring;
-	typedef std::wstring umtextstring;
+typedef std::string umstring;
+typedef std::wstring umtextstring;
 #else
-	typedef std::u16string umstring;
-	typedef std::wstring umtextstring;
+typedef std::u16string umstring;
+typedef std::wstring umtextstring;
 #endif

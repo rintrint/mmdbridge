@@ -20,42 +20,41 @@
 namespace umbase
 {
 
-class UMEvent;
-typedef std::shared_ptr<UMEvent> UMEventPtr;
+	class UMEvent;
+	typedef std::shared_ptr<UMEvent> UMEventPtr;
 
-typedef std::vector<UMEventPtr> UMEventList;
+	typedef std::vector<UMEventPtr> UMEventList;
 
-class UMEvent
-{
-	DISALLOW_COPY_AND_ASSIGN(UMEvent);
+	class UMEvent
+	{
+		DISALLOW_COPY_AND_ASSIGN(UMEvent);
 
-public:
-	typedef umbase::UMAny Parameter;
+	public:
+		typedef umbase::UMAny Parameter;
 
-	UMEvent(UMEventType event_type)
-		: key_(event_type),
-		parameter_(0) {}
+		UMEvent(UMEventType event_type)
+			: key_(event_type), parameter_(0) {}
 
-	UMEvent(UMEventType event_type, Parameter& umany)
-		: key_(event_type),
-		parameter_(umany) {}
+		UMEvent(UMEventType event_type, Parameter& umany)
+			: key_(event_type), parameter_(umany) {}
 
-	virtual ~UMEvent() {}
+		virtual ~UMEvent() {}
 
-	void add_listener(UMListenerWeakPtr listener);
-	void delete_listener(UMListenerWeakPtr listener);
-	size_t listener_count() const { return listeners_.size(); }
-	void clear_listeners();
-	void notify();
+		void add_listener(UMListenerWeakPtr listener);
+		void delete_listener(UMListenerWeakPtr listener);
+		size_t listener_count() const { return listeners_.size(); }
+		void clear_listeners();
+		void notify();
 
-	void set_parameter(Parameter&& parameter) {
-		parameter_ = std::move(parameter);
-	}
+		void set_parameter(Parameter&& parameter)
+		{
+			parameter_ = std::move(parameter);
+		}
 
-private:
-	const UMEventType key_;
-	UMListenerList listeners_;
-	Parameter parameter_;
-};
+	private:
+		const UMEventType key_;
+		UMListenerList listeners_;
+		Parameter parameter_;
+	};
 
-} // umbase
+} // namespace umbase

@@ -8,7 +8,6 @@
 class BridgeParameter
 {
 public:
-
 	static const BridgeParameter& instance()
 	{
 		return parameter;
@@ -32,7 +31,7 @@ public:
 	std::vector<std::wstring> python_script_path_list;
 
 	/// スクリプト呼び出し設定
-	//int script_call_setting;
+	// int script_call_setting;
 	/// 開始フレーム
 	int start_frame;
 	/// 終了フレーム
@@ -63,16 +62,17 @@ public:
 	bool is_exporting_without_mesh;
 
 private:
-	BridgeParameter() :
-		//script_call_setting(2)
-		 start_frame(0)
+	BridgeParameter()
+		: // script_call_setting(2)
+		start_frame(0)
 		, end_frame(0)
 		, frame_width(800)
 		, frame_height(450)
 		, export_fps(30.0)
 		, is_texture_buffer_enabled(false)
-		, is_exporting_without_mesh(false) {}
+		, is_exporting_without_mesh(false)
+	{
+	}
 
 	static BridgeParameter parameter;
 };
-

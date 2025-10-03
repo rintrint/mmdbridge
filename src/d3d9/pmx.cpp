@@ -26,16 +26,18 @@ typedef std::shared_ptr<pmx::PmxModel> PMXPtr;
 typedef std::shared_ptr<vmd::VmdMotion> VMDPtr;
 typedef std::shared_ptr<pmx::PmxMorph> PmxMorphPtr;
 
-class FileData {
+class FileData
+{
 public:
 	PMXPtr pmx;
 	VMDPtr vmd;
 };
 
-class PMXArchive {
+class PMXArchive
+{
 public:
-
-	static PMXArchive& instance() {
+	static PMXArchive& instance()
+	{
 		static PMXArchive instance;
 		return instance;
 	}
@@ -52,13 +54,14 @@ public:
 		output_path.clear();
 	}
 	~PMXArchive() {}
+
 private:
 	PMXArchive() {}
 };
 
 static bool start_pmx_export(const std::string& directory_path, const std::string& model_name)
 {
-	PMXArchive &archive = PMXArchive::instance();
+	PMXArchive& archive = PMXArchive::instance();
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	if (parameter.export_fps <= 0)
@@ -81,7 +84,7 @@ static bool start_pmx_export(const std::string& directory_path, const std::strin
 
 static bool end_pmx_export()
 {
-	PMXArchive &archive = PMXArchive::instance();
+	PMXArchive& archive = PMXArchive::instance();
 	const BridgeParameter& parameter = BridgeParameter::instance();
 
 	umstring filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".pmx");
@@ -149,7 +152,7 @@ static bool end_pmx_export()
 
 static void export_pmx(int currentframe, bool isfirst)
 {
-	PMXArchive &archive = PMXArchive::instance();
+	PMXArchive& archive = PMXArchive::instance();
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const VertexBufferList& finishBuffers = BridgeParameter::instance().finish_buffer_list;
 	if (isfirst)
@@ -165,7 +168,7 @@ static void export_pmx(int currentframe, bool isfirst)
 		TextureMap texture_map;
 		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
-			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+			const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 			vertex_count += renderedBuffer.vertecies.size();
 			const int material_size = static_cast<int>(renderedBuffer.materials.size());
 			material_count += material_size;
@@ -213,16 +216,17 @@ static void export_pmx(int currentframe, bool isfirst)
 		int material_offset = 0;
 		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
-			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+			const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 			const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
 			const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
-			const RenderedBuffer::UVList &uvList = renderedBuffer.uvs;
+			const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
 			const int material_size = static_cast<int>(renderedBuffer.materials.size());
 			for (int k = 0; k < material_size; ++k)
 			{
 				const auto& material = renderedBuffer.materials.at(k);
 				const int materialSurfaceSize = static_cast<int>(material->surface.faces.size());
-				if (materialSurfaceSize <= 0) continue;
+				if (materialSurfaceSize <= 0)
+					continue;
 				pmx::PmxMaterial& mat = pmx->materials[material_offset + k];
 
 				mat.diffuse_texture_index = texture_map[material->memoryTexture];
@@ -232,12 +236,13 @@ static void export_pmx(int currentframe, bool isfirst)
 
 				mat.index_count = materialSurfaceSize * 3;
 				mat.material_name =
-					std::wstring(L"buffer_") + umbase::UMStringUtil::number_to_wstring(i)
-					 + std::wstring(L"_mat_") + umbase::UMStringUtil::number_to_wstring(k);
-				for (int n = 0; n < 4; ++n) {
+					std::wstring(L"buffer_") + umbase::UMStringUtil::number_to_wstring(i) + std::wstring(L"_mat_") + umbase::UMStringUtil::number_to_wstring(k);
+				for (int n = 0; n < 4; ++n)
+				{
 					mat.diffuse[n] = 1.0f;
 				}
-				for (int n = 0; n < 3; ++n) {
+				for (int n = 0; n < 3; ++n)
+				{
 					mat.specular[n] = material->specular[n];
 					mat.ambient[n] = 1.0f;
 				}
@@ -251,7 +256,8 @@ static void export_pmx(int currentframe, bool isfirst)
 						face.z - 1
 					};
 
-					for (int m = 0; m < 3; ++m) {
+					for (int m = 0; m < 3; ++m)
+					{
 						pmx::PmxVertex& v = pmx->vertices[vertex_offset + vi[m]];
 						pmx->indices[index_offset + m] = vertex_offset + vi[m];
 
@@ -292,7 +298,7 @@ static void export_pmx(int currentframe, bool isfirst)
 		int vertex_offset = 0;
 		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
-			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+			const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 			const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
 			for (int k = 0; k < vertexList.size(); ++k)
 			{
@@ -323,7 +329,7 @@ static void export_pmx(int currentframe, bool isfirst)
 
 static bool execute_pmx_export(int currentframe)
 {
-	PMXArchive &archive = PMXArchive::instance();
+	PMXArchive& archive = PMXArchive::instance();
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const VertexBufferList& finishBuffers = BridgeParameter::instance().finish_buffer_list;
@@ -333,12 +339,12 @@ static bool execute_pmx_export(int currentframe)
 		size_t vertex_size = 0;
 		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
-			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+			const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 			vertex_size += renderedBuffer.vertecies.size();
 		}
 		for (size_t i = 0, isize = finishBuffers.size(); i < isize; ++i)
 		{
-			const RenderedBuffer &renderedBuffer = parameter.render_buffer(i);
+			const RenderedBuffer& renderedBuffer = parameter.render_buffer(i);
 			archive.base_vertex_list.insert(
 				archive.base_vertex_list.end(),
 				renderedBuffer.vertecies.begin(),
@@ -355,26 +361,27 @@ static bool execute_pmx_export(int currentframe)
 }
 
 // ---------------------------------------------------------------------------
-PYBIND11_MODULE(mmdbridge_pmx, m) {
+PYBIND11_MODULE(mmdbridge_pmx, m)
+{
 	m.doc() = "MMD Bridge PMX export module";
 	m.def("start_pmx_export", start_pmx_export);
 	m.def("end_pmx_export", end_pmx_export);
 	m.def("execute_pmx_export", execute_pmx_export);
 }
 
-#endif //WITH_PMX
+#endif // WITH_PMX
 
 // ---------------------------------------------------------------------------
 #ifdef WITH_PMX
 void InitPMX()
-	{
-		PyImport_AppendInittab("mmdbridge_pmx", PyInit_mmdbridge_pmx);
-	}
-	void DisposePMX()
-	{
-		PMXArchive::instance().end();
-	}
+{
+	PyImport_AppendInittab("mmdbridge_pmx", PyInit_mmdbridge_pmx);
+}
+void DisposePMX()
+{
+	PMXArchive::instance().end();
+}
 #else
-	void InitPMX(){}
-	void DisposePMX() {}
-#endif //WITH_PMXD
+void InitPMX() {}
+void DisposePMX() {}
+#endif // WITH_PMXD

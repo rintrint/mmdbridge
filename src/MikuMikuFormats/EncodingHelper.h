@@ -78,39 +78,40 @@ namespace oguna
 			return size;
 		}
 		std::vector<char> buffer;
-	public:
 
-		static EncodingConverter& Get() {
+	public:
+		static EncodingConverter& Get()
+		{
 			static EncodingConverter instance;
 			return instance;
 		}
 
 		/// UTF8からCP932(std::string)へ変換する
-		static int Utf8ToCp932(const char* src, int size, std::string *out)
+		static int Utf8ToCp932(const char* src, int size, std::string* out)
 		{
 			return Get().Utf8ToCp932_Impl(src, size, out);
 		}
 
 		/// CP932からUTF8(std::string)へ変換する
-		static int Cp932ToUtf8(const char* src, int length, std::string *out)
+		static int Cp932ToUtf8(const char* src, int length, std::string* out)
 		{
 			return Get().Cp932ToUtf8_Impl(src, length, out);
 		}
 
 		/// CP932からUTF16(std::wstring)へ変換する
-		static int Cp932ToUtf16(const char *src, int length, std::wstring *out)
+		static int Cp932ToUtf16(const char* src, int length, std::wstring* out)
 		{
 			return Get().Cp932ToUtf16_Impl(src, length, out);
 		}
 
 		/// UTF16からCP932(std::string)へ変換する
-		static int Utf16ToCp932(const wchar_t *src, int length, std::string *out)
+		static int Utf16ToCp932(const wchar_t* src, int length, std::string* out)
 		{
 			return Get().Utf16ToCp932_Impl(src, length, out);
 		}
 
 		/// UTF8からUTF16(std::wstring)へ変換する
-		static int Utf8ToUtf16(const char *src, int length, std::wstring *out)
+		static int Utf8ToUtf16(const char* src, int length, std::wstring* out)
 		{
 			return Get().Utf8ToUtf16_Impl(src, length, out);
 		}
@@ -137,4 +138,4 @@ namespace oguna
 			return res;
 		}
 	};
-}
+} // namespace oguna
