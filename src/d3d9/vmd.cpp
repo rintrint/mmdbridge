@@ -344,26 +344,24 @@ static bool end_vmd_export()
 			file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
 		}
 
-		const umstring umstr = umbase::UMStringUtil::utf8_to_utf16(filename);
-		umstring filename_string = umbase::UMPath::get_file_name(umstr);
-		if (filename_string.empty())
+		const umstring um_filepath = umbase::UMStringUtil::utf8_to_utf16(filename);
+		std::wstring filename_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMPath::get_file_name(um_filepath));
+		if (filename_wstring.empty())
 		{
-			std::wstring error_message;
-			error_message = L"Unable to get pmd/pmx filepath.";
+			std::wstring error_message = L"Unable to get pmd/pmx filepath.";
 			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			continue;
 		}
-		const umstring extension = umbase::UMStringUtil::utf8_to_utf16(".vmd");
-		if (filename_string.length() >= 4)
+		const std::wstring extension = L".vmd";
+		if (filename_wstring.length() >= 4)
 		{
-			filename_string.replace(filename_string.length() - 4, 4, extension);
+			filename_wstring.replace(filename_wstring.length() - 4, 4, extension);
 		}
 		else
 		{
-			filename_string += extension;
+			filename_wstring += extension;
 		}
-		std::wstring final_filename = umbase::UMStringUtil::utf16_to_wstring(filename_string);
-		std::wstring output_filepath = archive.output_path + final_filename;
+		std::wstring output_filepath = archive.output_path + filename_wstring;
 		file_data.vmd->SaveToFile(output_filepath);
 	}
 
