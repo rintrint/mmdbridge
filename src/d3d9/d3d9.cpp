@@ -2033,13 +2033,25 @@ static void getTextureParameter(TextureParameter& param)
 
 	if (param.hasTextureSampler1)
 	{
-		LPWSTR name = UMGetTextureName(tit1->second);
 		param.texture = tit1->second;
 		param.textureMemoryName = to_string(param.texture);
-		if (name)
+
+		DWORD requiredSize = UMGetTextureName(param.texture, nullptr, 0);
+
+		if (requiredSize > 0)
 		{
-			param.textureName = std::wstring(name);
+			std::vector<wchar_t> nameBuffer(requiredSize);
+
+			if (UMGetTextureName(param.texture, nameBuffer.data(), requiredSize) > 0)
+			{
+				param.textureName = nameBuffer.data();
+			}
 		}
+		else
+		{
+			param.textureName.clear();
+		}
+
 		if (UMIsAlphaTexture(param.texture))
 		{
 			param.hasAlphaTexture = true;

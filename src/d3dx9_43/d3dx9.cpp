@@ -2669,22 +2669,34 @@ BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex)
 	return true;
 }
 
-LPWSTR UMGetTextureName(LPDIRECT3DTEXTURE9 tex)
+DWORD UMGetTextureName(LPDIRECT3DTEXTURE9 tex, LPWSTR outBuffer, DWORD bufferSize)
 {
-	std::map<LPDIRECT3DTEXTURE9, std::pair<std::wstring, D3DFORMAT>>::iterator it = dxTextureMap.find(tex);
-
-	static WCHAR dst[MAX_PATH];
-
-	if (it != dxTextureMap.end())
+	auto it = dxTextureMap.find(tex);
+	if (it == dxTextureMap.end())
 	{
-		LPCWSTR srcPath = (*it).second.first.c_str();
-		if (PathFileExistsW(srcPath))
-		{
-			short size = GetFileTitleW(srcPath, NULL, 0);
-			GetFileTitleW(srcPath, dst, size);
-		}
+		if (bufferSize > 0)
+			outBuffer[0] = L'\0';
+		return 0;
 	}
-	return dst;
+
+	const std::wstring& srcPath = it->second.first;
+	if (srcPath.empty() || !PathFileExistsW(srcPath.c_str()))
+	{
+		if (bufferSize > 0)
+			outBuffer[0] = L'\0';
+		return 0;
+	}
+
+	LPCWSTR fileName = PathFindFileNameW(srcPath.c_str());
+	DWORD requiredSize = static_cast<DWORD>(wcslen(fileName)) + 1; // +1 for null terminator
+
+	if (outBuffer == nullptr || bufferSize < requiredSize)
+	{
+		return requiredSize;
+	}
+
+	wcscpy_s(outBuffer, bufferSize, fileName);
+	return requiredSize - 1;
 }
 
 BOOL UMIsAlphaTexture(LPDIRECT3DTEXTURE9 tex)

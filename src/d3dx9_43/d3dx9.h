@@ -28,7 +28,7 @@ extern "C" {
     void UMGetCameraAt(D3DXVECTOR3 *dst);
     void UMGetCameraUp(D3DXVECTOR3 *dst);
     BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex);
-    LPWSTR UMGetTextureName(LPDIRECT3DTEXTURE9 tex);
+    DWORD UMGetTextureName(LPDIRECT3DTEXTURE9 tex, LPWSTR outBuffer, DWORD bufferSize);
     BOOL UMIsAlphaTexture(LPDIRECT3DTEXTURE9 tex);
 }
 
