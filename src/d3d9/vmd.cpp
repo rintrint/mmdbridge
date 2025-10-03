@@ -578,8 +578,8 @@ static vmd::VmdBoneFrame calculate_bone_frame(
 	const char* bone_name = ExpGetPmdBoneName(model_index, bone_index);
 
 	// Validate bone name mapping
-	if (file_data.bone_name_map.find(bone_index) == file_data.bone_name_map.end() ||
-		file_data.bone_name_map.at(bone_index) != bone_name)
+	auto it = file_data.bone_name_map.find(bone_index);
+	if (it == file_data.bone_name_map.end() || it->second != bone_name)
 	{
 		// If validation fails, return default bone_frame
 		return bone_frame;
@@ -672,8 +672,8 @@ static vmd::VmdFaceFrame calculate_face_frame(
 	face_frame.face_name = morph_name;
 
 	// Validate morph name mapping
-	if (file_data.morph_name_map.find(morph_index) == file_data.morph_name_map.end() ||
-		file_data.morph_name_map.at(morph_index) != morph_name)
+	auto it = file_data.morph_name_map.find(morph_index);
+	if (it == file_data.morph_name_map.end() || it->second != morph_name)
 	{
 		// If validation fails, return default face_frame with 0 weight
 		face_frame.weight = 0.0f;
@@ -723,13 +723,12 @@ static bool execute_vmd_export(const int currentframe)
 			const char* bone_name = ExpGetPmdBoneName(i, k);
 
 			// Validate bone name mapping
-			if (file_data.bone_name_map.find(k) == file_data.bone_name_map.end())
 			{
-				continue;
-			}
-			if (file_data.bone_name_map[k] != bone_name)
-			{
-				continue;
+				auto it = file_data.bone_name_map.find(k);
+				if (it == file_data.bone_name_map.end() || it->second != bone_name)
+				{
+					continue;
+				}
 			}
 
 			// Export mode filtering
@@ -737,18 +736,22 @@ static bool execute_vmd_export(const int currentframe)
 			// const bool is_affected_by_ik = file_data.ik_bone_map.count(k) > 0;
 			// const bool is_fuyo_effector_bone = file_data.fuyo_target_map.find(k) != file_data.fuyo_target_map.end();
 			// const bool is_affected_by_fuyo = file_data.fuyo_bone_map.count(k) > 0;
-			const bool is_physics_bone = file_data.physics_bone_map.count(k) > 0;
+			bool is_physics_bone = false;
 			bool is_simulated_physics_bone = false;
 			bool is_non_simulated_physics_bone = false;
-			if (is_physics_bone)
 			{
-				if (file_data.physics_bone_map.at(k) == 0)
+				auto it = file_data.physics_bone_map.find(k);
+				is_physics_bone = (it != file_data.physics_bone_map.end());
+				if (is_physics_bone)
 				{
-					is_non_simulated_physics_bone = true;
-				}
-				else
-				{
-					is_simulated_physics_bone = true;
+					if (it->second == 0) // ボーン追従
+					{
+						is_non_simulated_physics_bone = true;
+					}
+					else
+					{
+						is_simulated_physics_bone = true;
+					}
 				}
 			}
 
@@ -865,11 +868,8 @@ static bool execute_vmd_export(const int currentframe)
 			const char* morph_name = ExpGetPmdMorphName(i, m);
 
 			// Validate morph name mapping
-			if (file_data.morph_name_map.find(m) == file_data.morph_name_map.end())
-			{
-				continue;
-			}
-			if (file_data.morph_name_map[m] != morph_name)
+			auto it = file_data.morph_name_map.find(m);
+			if (it == file_data.morph_name_map.end() || it->second != morph_name)
 			{
 				continue;
 			}
