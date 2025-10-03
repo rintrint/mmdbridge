@@ -48,8 +48,8 @@ def export_mtl(mtlpath, export_mode):
                     if len(texture) > 0:
                         texture = texture + ".png"
 
-                if material_name == "material_0_10":
-                    messagebox(texture)
+                # if material_name == "material_0_10":
+                #     messagebox(texture)
 
                 mtlfile.write("Ka " + str(ambient[0]) + " " + str(ambient[1]) + " " + str(ambient[2]) + "\n")
                 if diffuse[0] < 0 or diffuse[1] < 0 or diffuse[2] < 0:
