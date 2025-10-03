@@ -1636,7 +1636,7 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 		// Found window created by our process
 		WCHAR szClassName[256];
 		GetClassNameW(hWnd, szClassName, sizeof(szClassName) / sizeof(szClassName[0]));
-		std::wstring name(szClassName);
+		std::wstring name = szClassName;
 		if (name == L"Polygon Movie Maker")
 		{
 			g_hWnd = hWnd;
@@ -2880,7 +2880,7 @@ bool d3d9_initialize()
 		PathRemoveFileSpec(app_full_path);
 		PathAddBackslash(app_full_path);
 
-		std::wstring path(app_full_path);
+		std::wstring path = app_full_path;
 		BridgeParameter::mutable_instance().base_path = path;
 		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), '\\', '/');
 	}
