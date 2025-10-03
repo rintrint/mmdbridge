@@ -2648,27 +2648,30 @@ void UMGetCameraUp(D3DXVECTOR3* dst)
 BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex)
 {
 	std::map<LPDIRECT3DTEXTURE9, std::pair<std::wstring, D3DFORMAT>>::iterator it = dxTextureMap.find(tex);
-
-	if (it != dxTextureMap.end())
+	if (it == dxTextureMap.end())
 	{
-		LPCWSTR srcPath = (*it).second.first.c_str();
-		if (PathFileExistsW(srcPath))
-		{
-			WCHAR fileName[MAX_PATH];
-			short size = GetFileTitleW(srcPath, NULL, 0);
-			GetFileTitleW(srcPath, fileName, size);
-
-			WCHAR dstPath[MAX_PATH];
-			PathCombineW(dstPath, dstDir, fileName);
-
-			CopyFileW(srcPath, dstPath, FALSE);
-		}
+		return FALSE;
 	}
-	else
+
+	LPCWSTR srcPath = (*it).second.first.c_str();
+	if (!PathFileExistsW(srcPath))
 	{
-		return false;
+		return FALSE;
 	}
-	return true;
+
+	LPCWSTR fileName = PathFindFileNameW(srcPath);
+	if (!fileName || fileName[0] == L'\0')
+	{
+		return FALSE;
+	}
+
+	WCHAR dstPath[MAX_PATH];
+	if (!PathCombineW(dstPath, dstDir, fileName))
+	{
+		return FALSE;
+	}
+
+	return CopyFileW(srcPath, dstPath, FALSE);
 }
 
 DWORD UMGetTextureName(LPDIRECT3DTEXTURE9 tex, LPWSTR outBuffer, DWORD bufferSize)
