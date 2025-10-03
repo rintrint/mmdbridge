@@ -91,8 +91,16 @@ def import_mtl(path, result, relation):
 
 
 def match_mesh_and_material(mesh_name, mtl_name):
-    mesh_stripped = mesh_name.replace("xform_", "")
-    mtl_stripped = mtl_name.replace("mesh_", "")
+    def _strip_name(name):
+        stripped = name.replace("xform", "").replace("material", "").replace("mesh", "")
+        # Keep one underscore between words, remove leading/trailing underscores
+        while "__" in stripped:
+            stripped = stripped.replace("__", "_")
+        stripped = stripped.strip("_")
+        return stripped
+
+    mesh_stripped = _strip_name(mesh_name)
+    mtl_stripped = _strip_name(mtl_name)
     return mesh_stripped == mtl_stripped
 
 
