@@ -135,25 +135,24 @@ umstring UMPath::resource_absolute_path(const umstring& file_name)
 #ifdef WITH_EMSCRIPTEN
 	return umstring("resource/") + file_name;
 #else
-	WCHAR path[MAX_PATH];
-	GetModuleFileNameW(NULL, path, MAX_PATH);
-	PathRemoveFileSpecW(path);
-	SetCurrentDirectoryW(path);
-	SetCurrentDirectoryW(L"../../../resource/");
-	GetCurrentDirectoryW(MAX_PATH, path);
-	std::wstring inpath = std::wstring(path) + L"\\" + UMStringUtil::utf16_to_wstring(file_name);
+	WCHAR modulePath[MAX_PATH];
+	GetModuleFileNameW(NULL, modulePath, MAX_PATH);
+	PathRemoveFileSpecW(modulePath);
 
-	// honban you kozaiku
-	if (! ::PathFileExistsW(inpath.c_str()))
+	WCHAR candidatePath1[MAX_PATH];
+	PathCombineW(candidatePath1, modulePath, L"../../../resource/");
+	PathCombineW(candidatePath1, candidatePath1, UMStringUtil::utf16_to_wstring(file_name).c_str());
+
+	if (::PathFileExistsW(candidatePath1))
 	{
-		GetModuleFileNameW(NULL, path, MAX_PATH);
-		PathRemoveFileSpecW(path);
-		SetCurrentDirectoryW(path);
-		SetCurrentDirectoryW(L"./resource/");
-		GetCurrentDirectoryW(MAX_PATH, path);
-		inpath = std::wstring(path) + L"\\" + UMStringUtil::utf16_to_wstring(file_name);
+		return UMStringUtil::wstring_to_utf16(candidatePath1);
 	}
-	return UMStringUtil::wstring_to_utf16(inpath);
+
+	WCHAR candidatePath2[MAX_PATH];
+	PathCombineW(candidatePath2, modulePath, L"./resource/");
+	PathCombineW(candidatePath2, candidatePath2, UMStringUtil::utf16_to_wstring(file_name).c_str());
+
+	return UMStringUtil::wstring_to_utf16(candidatePath2);
 #endif // WITH_EMSCRIPTEN
 }
 
