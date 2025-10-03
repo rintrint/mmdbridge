@@ -10,7 +10,6 @@
 #include "UMPath.h"
 #include "UMMath.h"
 #include "UMVector.h"
-#include "EncodingHelper.h"
 #include <fstream>
 
 #include <pybind11/pybind11.h>
@@ -186,7 +185,7 @@ static bool start_alembic_export(
 			alembic_archive.archive =
 				std::make_unique<Alembic::Abc::OArchive>(
 					Alembic::AbcCoreHDF5::WriteArchive(),
-					oguna::EncodingConverter::wstringTostring(output_path));
+					umbase::UMStringUtil::wstring_to_utf8(output_path));
 		}
 
 		const double dt = 1.0 / parameter.export_fps;
