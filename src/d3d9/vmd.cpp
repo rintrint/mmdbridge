@@ -81,8 +81,6 @@ public:
 		return instance;
 	}
 
-	std::map<std::string, unsigned long long> file_path_map;
-
 	std::vector<FileDataForVMD> data_list;
 
 	std::wstring output_path;
@@ -92,7 +90,6 @@ public:
 	void end()
 	{
 		data_list.clear();
-		file_path_map.clear();
 		output_path.clear();
 	}
 
@@ -127,37 +124,30 @@ static bool start_vmd_export(const int export_mode)
 	const int pmd_num = ExpGetPmdNum();
 	for (int i = 0; i < pmd_num; ++i)
 	{
-		const char* filename = ExpGetPmdFilenameUtf8(i);
-		if (archive.file_path_map.find(filename) != archive.file_path_map.end())
-		{
-			continue;
-		}
+		const char* filepath = ExpGetPmdFilenameUtf8(i);
+		std::wstring filepath_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(filepath));
+		std::wstring file_ext_wstring = PathFindExtensionW(filepath_wstring.c_str());
+		std::transform(file_ext_wstring.begin(), file_ext_wstring.end(), file_ext_wstring.begin(), ::towlower);
 
-		std::wstring filename_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(std::string(filename)));
-		LPCWSTR ext = PathFindExtensionW(filename_wstring.c_str());
-		std::wstring filename_ext = ext;
-		std::transform(filename_ext.begin(), filename_ext.end(), filename_ext.begin(), ::towlower);
-
-		if (filename_ext == L".pmd")
+		if (file_ext_wstring == L".pmd")
 		{
 			PMDPtr pmd;
-			if ((pmd = pmd::PmdModel::LoadFromFile(filename)))
+			if ((pmd = pmd::PmdModel::LoadFromFile(filepath)))
 			{
 			}
 			else
 			{
-				std::wstring error_message = L"Failed to load pmd file: " + filename_wstring;
+				std::wstring error_message = L"Failed to load pmd file: " + filepath_wstring;
 				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			}
 			FileDataForVMD data;
 			data.pmd = pmd;
 			archive.data_list.push_back(data);
-			archive.file_path_map[filename] = archive.data_list.size() - 1ULL;
 		}
-		else if (filename_ext == L".pmx")
+		else if (file_ext_wstring == L".pmx")
 		{
 			const auto pmx = std::make_shared<pmx::PmxModel>();
-			std::ifstream stream(filename_wstring, std::ios_base::binary);
+			std::ifstream stream(filepath_wstring, std::ios_base::binary);
 			if (stream.good())
 			{
 				pmx->Init();
@@ -165,24 +155,23 @@ static bool start_vmd_export(const int export_mode)
 			}
 			else
 			{
-				std::wstring error_message = L"Failed to open pmx file: " + filename_wstring;
+				std::wstring error_message = L"Failed to open pmx file: " + filepath_wstring;
 				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 			}
 			FileDataForVMD data;
 			data.pmx = pmx;
 			archive.data_list.push_back(data);
-			archive.file_path_map[filename] = archive.data_list.size() - 1ULL;
 		}
 		else
 		{
 			std::wstring error_message;
-			if (filename_wstring.empty())
+			if (filepath_wstring.empty())
 			{
 				error_message = L"Unable to get pmd/pmx filepath.";
 			}
 			else
 			{
-				error_message = L"This is not a pmd/pmx file: " + filename_wstring;
+				error_message = L"This is not a pmd/pmx file: " + filepath_wstring;
 			}
 			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
 		}
@@ -289,10 +278,11 @@ static bool end_vmd_export()
 	BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
 
+	std::map<std::wstring, int> output_name_counts;
+
 	for (int i = 0; i < pmd_num; ++i)
 	{
-		const char* filename = ExpGetPmdFilenameUtf8(i);
-		FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
+		FileDataForVMD& file_data = archive.data_list.at(i);
 		if (!file_data.vmd)
 		{
 			continue;
@@ -340,7 +330,8 @@ static bool end_vmd_export()
 			file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
 		}
 
-		std::wstring filepath_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(filename));
+		const char* filepath = ExpGetPmdFilenameUtf8(i);
+		std::wstring filepath_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(filepath));
 		std::wstring filename_wstring = PathFindFileNameW(filepath_wstring.c_str());
 		if (filename_wstring.empty())
 		{
@@ -352,9 +343,22 @@ static bool end_vmd_export()
 		WCHAR filename_buffer[MAX_PATH];
 		wcscpy_s(filename_buffer, MAX_PATH, filename_wstring.c_str());
 		PathRenameExtensionW(filename_buffer, L".vmd");
+		std::wstring base_output_filename(filename_buffer);
+
+		// Resolves filename collisions that occur when the same model is imported multiple times.
+		int count = output_name_counts[base_output_filename]++;
+		std::wstring final_output_filename = base_output_filename;
+		if (count > 0)
+		{
+			WCHAR name_buffer[MAX_PATH];
+			wcscpy_s(name_buffer, MAX_PATH, base_output_filename.c_str());
+			PathRemoveExtensionW(name_buffer);
+			std::wstring name_without_ext(name_buffer);
+			final_output_filename = name_without_ext + L" (" + std::to_wstring(count + 1) + L").vmd";
+		}
 
 		WCHAR pathBuffer[MAX_PATH];
-		PathCombineW(pathBuffer, archive.output_path.c_str(), filename_buffer);
+		PathCombineW(pathBuffer, archive.output_path.c_str(), final_output_filename.c_str());
 		std::wstring output_filepath = pathBuffer;
 		file_data.vmd->SaveToFile(output_filepath);
 	}
@@ -695,8 +699,7 @@ static bool execute_vmd_export(const int currentframe)
 	{
 		for (int i = 0; i < pmd_num; ++i)
 		{
-			const char* filename = ExpGetPmdFilenameUtf8(i);
-			FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
+			FileDataForVMD& file_data = archive.data_list.at(i);
 			init_file_data(file_data);
 
 			file_data.vmd = std::make_unique<vmd::VmdMotion>();
@@ -713,8 +716,7 @@ static bool execute_vmd_export(const int currentframe)
 
 	for (int i = 0; i < pmd_num; ++i)
 	{
-		const char* filename = ExpGetPmdFilenameUtf8(i);
-		FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
+		FileDataForVMD& file_data = archive.data_list.at(i);
 		const int bone_num = ExpGetPmdBoneNum(i);
 		for (int k = 0; k < bone_num; ++k)
 		{
