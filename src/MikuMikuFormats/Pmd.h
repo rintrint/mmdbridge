@@ -441,7 +441,7 @@ namespace pmd
 		static std::unique_ptr<PmdModel> LoadFromFile(const char *filename)
 		{
 			std::wstring filename_wstring;
-			oguna::EncodingConverter::Cp932ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+			oguna::EncodingConverter::Utf8ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
 			std::ifstream stream(filename_wstring, std::ios::binary);
 			if (stream.fail())
 			{
