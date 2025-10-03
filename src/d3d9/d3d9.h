@@ -67,7 +67,6 @@ extern bool (*ExpGetEnglishMode)();
 
 // Utility functions
 extern bool InitializeMMDExports();
-extern bool AreMMDExportsReady();
 
 ///////////////////////////////////////////////////////////////////////////
 // End of MMD Export Functions
