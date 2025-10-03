@@ -10,6 +10,7 @@
 #include <richedit.h>
 #include <process.h>
 #include <direct.h>
+#include <excpt.h>
 
 #include <vector>
 #include <string>
@@ -57,31 +58,37 @@ const wchar_t* GetInternalPathFromModelIndex(int modelIndex)
 	const int MODEL_ARRAY_OFFSET = 0xBE8;
 	const int PATH_POINTER_OFFSET = 0x2548;
 
-	uintptr_t mmd_base = (uintptr_t)GetModuleHandle(NULL);
-	if (!mmd_base)
-		return nullptr;
+	__try
+	{
+		uintptr_t mmd_base = (uintptr_t)GetModuleHandle(NULL);
+		if (!mmd_base)
+			return nullptr;
 
-	// 步驟 A: 獲取模型管理物件的指標
-	uintptr_t model_manager_ptr = *(uintptr_t*)(mmd_base + MODEL_MANAGER_POINTER_OFFSET);
-	if (!model_manager_ptr)
-		return nullptr;
+		// 步驟 A: 獲取模型管理物件的指標
+		uintptr_t model_manager_ptr = *(uintptr_t*)(mmd_base + MODEL_MANAGER_POINTER_OFFSET);
+		if (!model_manager_ptr)
+			return nullptr;
 
-	// 步驟 B: 獲取模型陣列的基底位址。
-	uintptr_t* model_array = (uintptr_t*)(model_manager_ptr + MODEL_ARRAY_OFFSET);
-	if (IsBadReadPtr(model_array, sizeof(uintptr_t) * (modelIndex + 1)))
-		return nullptr;
+		// 步驟 B: 獲取模型陣列的基底位址。
+		uintptr_t* model_array = (uintptr_t*)(model_manager_ptr + MODEL_ARRAY_OFFSET);
 
-	// 步驟 C: 根據索引直接獲取模型物件指標
-	uintptr_t model_object = model_array[modelIndex];
-	if (!model_object)
-		return nullptr;
+		// 步驟 C: 根據索引直接獲取模型物件指標
+		uintptr_t model_object = model_array[modelIndex];
+		if (!model_object)
+			return nullptr;
 
-	// 步驟 D: 從模型物件中加上偏移量，獲取最終的路徑指標
-	const wchar_t* internalPathPtr = (const wchar_t*)(model_object + PATH_POINTER_OFFSET);
-	if (IsBadReadPtr((void*)internalPathPtr, sizeof(wchar_t)))
-		return nullptr;
+		// 步驟 D: 從模型物件中加上偏移量，獲取最終的路徑指標
+		const wchar_t* internalPathPtr = (const wchar_t*)(model_object + PATH_POINTER_OFFSET);
 
-	return internalPathPtr;
+		if (internalPathPtr[0] == L'\0')
+			return internalPathPtr;
+
+		return internalPathPtr;
+	}
+	__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+	{
+		return nullptr;
+	}
 }
 
 // =======================================================================
