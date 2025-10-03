@@ -4,6 +4,8 @@
 
 #include "d3d9.h"
 
+#include <shlwapi.h>
+
 #include "bridge_parameter.h"
 #include "UMStringUtil.h"
 #include "UMPath.h"
@@ -361,7 +363,10 @@ static bool end_vmd_export()
 		{
 			filename_wstring += extension;
 		}
-		std::wstring output_filepath = archive.output_path + filename_wstring;
+
+		WCHAR pathBuffer[MAX_PATH];
+		PathCombineW(pathBuffer, archive.output_path.c_str(), filename_wstring.c_str());
+		std::wstring output_filepath = pathBuffer;
 		file_data.vmd->SaveToFile(output_filepath);
 	}
 

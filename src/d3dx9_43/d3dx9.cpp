@@ -2657,9 +2657,10 @@ BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex)
 			short size = GetFileTitle(srcPath, NULL, NULL);
 			GetFileTitle(srcPath, fileName, size);
 
-			std::wstring dst(std::wstring(dstDir) + std::wstring(fileName));
+			WCHAR dstPath[MAX_PATH];
+			PathCombineW(dstPath, dstDir, fileName);
 
-			CopyFile(srcPath, dst.c_str(), false);
+			CopyFile(srcPath, dstPath, FALSE);
 		}
 	}
 	else
