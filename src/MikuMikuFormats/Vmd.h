@@ -228,7 +228,15 @@ namespace vmd
 
 		static std::unique_ptr<VmdMotion> LoadFromFile(const char* filename)
 		{
-			std::ifstream stream(filename, std::ios::binary);
+			std::wstring filename_wstring;
+			oguna::EncodingConverter::Utf8ToUtf16(filename, static_cast<int>(strnlen(filename, 4096)), &filename_wstring);
+			std::ifstream stream(filename_wstring, std::ios::binary);
+			if (stream.fail())
+			{
+				std::wstring error_message = L"Could not open file: " + filename_wstring;
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+				return nullptr;
+			}
 			auto result = LoadFromStream(&stream);
 			stream.close();
 			return result;
