@@ -59,11 +59,12 @@ UMTime::~UMTime()
 #ifdef WITH_EMSCRIPTEN
 	fprintf(stderr, "%s\n", message.c_str());
 #else
-	::OutputDebugStringA(message.c_str());
-	std::cerr << message << std::endl;
+	std::wstring w_message = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(message));
+	::OutputDebugStringW(w_message.c_str());
+	std::wcerr << w_message << std::endl;
 
 	if (show_message_box_) {
-		::MessageBoxA(NULL, message.c_str(), "hoge", MB_OK);
+		::MessageBoxW(NULL, w_message.c_str(), L"hoge", MB_OK);
 	}
 #endif
 }

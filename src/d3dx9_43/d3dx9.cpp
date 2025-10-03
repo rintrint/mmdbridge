@@ -2705,7 +2705,6 @@ HRESULT WINAPI setTexture(
 	D3DXHANDLE hParameter,
 	LPDIRECT3DBASETEXTURE9 pTexture)
 {
-	//::MessageBoxA(NULL, hParameter, "texture", MB_OK);
 	return original_SetTexture(pEffect, hParameter, pTexture);
 }
 
@@ -2733,7 +2732,6 @@ D3DXHANDLE WINAPI getParameter(
 	D3DXHANDLE hParent,
 	UINT index)
 {
-	//::MessageBoxA(NULL, hParent, "param", MB_OK);
 	return original_GetParameter(pEffect, hParent, index);
 }
 
@@ -3447,7 +3445,6 @@ extern "C"
 		LPD3DXEFFECT* ppEffect,
 		LPD3DXBUFFER* ppCompilationErrors)
 	{
-		//::MessageBox(NULL, pSrcFile, _T("texture"), MB_OK);
 		return (*original_D3DXCreateEffectFromFileExW)(pDevice, pSrcFile, pDefines, pInclude, pSkipConstants, Flags, pPool, ppEffect, ppCompilationErrors);
 	}
 
@@ -3879,7 +3876,6 @@ extern "C"
 		D3DPOOL Pool,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTexture", "d3dx", MB_OK);
 		return (*original_D3DXCreateTexture)(pDevice, Width, Height, MipLevels, Usage, Format, Pool, ppTexture);
 	}
 
@@ -3888,7 +3884,6 @@ extern "C"
 		LPCSTR pSrcFile,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromFileA", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromFileA)(pDevice, pSrcFile, ppTexture);
 	}
 
@@ -3908,7 +3903,6 @@ extern "C"
 		PALETTEENTRY* pPalette,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromFileExA", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromFileExA)(pDevice, pSrcFile, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
 	}
 
@@ -3929,19 +3923,6 @@ extern "C"
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
 		HRESULT res = (*original_D3DXCreateTextureFromFileExW)(pDevice, pSrcFile, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
-
-		//{
-		//	D3DXIMAGE_INFO info;
-		//	LPDIRECT3DTEXTURE9 tmpTex;
-
-		//	HRESULT res2 = (*original_D3DXCreateTextureFromFileExW)(pDevice, pSrcFile, Width, Height, MipLevels, Usage, D3DFMT_UNKNOWN, Pool, Filter, MipFilter, ColorKey, &info, pPalette, &tmpTex);
-		//	if (SUCCEEDED(res2))
-		//	{
-		//		::MessageBoxA(NULL, to_string(info.).c_str(), "info", MB_OK);
-		//		tmpTex->lpVtbl->Release(tmpTex);
-		//	}
-		//}
-
 		if (SUCCEEDED(res))
 		{
 			if (dxTextureMap.find(*ppTexture) != dxTextureMap.end())
@@ -3959,7 +3940,6 @@ extern "C"
 		UINT SrcDataSize,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromFileInMemory", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromFileInMemory)(pDevice, pSrcData, SrcDataSize, ppTexture);
 	}
 
@@ -3980,7 +3960,6 @@ extern "C"
 		PALETTEENTRY* pPalette,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromFileInMemoryEx", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromFileInMemoryEx)(pDevice, pSrcData, SrcDataSize, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
 	}
 
@@ -3989,7 +3968,6 @@ extern "C"
 		LPCWSTR pSrcFile,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromFileW", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromFileW)(pDevice, pSrcFile, ppTexture);
 	}
 
@@ -3999,7 +3977,6 @@ extern "C"
 		LPCSTR pSrcResource,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromResourceA", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromResourceA)(pDevice, hSrcModule, pSrcResource, ppTexture);
 	}
 
@@ -4020,7 +3997,6 @@ extern "C"
 		PALETTEENTRY* pPalette,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromResourceExA", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromResourceExA)(pDevice, hSrcModule, pSrcResource, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
 	}
 
@@ -4041,7 +4017,6 @@ extern "C"
 		PALETTEENTRY* pPalette,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromResourceExW", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromResourceExW)(pDevice, hSrcModule, pSrcResource, Width, Height, MipLevels, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
 	}
 
@@ -4051,7 +4026,6 @@ extern "C"
 		LPCWSTR pSrcResource,
 		LPDIRECT3DTEXTURE9* ppTexture)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureFromResourceW", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureFromResourceW)(pDevice, hSrcModule, pSrcResource, ppTexture);
 	}
 
@@ -4062,7 +4036,6 @@ extern "C"
 		FLOAT GutterSize,
 		LPD3DXTEXTUREGUTTERHELPER* ppBuffer)
 	{
-		//::MessageBoxA(NULL, "D3DXCreateTextureGutterHelper", "d3dx", MB_OK);
 		return (*original_D3DXCreateTextureGutterHelper)(Width, Height, pMesh, GutterSize, ppBuffer);
 	}
 
@@ -5069,12 +5042,6 @@ extern "C"
 			v_at.y = pAt->y;
 			v_at.z = pAt->z;
 		}
-		//
-		//::MessageBoxA(NULL,
-		//	std::string(
-		//	"up" + to_string(pUp->x)+" "+to_string(pUp->y)+" "+to_string(pUp->z)+"\n"
-		//	+"at" + to_string(pAt->x)+" "+to_string(pAt->y)+" "+to_string(pAt->z)+"\n"
-		//	+"eye" + to_string(pEye->x)+" "+to_string(pEye->y)+" "+to_string(pEye->z)+"\n").c_str(), "lookat", MB_OK);
 		return (*original_D3DXMatrixLookAtLH)(pOut, pEye, pAt, pUp);
 	}
 
@@ -6408,7 +6375,6 @@ BOOL init()
 
 	GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
 
-	//::MessageBoxA(NULL, "Loading d3dx9_43.dll...", "hoge",MB_OK);
 	TCHAR system_path_buffer[MAX_PATH]; // システムパス保存用
 	GetSystemDirectory(system_path_buffer, MAX_PATH);
 	std::wstring d3d9x_path(system_path_buffer);
@@ -6417,16 +6383,15 @@ BOOL init()
 
 	if (!d3d9x_module)
 	{
-		::MessageBoxA(NULL,
-					  "The file d3dx9_43.dll is missing.\n"
-					  "This application requires the DirectX End-User Runtimes (June 2010).\n"
-					  "Please install it and try again.",
-					  "Missing DirectX Component",
+		::MessageBoxW(NULL,
+					  L"The file d3dx9_43.dll is missing.\n"
+					  L"This application requires the DirectX End-User Runtimes (June 2010).\n"
+					  L"Please install it and try again.",
+					  L"Missing DirectX Component",
 					  MB_OK | MB_ICONERROR);
 		return FALSE;
 	}
 
-	//::MessageBoxA(NULL, "d3dx9_43.dll loaded successfully", "hoge",MB_OK);
 	//// オリジナルの関数ポインタを取得
 	original_D3DXAssembleShader = reinterpret_cast<HRESULT(WINAPI*)(LPCSTR pSrcData, UINT SrcDataLen, CONST D3DXMACRO * pDefines, LPD3DXINCLUDE pInclude, DWORD Flags, LPD3DXBUFFER * ppShader, LPD3DXBUFFER * ppErrorMsgs)>(GetProcAddress(d3d9x_module, "D3DXAssembleShader"));
 	original_D3DXAssembleShaderFromFileA = reinterpret_cast<HRESULT(WINAPI*)(LPCSTR pSrcFile, CONST D3DXMACRO * pDefines, LPD3DXINCLUDE pInclude, DWORD Flags, LPD3DXBUFFER * ppShader, LPD3DXBUFFER * ppErrorMsgs)>(GetProcAddress(d3d9x_module, "D3DXAssembleShaderFromFileA"));

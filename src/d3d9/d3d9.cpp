@@ -215,19 +215,22 @@ bool InitializeMMDExports()
 	HMODULE hExe = GetModuleHandle(NULL);
 	if (!hExe)
 	{
-		::MessageBoxA(NULL, "Failed to get EXE module handle", "MMD Export Init Error", MB_OK);
+		::MessageBoxW(NULL, L"Failed to get EXE module handle", L"MMD Export Init Error", MB_OK);
 		g_mmd_exports_initialized = false;
 		return false;
 	}
 
 // Load all function pointers
-#define LOAD_FUNC(name)                                                                         \
-	name = (decltype(name))GetProcAddress(hExe, #name);                                         \
-	if (!name)                                                                                  \
-	{                                                                                           \
-		::MessageBoxA(NULL, "Failed to load function: " #name, "MMD Export Init Error", MB_OK); \
-		g_mmd_exports_initialized = false;                                                      \
-		return false;                                                                           \
+#define LOAD_FUNC(name)                                                            \
+	name = (decltype(name))GetProcAddress(hExe, #name);                            \
+	if (!name)                                                                     \
+	{                                                                              \
+		std::string error_msg = "Failed to load function: " #name;                 \
+		std::wstring w_error_msg = umbase::UMStringUtil::utf16_to_wstring(         \
+			umbase::UMStringUtil::utf8_to_utf16(error_msg));                       \
+		::MessageBoxW(NULL, w_error_msg.c_str(), L"MMD Export Init Error", MB_OK); \
+		g_mmd_exports_initialized = false;                                         \
+		return false;                                                              \
 	}
 
 	// PMD related functions
@@ -1221,7 +1224,7 @@ void run_python_script()
 
 		if (PyStatus_Exception(status))
 		{
-			::MessageBoxA(NULL, "Failed to initialize Python", "Python Error", MB_OK);
+			::MessageBoxW(NULL, L"Failed to initialize Python", L"Python Error", MB_OK);
 			return;
 		}
 	}
@@ -1560,7 +1563,10 @@ static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTextu
 					}
 					else
 					{
-						::MessageBoxA(NULL, std::string("not supported texture format:" + format).c_str(), "info", MB_OK);
+						std::stringstream ss;
+						ss << "Not supported texture format: " << format;
+						std::wstring error_message = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(ss.str()));
+						::MessageBoxW(NULL, error_message.c_str(), L"Info", MB_OK);
 					}
 				}
 			}
@@ -1591,10 +1597,9 @@ HWND g_hFrame = NULL; // Frame number
 
 static void GetFrame(HWND hWnd)
 {
-	char text[256];
-	::GetWindowTextA(hWnd, text, sizeof(text) / sizeof(text[0]));
-
-	ui_frame = atoi(text);
+	WCHAR text[256];
+	::GetWindowTextW(hWnd, text, sizeof(text) / sizeof(text[0]));
+	ui_frame = _wtoi(text);
 }
 
 static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
@@ -1629,12 +1634,10 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 	if (GetModuleHandle(NULL) == hModule)
 	{
 		// Found window created by our process
-		char szClassName[256];
-		GetClassNameA(hWnd, szClassName, sizeof(szClassName) / sizeof(szClassName[0]));
-
-		std::string name(szClassName);
-
-		if (name == "Polygon Movie Maker")
+		WCHAR szClassName[256];
+		GetClassNameW(hWnd, szClassName, sizeof(szClassName) / sizeof(szClassName[0]));
+		std::wstring name(szClassName);
+		if (name == L"Polygon Movie Maker")
 		{
 			g_hWnd = hWnd;
 			EnumChildWindows(hWnd, enumChildWindowsProc, 0);
@@ -1772,20 +1775,20 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						script_call_setting = num2 + 1;
 					}
 
-					char text1[32];
-					char text2[32];
-					char text5[32];
-					::GetWindowTextA(hEdit1, text1, sizeof(text1) / sizeof(text1[0]));
-					::GetWindowTextA(hEdit2, text2, sizeof(text2) / sizeof(text2[0]));
-					::GetWindowTextA(hEdit5, text5, sizeof(text5) / sizeof(text5[0]));
-					mutable_parameter.start_frame = atoi(text1);
-					mutable_parameter.end_frame = atoi(text2);
-					mutable_parameter.export_fps = atof(text5);
+					wchar_t text1[32];
+					wchar_t text2[32];
+					wchar_t text5[32];
+					::GetWindowTextW(hEdit1, text1, 32);
+					::GetWindowTextW(hEdit2, text2, 32);
+					::GetWindowTextW(hEdit5, text5, 32);
+					mutable_parameter.start_frame = _wtoi(text1);
+					mutable_parameter.end_frame = _wtoi(text2);
+					mutable_parameter.export_fps = _wtof(text5);
 
 					if (parameter.start_frame > parameter.end_frame)
 					{
 						mutable_parameter.end_frame = parameter.start_frame + 1;
-						::SetWindowTextA(hEdit2, to_string(parameter.end_frame).c_str());
+						::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
 					}
 					EndDialog(hWnd, IDOK);
 				}
@@ -1855,10 +1858,10 @@ BOOL CALLBACK FindRecWindowProc(HWND hWnd, LPARAM lParam)
 	FindWindowData* pData = (FindWindowData*)lParam;
 
 	// Check if the window's class name is "RecWindow".
-	char className[256];
-	if (GetClassNameA(hWnd, className, sizeof(className)) > 0)
+	WCHAR className[256];
+	if (GetClassNameW(hWnd, className, sizeof(className) / sizeof(className[0])) > 0)
 	{
-		if (strcmp(className, "RecWindow") == 0)
+		if (wcscmp(className, L"RecWindow") == 0)
 		{
 			DWORD windowProcessId;
 			GetWindowThreadProcessId(hWnd, &windowProcessId);
@@ -1946,7 +1949,7 @@ static HRESULT WINAPI present(
 static HRESULT WINAPI reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	HRESULT res = (*original_reset)(device, pPresentationParameters);
-	::MessageBox(NULL, _T("MMDBridge does not support 3D Vision"), _T("HOGE"), MB_OK);
+	::MessageBoxW(NULL, L"MMDBridge does not support 3D Vision", L"HOGE", MB_OK);
 	return res;
 }
 
@@ -2237,22 +2240,18 @@ static bool writeMaterialsToMemory(TextureParameter& textureParameter)
 				textureParameter.hasTextureSampler2 = false;
 				if (current == texHandle1)
 				{
-					//::MessageBoxA(NULL, "1", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
 				if (current == texHandle2)
 				{
-					//::MessageBoxA(NULL, "2", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
 				if (current == texHandle3)
 				{
-					//::MessageBoxA(NULL, "3", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
 				if (current == texHandle4)
 				{
-					//::MessageBoxA(NULL, "4", "transp", MB_OK);
 					textureParameter.hasTextureSampler2 = true;
 				}
 
@@ -2893,7 +2892,7 @@ bool d3d9_initialize()
 	// 初始化 MinHook 函式庫
 	if (MH_Initialize() != MH_OK)
 	{
-		::MessageBoxA(NULL, "MH_Initialize failed!", "MinHook Error", MB_OK);
+		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK);
 		return false;
 	}
 
@@ -2911,14 +2910,14 @@ bool d3d9_initialize()
 			// 3. (LPVOID*)&fpExpGetPmdFilename_Original: 用來儲存原始函數位址的指標
 			if (MH_CreateHook(pTarget, &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original) != MH_OK)
 			{
-				::MessageBoxA(NULL, "MH_CreateHook failed!", "MinHook Error", MB_OK);
+				::MessageBoxW(NULL, L"MH_CreateHook failed!", L"MinHook Error", MB_OK);
 				return false;
 			}
 
 			// 啟用剛剛建立的 Hook
 			if (MH_EnableHook(pTarget) != MH_OK)
 			{
-				::MessageBoxA(NULL, "MH_EnableHook failed!", "MinHook Error", MB_OK);
+				::MessageBoxW(NULL, L"MH_EnableHook failed!", L"MinHook Error", MB_OK);
 				return false;
 			}
 		}
@@ -2993,7 +2992,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 			// Initialize MMD export function pointers
 			if (!InitializeMMDExports())
 			{
-				::MessageBoxA(NULL, "Failed to initialize MMD export functions", "Initialization Error", MB_OK);
+				::MessageBoxW(NULL, L"Failed to initialize MMD export functions", L"Initialization Error", MB_OK);
 				return FALSE;
 			}
 
