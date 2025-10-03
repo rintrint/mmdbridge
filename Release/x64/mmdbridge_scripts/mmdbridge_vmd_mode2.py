@@ -22,15 +22,15 @@ dst_dir = "out"
 FileSnapshot = namedtuple("FileSnapshot", ["path", "mtime"])
 
 
-def get_file_snapshots(directory, extension=".vmd"):
-    """Get snapshot set of files in directory"""
+def get_file_snapshots(directory):
+    """Get snapshot set of all files in directory"""
     file_snapshots = set()
     if not os.path.exists(directory):
         return file_snapshots
 
     for filename in os.listdir(directory):
-        if filename.endswith(extension):
-            filepath = os.path.join(directory, filename)
+        filepath = os.path.join(directory, filename)
+        if os.path.isfile(filepath):
             mtime = os.path.getmtime(filepath)
             file_snapshots.add(FileSnapshot(filepath, mtime))
     return file_snapshots
