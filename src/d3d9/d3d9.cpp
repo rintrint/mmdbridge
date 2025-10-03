@@ -51,9 +51,17 @@ static HMODULE g_d3d9_system_module = NULL;
 // 宣告一個函式指標，用來儲存原始 ExpGetPmdFilename 函式的位址
 char* (*fpExpGetPmdFilename_Original)(int) = nullptr;
 
-// =======================================================================
-// 輔助函數 1：根據逆向的結果，從 modelIndex 獲取真實的 UTF16 路徑
-// =======================================================================
+// 宣告一個 thread_local 旗標，用於在我們的 Utf8 函式和 Hook 之間通訊
+thread_local bool g_is_explicit_utf8_call = false;
+
+// 建立一個 RAII 輔助類別，以確保旗標被安全地設定和重設
+struct Utf8CallGuard
+{
+	Utf8CallGuard() { g_is_explicit_utf8_call = true; }
+	~Utf8CallGuard() { g_is_explicit_utf8_call = false; }
+};
+
+// 輔助函數：根據逆向的結果，從 modelIndex 獲取真實的 UTF16 路徑
 const wchar_t* GetInternalPathFromModelIndex(int modelIndex)
 {
 	const uintptr_t MODEL_MANAGER_POINTER_OFFSET = 0x1445F8;
@@ -93,59 +101,34 @@ const wchar_t* GetInternalPathFromModelIndex(int modelIndex)
 	}
 }
 
-// =======================================================================
-// 輔助函數 2：判斷呼叫者是否是我們自己的 d3d9.dll
-// =======================================================================
-bool IsCallerFromMMDBridge()
-{
-	HMODULE hModule = NULL;
-	GetModuleHandleExW(
-		GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT,
-		(LPCWSTR)_ReturnAddress(),
-		&hModule);
-
-	wchar_t modulePath[MAX_PATH];
-	if (!hModule || GetModuleFileNameW(hModule, modulePath, MAX_PATH) == 0)
-	{
-		return false;
-	}
-
-	const wchar_t* fileName = PathFindFileNameW(modulePath);
-	return (_wcsicmp(fileName, L"d3d9.dll") == 0);
-}
-
 // 撰寫我們自己的版本 (Detour 函數) - 這是最終的、完整的 Hook 函數
 char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
 {
 	// 步驟 1: 呼叫我們的逆向邏輯，獲取內部真實的 UTF16 路徑
 	const wchar_t* internalPathPtr = GetInternalPathFromModelIndex(modelIndex);
-
-	// 如果由於某種原因（例如模型正在卸載）獲取失敗，就返回一個空字串，避免崩潰
+	// 如果由於某種原因 (例如模型正在卸載) 獲取失敗，就返回一個空字串，避免崩潰
 	if (!internalPathPtr || internalPathPtr[0] == L'\0')
 	{
-		// 為了安全，我們準備一個靜態空字串來返回
 		static char empty_string[] = "";
 		return empty_string;
 	}
 
-	// 步驟 2: 根據呼叫者是我們的 MMDBridge 還是 MMD 本身，決定目標編碼
+	// 步驟 2: 根據我們的 thread_local 旗標，決定目標編碼
 	UINT targetCodePage;
-	if (IsCallerFromMMDBridge())
+	if (g_is_explicit_utf8_call)
 	{
-		// 呼叫者是我們自己，我們想要無損的 UTF8
+		// 旗標被設定，表示是從我們的 Utf8 函式呼叫來的，回傳 UTF-8
 		targetCodePage = CP_UTF8;
 	}
 	else
 	{
-		// 呼叫者是 MikuMikuDance.exe 或其他外掛，我們提供它期望的 CP932 來保證相容性
+		// 旗標為 false，是 MMD 或其他插件的呼叫，返回 CP932 以維持相容性
 		targetCodePage = 932;
 	}
 
 	// 步驟 3: 轉換字串並透過 thread_local 緩衝區返回
-	// thread_local 確保每個執行緒都有自己獨立的緩衝區，是執行緒安全的
 	// 緩衝區大小設置為 MAX_PATH * 4 以應對 UTF8 編碼可能需要更多空間的情況
 	thread_local char resultBuffer[MAX_PATH * 4];
-
 	WideCharToMultiByte(
 		targetCodePage,
 		0,
@@ -155,8 +138,14 @@ char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
 		sizeof(resultBuffer),
 		NULL,
 		NULL);
-
 	return resultBuffer;
+}
+
+// 提供給 MMDBridge 內部使用的公開包裝函數，確保能安全地獲取 UTF-8 檔名
+const char* ExpGetPmdFilenameUtf8(int modelIndex)
+{
+	Utf8CallGuard guard;
+	return ExpGetPmdFilename(modelIndex);
 }
 // +++++ MINHOOK HOOKING LOGIC END +++++
 
@@ -901,7 +890,7 @@ namespace
 		if (count <= 0)
 			return "";
 
-		const char* utf8_filename = ExpGetPmdFilename(at);
+		const char* utf8_filename = ExpGetPmdFilenameUtf8(at);
 		if (utf8_filename)
 		{
 			return std::string(utf8_filename);

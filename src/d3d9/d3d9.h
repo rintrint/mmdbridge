@@ -66,6 +66,7 @@ extern int (*ExpGetRenderRepeatCount)();
 extern bool (*ExpGetEnglishMode)();
 
 // Utility functions
+extern const char* ExpGetPmdFilenameUtf8(int modelIndex);
 extern bool InitializeMMDExports();
 
 ///////////////////////////////////////////////////////////////////////////

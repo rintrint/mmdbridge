@@ -127,7 +127,7 @@ static bool start_vmd_export(const int export_mode)
 	const int pmd_num = ExpGetPmdNum();
 	for (int i = 0; i < pmd_num; ++i)
 	{
-		const char* filename = ExpGetPmdFilename(i);
+		const char* filename = ExpGetPmdFilenameUtf8(i);
 		if (archive.file_path_map.find(filename) != archive.file_path_map.end())
 		{
 			continue;
@@ -291,7 +291,7 @@ static bool end_vmd_export()
 
 	for (int i = 0; i < pmd_num; ++i)
 	{
-		const char* filename = ExpGetPmdFilename(i);
+		const char* filename = ExpGetPmdFilenameUtf8(i);
 		FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
 		if (!file_data.vmd)
 		{
@@ -695,7 +695,7 @@ static bool execute_vmd_export(const int currentframe)
 	{
 		for (int i = 0; i < pmd_num; ++i)
 		{
-			const char* filename = ExpGetPmdFilename(i);
+			const char* filename = ExpGetPmdFilenameUtf8(i);
 			FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
 			init_file_data(file_data);
 
@@ -713,7 +713,7 @@ static bool execute_vmd_export(const int currentframe)
 
 	for (int i = 0; i < pmd_num; ++i)
 	{
-		const char* filename = ExpGetPmdFilename(i);
+		const char* filename = ExpGetPmdFilenameUtf8(i);
 		FileDataForVMD& file_data = archive.data_list.at(archive.file_path_map[filename]);
 		const int bone_num = ExpGetPmdBoneNum(i);
 		for (int k = 0; k < bone_num; ++k)
