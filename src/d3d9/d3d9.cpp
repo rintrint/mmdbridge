@@ -32,6 +32,8 @@ namespace py = pybind11;
 #include "UMPath.h"
 #include "EncodingHelper.h"
 
+static HMODULE g_d3d9_system_module = NULL;
+
 // Require Python 3.11 or higher
 #if PY_VERSION_HEX < 0x030B0000
 #error "This code requires Python 3.11 or higher"
@@ -2948,21 +2950,22 @@ bool d3d9_initialize()
 	std::wstring d3d9_path(system_path_buffer);
 	replace(d3d9_path.begin(), d3d9_path.end(), L'\\', L'/');
 	d3d9_path.append(L"/d3d9.dll");
-	// Original d3d9.dll module
-	HMODULE d3d9_module(LoadLibraryW(d3d9_path.c_str()));
 
-	if (!d3d9_module)
+	// Original d3d9.dll module
+	g_d3d9_system_module = LoadLibraryW(d3d9_path.c_str());
+
+	if (!g_d3d9_system_module)
 	{
 		return FALSE;
 	}
 
 	// Get original Direct3DCreate9 function pointer
-	original_direct3d_create = reinterpret_cast<IDirect3D9*(WINAPI*)(UINT)>(GetProcAddress(d3d9_module, "Direct3DCreate9"));
+	original_direct3d_create = reinterpret_cast<IDirect3D9*(WINAPI*)(UINT)>(GetProcAddress(g_d3d9_system_module, "Direct3DCreate9"));
 	if (!original_direct3d_create)
 	{
 		return FALSE;
 	}
-	original_direct3d9ex_create = reinterpret_cast<HRESULT(WINAPI*)(UINT, IDirect3D9Ex**)>(GetProcAddress(d3d9_module, "Direct3DCreate9Ex"));
+	original_direct3d9ex_create = reinterpret_cast<HRESULT(WINAPI*)(UINT, IDirect3D9Ex**)>(GetProcAddress(g_d3d9_system_module, "Direct3DCreate9Ex"));
 	if (!original_direct3d9ex_create)
 	{
 		return FALSE;
@@ -2973,6 +2976,12 @@ bool d3d9_initialize()
 
 void d3d9_dispose()
 {
+	if (g_d3d9_system_module)
+	{
+		FreeLibrary(g_d3d9_system_module);
+		g_d3d9_system_module = NULL;
+	}
+
 	// +++++ MINHOOK HOOKING LOGIC START +++++
 	// 取得目標函數位址以便停用
 	HMODULE hMMD = GetModuleHandle(NULL);
