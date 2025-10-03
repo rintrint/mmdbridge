@@ -6,7 +6,6 @@
 #include <windows.h>
 #include <shlwapi.h>
 #include <intrin.h>
-#include <tchar.h>
 #include <commctrl.h>
 #include <richedit.h>
 #include <process.h>
@@ -397,7 +396,7 @@ namespace
 		mutable_parameter.python_script_path_list.clear();
 
 		std::wstring searchPath = mutable_parameter.base_path + L"mmdbridge_scripts/";
-		std::wstring searchStr(searchPath + _T("*.py"));
+		std::wstring searchStr(searchPath + L"*.py");
 
 		std::vector<std::pair<std::wstring, std::wstring>> found_scripts;
 
@@ -1483,9 +1482,9 @@ static bool copyTextureToFiles(const std::wstring& texturePath)
 		return false;
 
 	std::wstring path = texturePath;
-	PathRemoveFileSpec(&path[0]);
-	PathAddBackslash(&path[0]);
-	if (!PathIsDirectory(path.c_str()))
+	PathRemoveFileSpecW(&path[0]);
+	PathAddBackslashW(&path[0]);
+	if (!PathIsDirectoryW(path.c_str()))
 	{
 		return false;
 	}
@@ -1609,7 +1608,7 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 	GetClientRect(hWnd, &rect);
 
 	WCHAR buf[10];
-	GetWindowText(hWnd, buf, 10);
+	GetWindowTextW(hWnd, buf, 10);
 
 	if (!g_hFrame && rect.right == 48 && rect.bottom == 22)
 	{
@@ -2876,14 +2875,13 @@ bool d3d9_initialize()
 {
 	// Get MMD full path.
 	{
-		TCHAR app_full_path[MAX_PATH] = { 0 };
-		GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
-		PathRemoveFileSpec(app_full_path);
-		PathAddBackslash(app_full_path);
+		WCHAR app_full_path[MAX_PATH] = { 0 };
+		GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
+		PathRemoveFileSpecW(app_full_path);
+		PathAddBackslashW(app_full_path);
 
-		std::wstring path = app_full_path;
-		BridgeParameter::mutable_instance().base_path = path;
-		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), '\\', '/');
+		BridgeParameter::mutable_instance().base_path = app_full_path;
+		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), L'\\', L'/');
 	}
 
 	reload_python_file_paths();
@@ -2926,13 +2924,13 @@ bool d3d9_initialize()
 	// +++++ MINHOOK HOOKING LOGIC END +++++
 
 	// System path storage
-	TCHAR system_path_buffer[MAX_PATH] = { 0 };
-	GetSystemDirectory(system_path_buffer, sizeof(system_path_buffer) / sizeof(TCHAR));
+	WCHAR system_path_buffer[MAX_PATH] = { 0 };
+	GetSystemDirectoryW(system_path_buffer, MAX_PATH);
 	std::wstring d3d9_path(system_path_buffer);
-	replace(d3d9_path.begin(), d3d9_path.end(), '\\', '/');
+	replace(d3d9_path.begin(), d3d9_path.end(), L'\\', L'/');
 	d3d9_path.append(L"/d3d9.dll");
 	// Original d3d9.dll module
-	HMODULE d3d9_module(LoadLibrary(d3d9_path.c_str()));
+	HMODULE d3d9_module(LoadLibraryW(d3d9_path.c_str()));
 
 	if (!d3d9_module)
 	{

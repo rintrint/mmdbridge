@@ -11,7 +11,6 @@
 #include <windows.h>
 #include <Mmsystem.h>
 #include <shlwapi.h>
-#include <tchar.h>
 #endif
 
 #include <string>
@@ -37,7 +36,7 @@ bool UMPath::exists(const wchar_t* absolute_path)
 
 bool UMPath::is_folder(const wchar_t* absolute_path)
 {
-	return !!PathIsDirectory(absolute_path);
+	return !!PathIsDirectoryW(absolute_path);
 }
 
 bool UMPath::get_child_path_list(
@@ -45,33 +44,34 @@ bool UMPath::get_child_path_list(
 	std::vector<umstring>& dst_file_list,
 	const umstring& src_absolute_folder_path)
 {
-	WIN32_FIND_DATA find_dir_data;
+	WIN32_FIND_DATAW find_dir_data;
 	std::wstring inpath = UMStringUtil::utf16_to_wstring(src_absolute_folder_path);
-	std::wstring serch_path = inpath + _T("\\*.*");
-	HANDLE hFind = FindFirstFile(serch_path.c_str() , &find_dir_data);
+	std::wstring serch_path = inpath + L"\\*.*";
+	HANDLE hFind = FindFirstFileW(serch_path.c_str() , &find_dir_data);
 	bool result = (hFind != INVALID_HANDLE_VALUE);
 	do
 	{
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
-			if( wcscmp(find_dir_data.cFileName, _T(".") ) && wcscmp(find_dir_data.cFileName, _T("..") ))
+			if( wcscmp(find_dir_data.cFileName, L"." ) && wcscmp(find_dir_data.cFileName, L".." ))
 			{
 				if (find_dir_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
 				{
 					std::wstring wstr = find_dir_data.cFileName;
-					std::wstring wpath = inpath + _T("\\") + wstr;
+					std::wstring wpath = inpath + L"\\" + wstr;
 					dst_folder_list.push_back(UMStringUtil::wstring_to_utf16(wpath));
 				}
 				else
 				{
 					std::wstring wstr = find_dir_data.cFileName;
-					std::wstring wpath = inpath + _T("\\") + wstr;
+					std::wstring wpath = inpath + L"\\" + wstr;
 					dst_file_list.push_back(UMStringUtil::wstring_to_utf16(wpath));
 				}
 			}
 		}
 	}
-	while(FindNextFile(hFind,&find_dir_data));
+	while(FindNextFileW(hFind, &find_dir_data));
+    FindClose(hFind);
 
 	return result;
 }
@@ -90,10 +90,10 @@ umstring UMPath::get_base_folder(const umstring& absolute_path)
 
 umstring UMPath::get_temp_absolute_path()
 {
-	DWORD size = ::GetTempPath(0, NULL);
+	DWORD size = ::GetTempPathW(0, NULL);
 	std::vector<wchar_t> buffer;
 	buffer.resize(size);
-	GetTempPath(size, &buffer[0]);
+	GetTempPathW(size, &buffer[0]);
 	std::wstring temp_path;
 	for (size_t i = 0; i < buffer.size(); ++i)
 	{
@@ -124,8 +124,8 @@ umstring UMPath::module_absolute_path()
 	umstring none;
 	return none;
 #else
-	TCHAR path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path) / sizeof(TCHAR));
+	WCHAR path[MAX_PATH];
+	GetModuleFileNameW(NULL, path, MAX_PATH);
 	return UMStringUtil::wstring_to_utf16(path);
 #endif // WITH_EMSCRIPTEN
 }
@@ -135,20 +135,23 @@ umstring UMPath::resource_absolute_path(const umstring& file_name)
 #ifdef WITH_EMSCRIPTEN
 	return umstring("resource/") + file_name;
 #else
-	TCHAR path[MAX_PATH];
-	GetModuleFileName(NULL, path, sizeof(path) / sizeof(TCHAR));
-	PathRemoveFileSpec(path);
-	SetCurrentDirectory(path);
-	SetCurrentDirectory(_T("../../../resource/"));
-	GetCurrentDirectory(MAX_PATH, path);
-	std::wstring inpath = path + std::wstring(_T("\\")) + UMStringUtil::utf16_to_wstring(file_name);
+	WCHAR path[MAX_PATH];
+	GetModuleFileNameW(NULL, path, MAX_PATH);
+	PathRemoveFileSpecW(path);
+	SetCurrentDirectoryW(path);
+	SetCurrentDirectoryW(L"../../../resource/");
+	GetCurrentDirectoryW(MAX_PATH, path);
+	std::wstring inpath = std::wstring(path) + L"\\" + UMStringUtil::utf16_to_wstring(file_name);
+
 	// honban you kozaiku
 	if (! ::PathFileExistsW(inpath.c_str()))
 	{
-		SetCurrentDirectory(path);
-		SetCurrentDirectory(_T("./resource/"));
-		GetCurrentDirectory(MAX_PATH, path);
-		inpath = path + std::wstring(_T("\\")) + UMStringUtil::utf16_to_wstring(file_name);
+		GetModuleFileNameW(NULL, path, MAX_PATH);
+		PathRemoveFileSpecW(path);
+		SetCurrentDirectoryW(path);
+		SetCurrentDirectoryW(L"./resource/");
+		GetCurrentDirectoryW(MAX_PATH, path);
+		inpath = std::wstring(path) + L"\\" + UMStringUtil::utf16_to_wstring(file_name);
 	}
 	return UMStringUtil::wstring_to_utf16(inpath);
 #endif // WITH_EMSCRIPTEN
@@ -166,7 +169,7 @@ umstring UMPath::get_file_name(const umstring& file_path)
 	return file_path;
 #else
 	std::wstring path = UMStringUtil::utf16_to_wstring(file_path);
-	std::wstring filename(::PathFindFileName(path.c_str()));
+	std::wstring filename(::PathFindFileNameW(path.c_str()));
 	return UMStringUtil::wstring_to_utf16(filename);
 #endif // WITH_EMSCRIPTEN
 }

@@ -6,7 +6,6 @@
 
 #include <windows.h>
 #include <shlwapi.h>
-#include <tchar.h>
 
 #include <algorithm>
 #include <fstream>
@@ -2651,16 +2650,16 @@ BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex)
 	if (it != dxTextureMap.end())
 	{
 		LPCWSTR srcPath = (*it).second.first.c_str();
-		if (PathFileExists(srcPath))
+		if (PathFileExistsW(srcPath))
 		{
 			WCHAR fileName[MAX_PATH];
-			short size = GetFileTitle(srcPath, NULL, NULL);
-			GetFileTitle(srcPath, fileName, size);
+			short size = GetFileTitleW(srcPath, NULL, 0);
+			GetFileTitleW(srcPath, fileName, size);
 
 			WCHAR dstPath[MAX_PATH];
 			PathCombineW(dstPath, dstDir, fileName);
 
-			CopyFile(srcPath, dstPath, FALSE);
+			CopyFileW(srcPath, dstPath, FALSE);
 		}
 	}
 	else
@@ -2679,10 +2678,10 @@ LPWSTR UMGetTextureName(LPDIRECT3DTEXTURE9 tex)
 	if (it != dxTextureMap.end())
 	{
 		LPCWSTR srcPath = (*it).second.first.c_str();
-		if (PathFileExists(srcPath))
+		if (PathFileExistsW(srcPath))
 		{
-			short size = GetFileTitle(srcPath, NULL, NULL);
-			GetFileTitle(srcPath, dst, size);
+			short size = GetFileTitleW(srcPath, NULL, 0);
+			GetFileTitleW(srcPath, dst, size);
 		}
 	}
 	return dst;
@@ -6372,16 +6371,14 @@ extern "C"
 
 BOOL init()
 {
+	WCHAR app_full_path[MAX_PATH]; // アプリフルパス
+	GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
 
-	TCHAR app_full_path[MAX_PATH]; // アプリフルパス
-
-	GetModuleFileName(NULL, app_full_path, sizeof(app_full_path) / sizeof(TCHAR));
-
-	TCHAR system_path_buffer[MAX_PATH]; // システムパス保存用
-	GetSystemDirectory(system_path_buffer, MAX_PATH);
+	WCHAR system_path_buffer[MAX_PATH]; // システムパス保存用
+	GetSystemDirectoryW(system_path_buffer, MAX_PATH);
 	std::wstring d3d9x_path(system_path_buffer);
-	d3d9x_path.append(_T("\\d3dx9_43.dll"));
-	HMODULE d3d9x_module(LoadLibrary(d3d9x_path.c_str())); // オリジナルのd3dx9_43.dllのモジュール
+	d3d9x_path.append(L"\\d3dx9_43.dll");
+	HMODULE d3d9x_module(LoadLibraryW(d3d9x_path.c_str())); // オリジナルのd3dx9_43.dllのモジュール
 
 	if (!d3d9x_module)
 	{

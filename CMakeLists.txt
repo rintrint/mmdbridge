@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_compile_options(/utf-8)
+add_compile_options(/D_UNICODE /DUNICODE)
 
 # shared compiler options
 add_compile_options(
