@@ -1721,7 +1721,6 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 	HWND hCombo1 = GetDlgItem(hWnd, IDC_COMBO1);
-	HWND hCombo2 = GetDlgItem(hWnd, IDC_COMBO2);
 	HWND hEdit1 = GetDlgItem(hWnd, IDC_EDIT1);
 	HWND hEdit2 = GetDlgItem(hWnd, IDC_EDIT2);
 	HWND hEdit5 = GetDlgItem(hWnd, IDC_EDIT5);
@@ -1734,8 +1733,6 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			{
 				SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)parameter.python_script_name_list[i].c_str());
 			}
-			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)L"実行する");
-			SendMessage(hCombo2, CB_ADDSTRING, 0, (LPARAM)L"実行しない");
 			// Try to restore the previous selection, otherwise default to the first script.
 			LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
 			if (index1 == CB_ERR && !parameter.python_script_name_list.empty())
@@ -1743,7 +1740,16 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				index1 = 0;
 			}
 			SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
-			SendMessage(hCombo2, CB_SETCURSEL, script_call_setting - 1, 0);
+
+			// 実行する AUTOCHECKBOX
+			if (script_call_setting == 1)
+			{
+				CheckDlgButton(hWnd, IDC_COMBO2, BST_CHECKED);
+			}
+			else
+			{
+				CheckDlgButton(hWnd, IDC_COMBO2, BST_UNCHECKED);
+			}
 
 			::SetWindowTextW(hEdit1, to_wstring(parameter.start_frame).c_str());
 			::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
@@ -1767,10 +1773,14 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						pythonName = selected_name;
 						relaod_python_script();
 					}
-					UINT num2 = (UINT)SendMessage(hCombo2, CB_GETCURSEL, 0, 0);
-					if (num2 <= 2)
+
+					if (IsDlgButtonChecked(hWnd, IDC_COMBO2) == BST_CHECKED)
 					{
-						script_call_setting = num2 + 1;
+						script_call_setting = 1; // 実行する
+					}
+					else
+					{
+						script_call_setting = 2; // 実行しない
 					}
 
 					wchar_t text1[32];

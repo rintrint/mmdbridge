@@ -21,7 +21,7 @@ FONT 9, "MS UI Gothic"
     LTEXT           "使用するスクリプト", 65535, 12, 13, 52, 8, SS_LEFT
     LTEXT           "スクリプトの呼び出し設定", 3, 10, 55, 73, 8, SS_LEFT
     COMBOBOX        1101, 10, 31, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS
-    COMBOBOX        1102, 10, 68, 200, 68, CBS_DROPDOWN | CBS_HASSTRINGS
+    AUTOCHECKBOX    "実行する", 1102, 10, 70, 200, 10
     PUSHBUTTON      "再検索", 1103, 159, 31, 50, 15
     LTEXT           "出力対象フレーム", 4, 34, 92, 52, 8, SS_LEFT
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
