@@ -364,8 +364,7 @@ static void d3d_vector3_transform(
 // python
 namespace
 {
-	std::wstring pythonName;	 // Script name
-	int script_call_setting = 1; // Script call setting
+	int script_call_setting = 1;
 	std::map<int, int> exportedFrames;
 
 	/// Reload script.
@@ -1585,6 +1584,12 @@ HWND g_hWnd = NULL;	  // Window handle
 HMENU g_hMenu = NULL; // Menu
 HWND g_hFrame = NULL; // Frame number
 
+LONG_PTR originalWndProc = NULL;
+HINSTANCE hInstance = NULL;
+
+// Function declarations for this code module:
+static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
+
 static void GetFrame(HWND hWnd)
 {
 	WCHAR text[256];
@@ -1657,7 +1662,11 @@ static void setMyMenu()
 
 		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
 		minfo.fMask = MIIM_ID | MIIM_TYPE;
-		wchar_t settingsMenuText[] = L"プラグイン設定";
+		wchar_t settingsMenuText[256];
+		if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 256) == 0)
+		{
+			wcscpy_s(settingsMenuText, L"Plugin Settings");
+		}
 		minfo.dwTypeData = settingsMenuText;
 		minfo.wID = 1020;
 		InsertMenuItem(hsubs, 1, TRUE, &minfo);
@@ -1678,10 +1687,91 @@ static void setMySize()
 		SetWindowPos(g_hWnd, HWND_TOP, 0, 0, 1920, 1080, NULL);
 }
 
-LONG_PTR originalWndProc = NULL;
-// Function declarations for this code module:
-static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
-HINSTANCE hInstance = NULL;
+// Get the full path to the settings file corresponding to the current EXE
+std::wstring GetSettingsFilePath()
+{
+	wchar_t module_path[MAX_PATH];
+	GetModuleFileNameW(hInstance, module_path, MAX_PATH);
+	PathRemoveFileSpecW(module_path);
+
+	wchar_t settings_dir[MAX_PATH];
+	PathCombineW(settings_dir, module_path, L"mmdbridge_settings");
+
+	if (!PathFileExistsW(settings_dir))
+	{
+		CreateDirectoryW(settings_dir, NULL);
+	}
+
+	// Get host executable filename (e.g., MikuMikuDance.exe)
+	wchar_t exe_path[MAX_PATH];
+	GetModuleFileNameW(NULL, exe_path, MAX_PATH);
+	const wchar_t* exe_filename = PathFindFileNameW(exe_path);
+
+	// Build settings file path: settings_dir\{exe_filename}.ini
+	wchar_t final_ini_path[MAX_PATH];
+	PathCombineW(final_ini_path, settings_dir, (std::wstring(exe_filename) + L".ini").c_str());
+
+	return final_ini_path;
+}
+
+// Load settings from INI file
+void LoadSettings()
+{
+	std::wstring ini_path = GetSettingsFilePath();
+	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
+
+	wchar_t buffer[MAX_PATH];
+
+	GetPrivateProfileStringW(L"Settings", L"ScriptName", L"", buffer, MAX_PATH, ini_path.c_str());
+	mutable_parameter.python_script_name = buffer;
+
+	script_call_setting = GetPrivateProfileIntW(L"Settings", L"ScriptCallSetting", 1, ini_path.c_str());
+
+	mutable_parameter.start_frame = GetPrivateProfileIntW(L"Settings", L"StartFrame", 0, ini_path.c_str());
+	mutable_parameter.end_frame = GetPrivateProfileIntW(L"Settings", L"EndFrame", 0, ini_path.c_str());
+
+	GetPrivateProfileStringW(L"Settings", L"ExportFPS", L"30.0", buffer, MAX_PATH, ini_path.c_str());
+	mutable_parameter.export_fps = _wtof(buffer);
+}
+
+// Save current settings to INI file
+void SaveSettings()
+{
+	std::wstring ini_path = GetSettingsFilePath();
+	const BridgeParameter& parameter = BridgeParameter::instance();
+
+	WritePrivateProfileStringW(L"Settings", L"ScriptName", parameter.python_script_name.c_str(), ini_path.c_str());
+	WritePrivateProfileStringW(L"Settings", L"ScriptCallSetting", std::to_wstring(script_call_setting).c_str(), ini_path.c_str());
+	WritePrivateProfileStringW(L"Settings", L"StartFrame", std::to_wstring(parameter.start_frame).c_str(), ini_path.c_str());
+	WritePrivateProfileStringW(L"Settings", L"EndFrame", std::to_wstring(parameter.end_frame).c_str(), ini_path.c_str());
+	std::wstringstream wss;
+	wss << parameter.export_fps;
+	WritePrivateProfileStringW(L"Settings", L"ExportFPS", wss.str().c_str(), ini_path.c_str());
+}
+
+static void OpenSettingsDialog(HWND hWnd)
+{
+	std::wstring ini_path = GetSettingsFilePath();
+
+	// Read the language setting from the INI file. Defaults to "en-US" if not found.
+	wchar_t lang_code[16];
+	GetPrivateProfileStringW(
+		L"Settings",	 // Section name
+		L"Language",	 // Key name
+		L"en-US",		 // Default value
+		lang_code,		 // Buffer to store the result
+		16,				 // Buffer size
+		ini_path.c_str() // INI file path
+	);
+
+	LCID locale_id = LocaleNameToLCID(lang_code, 0);
+	LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
+
+	LANGID original_lang_id = GetThreadUILanguage();
+	SetThreadUILanguage(target_lang_id);
+	::DialogBoxW(hInstance, L"IDD_DIALOG1", hWnd, DialogProc);
+	SetThreadUILanguage(original_lang_id);
+}
 
 static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
@@ -1692,10 +1782,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 			switch (LOWORD(wp))
 			{
 				case 1020: // プラグイン設定
-					if (hInstance)
-					{
-						::DialogBoxW(hInstance, L"IDD_DIALOG1", hWnd, DialogProc);
-					}
+					OpenSettingsDialog(hWnd);
 					break;
 			}
 		}
@@ -1754,6 +1841,11 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
+				case 1020: // プラグイン設定
+				{
+					OpenSettingsDialog(hWnd);
+					break;
+				}
 				case IDOK: // Button was pressed
 				{
 					UINT num1 = (UINT)SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
@@ -1762,7 +1854,6 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						const std::wstring& selected_name = parameter.python_script_name_list[num1];
 						mutable_parameter.python_script_name = selected_name;
 						mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
-						pythonName = selected_name;
 						relaod_python_script();
 					}
 
@@ -1790,6 +1881,8 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						mutable_parameter.end_frame = parameter.start_frame + 1;
 						::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
 					}
+
+					SaveSettings();
 					EndDialog(hWnd, IDOK);
 				}
 				break;
@@ -3011,6 +3104,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 	switch (reason)
 	{
 		case DLL_PROCESS_ATTACH:
+			hInstance = hinst;
+
 			// Initialize MMD export function pointers
 			if (!InitializeMMDExports())
 			{
@@ -3018,7 +3113,8 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 				return FALSE;
 			}
 
-			hInstance = hinst;
+			LoadSettings();
+
 			d3d9_initialize();
 			break;
 		case DLL_PROCESS_DETACH:

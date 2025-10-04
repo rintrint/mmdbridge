@@ -2,6 +2,8 @@
 #define IDC_STATIC (-1)
 #endif
 
+#define IDS_MENU_PLUGIN_SETTINGS 100
+
 #define IDC_BUTTON2 1000
 #define IDC_COMBO1 1101
 #define IDC_COMBO2 1102
