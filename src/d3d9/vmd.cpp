@@ -85,7 +85,11 @@ public:
 
 	std::wstring output_path;
 
-	int export_mode = 0;
+	// New granular export settings
+	int export_fk_bone_animation_mode = 1;
+	bool export_ik_bone_animation = false;
+	bool add_turn_off_ik_keyframe = true;
+	bool export_morph_animation = true;
 
 	void end()
 	{
@@ -99,7 +103,11 @@ private:
 	VMDArchive() = default;
 };
 
-static bool start_vmd_export(const int export_mode)
+static bool start_vmd_export(
+	const int export_fk_bone_animation_mode,
+	const bool export_ik_bone_animation,
+	const bool add_turn_off_ik_keyframe,
+	const bool export_morph_animation)
 {
 	// Clear previous export to ensure a clean state
 	VMDArchive::instance().end();
@@ -123,7 +131,11 @@ static bool start_vmd_export(const int export_mode)
 
 	VMDArchive::instance().output_path = output_path;
 
-	archive.export_mode = export_mode;
+	archive.export_fk_bone_animation_mode = export_fk_bone_animation_mode;
+	archive.export_ik_bone_animation = export_ik_bone_animation;
+	archive.add_turn_off_ik_keyframe = add_turn_off_ik_keyframe;
+	archive.export_morph_animation = export_morph_animation;
+
 	const int pmd_num = ExpGetPmdNum();
 	for (int i = 0; i < pmd_num; ++i)
 	{
@@ -761,13 +773,14 @@ static bool execute_vmd_export(const int currentframe)
 			// Since IK is baked to FK, skip exporting IK bone motion keyframes
 			if (is_ik_effector_bone)
 			{
-				continue;
+				if (!archive.export_ik_bone_animation)
+				{
+					continue;
+				}
 			}
-
-			// Export mode filter
-			if (archive.export_mode == 0) // simulated physics bones only
+			else // This is a FK bone
 			{
-				if (!is_simulated_physics_bone)
+				if (!is_simulated_physics_bone && archive.export_fk_bone_animation_mode == 0) // 0 = simulated physics bones only
 				{
 					continue;
 				}
@@ -776,7 +789,7 @@ static bool execute_vmd_export(const int currentframe)
 			// Use helper function to calculate bone frame
 			vmd::VmdBoneFrame bone_frame = calculate_bone_frame(i, k, currentframe, file_data);
 
-			if (archive.export_mode == 1) // all bones except IK, keep 付与親 constraint (MMD compatible, MMD Tools)
+			if (archive.export_fk_bone_animation_mode == 1) // 1 = All FK bones, keep 付与親 constraint (for MMD, MMD Tools)
 			{
 				// Remove grant parent influence if this is a grant child bone
 				if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size()))
@@ -836,7 +849,7 @@ static bool execute_vmd_export(const int currentframe)
 					}
 				}
 			}
-			else // all bones except IK, bake 付与親 constraint to FK
+			else // 2 = All FK bones, bake 付与親 constraint to FK
 			{
 				// Keep grant parent influence
 				// The FK animation is already baked, do nothing
@@ -846,7 +859,7 @@ static bool execute_vmd_export(const int currentframe)
 		}
 
 		// Handle IK frames for the first frame
-		if (currentframe == parameter.start_frame)
+		if (archive.add_turn_off_ik_keyframe && currentframe == parameter.start_frame)
 		{
 			vmd::VmdIkFrame ik_frame;
 			ik_frame.frame = currentframe;
@@ -865,21 +878,24 @@ static bool execute_vmd_export(const int currentframe)
 		}
 
 		// morph (face)
-		const int morph_num = ExpGetPmdMorphNum(i);
-		for (int m = 0; m < morph_num; ++m)
+		if (archive.export_morph_animation)
 		{
-			const char* morph_name = ExpGetPmdMorphName(i, m);
-
-			// Validate morph name mapping
-			auto it = file_data.morph_name_map.find(m);
-			if (it == file_data.morph_name_map.end() || it->second != morph_name)
+			const int morph_num = ExpGetPmdMorphNum(i);
+			for (int m = 0; m < morph_num; ++m)
 			{
-				continue;
-			}
+				const char* morph_name = ExpGetPmdMorphName(i, m);
 
-			// Use helper function to calculate face frame
-			vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
-			file_data.vmd->face_frames.push_back(face_frame);
+				// Validate morph name mapping
+				auto it = file_data.morph_name_map.find(m);
+				if (it == file_data.morph_name_map.end() || it->second != morph_name)
+				{
+					continue;
+				}
+
+				// Use helper function to calculate face frame
+				vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
+				file_data.vmd->face_frames.push_back(face_frame);
+			}
 		}
 	}
 
@@ -890,7 +906,11 @@ static bool execute_vmd_export(const int currentframe)
 PYBIND11_MODULE(mmdbridge_vmd, m)
 {
 	m.doc() = "MMD Bridge VMD export module";
-	m.def("start_vmd_export", start_vmd_export);
+	m.def("start_vmd_export", start_vmd_export,
+		  py::arg("export_fk_bone_animation_mode"),
+		  py::arg("export_ik_bone_animation"),
+		  py::arg("add_turn_off_ik_keyframe"),
+		  py::arg("export_morph_animation"));
 	m.def("end_vmd_export", end_vmd_export);
 	m.def("execute_vmd_export", execute_vmd_export);
 }
