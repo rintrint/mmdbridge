@@ -1189,15 +1189,7 @@ void run_python_script()
 		return;
 	}
 
-	if (Py_IsInitialized())
-	{
-		// Python already initialized, just execute script
-		if (script_call_setting > 1)
-		{
-			script_call_setting = 0;
-		}
-	}
-	else
+	if (!Py_IsInitialized())
 	{
 		InitAlembic();
 		InitVMD();
@@ -1850,7 +1842,7 @@ static void overrideGLWindow()
 
 static bool IsValidCallSetting()
 {
-	return (script_call_setting == 0) || (script_call_setting == 1);
+	return script_call_setting == 1;
 }
 
 // Helper struct for the EnumWindows callback, passing a PID and returning a HWND.
@@ -1924,27 +1916,24 @@ static HRESULT WINAPI present(
 	const bool validTechniq = IsValidTechniq();
 	if (validFrame && validCallSetting && validTechniq)
 	{
-		if (script_call_setting == 1)
+		const BridgeParameter& parameter = BridgeParameter::instance();
+		int frame = static_cast<int>(time * BridgeParameter::instance().export_fps + 0.5f);
+		if (frame >= parameter.start_frame && frame <= parameter.end_frame)
 		{
-			const BridgeParameter& parameter = BridgeParameter::instance();
-			int frame = static_cast<int>(time * BridgeParameter::instance().export_fps + 0.5f);
-			if (frame >= parameter.start_frame && frame <= parameter.end_frame)
+			if (exportedFrames.find(frame) == exportedFrames.end())
 			{
-				if (exportedFrames.find(frame) == exportedFrames.end())
+				process_frame = frame;
+				if (process_frame == parameter.start_frame)
 				{
-					process_frame = frame;
-					if (process_frame == parameter.start_frame)
-					{
-						relaod_python_script();
-					}
-					run_python_script();
-					exportedFrames[process_frame] = 1;
-					if (process_frame == parameter.end_frame)
-					{
-						exportedFrames.clear();
-					}
-					pre_frame = frame;
+					relaod_python_script();
 				}
+				run_python_script();
+				exportedFrames[process_frame] = 1;
+				if (process_frame == parameter.end_frame)
+				{
+					exportedFrames.clear();
+				}
+				pre_frame = frame;
 			}
 		}
 		BridgeParameter::mutable_instance().finish_buffer_list.clear();
@@ -1965,7 +1954,7 @@ static HRESULT WINAPI setFVF(IDirect3DDevice9* device, DWORD fvf)
 {
 	HRESULT res = (*original_set_fvf)(device, fvf);
 
-	if (script_call_setting != 2)
+	if (script_call_setting == 1)
 	{
 		renderData.fvf = fvf;
 		DWORD pos = (fvf & D3DFVF_POSITION_MASK);
