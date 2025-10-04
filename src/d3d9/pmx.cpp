@@ -52,6 +52,11 @@ public:
 	void end()
 	{
 		output_path.clear();
+		model_name.clear();
+		file_data.pmx.reset();
+		file_data.vmd.reset();
+		base_vertex_list.clear();
+		morph_list.clear();
 	}
 	~PMXArchive() {}
 
@@ -61,6 +66,9 @@ private:
 
 static bool start_pmx_export(const std::string& directory_path, const std::string& model_name)
 {
+	// Clear previous export to ensure a clean state
+	PMXArchive::instance().end();
+
 	PMXArchive& archive = PMXArchive::instance();
 
 	const BridgeParameter& parameter = BridgeParameter::instance();

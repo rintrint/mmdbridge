@@ -324,7 +324,7 @@ static bool copyTextureToFiles(const std::wstring& texturePath);
 static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTexture9* texture, bool copied);
 
 //------------------------------------------Python invocation--------------------------------------------------------
-static int pre_frame = 0;
+static bool is_exporting = false;
 static int presentCount = 0;
 static int process_frame = -1;
 static int ui_frame = 0;
@@ -1916,28 +1916,35 @@ static HRESULT WINAPI present(
 	const bool validTechniq = IsValidTechniq();
 	if (validFrame && validCallSetting && validTechniq)
 	{
+		// Exporting
 		const BridgeParameter& parameter = BridgeParameter::instance();
 		int frame = static_cast<int>(time * BridgeParameter::instance().export_fps + 0.5f);
 		if (frame >= parameter.start_frame && frame <= parameter.end_frame)
 		{
-			if (exportedFrames.find(frame) == exportedFrames.end())
+			process_frame = frame;
+			if (!is_exporting && process_frame == parameter.start_frame)
 			{
-				process_frame = frame;
-				if (process_frame == parameter.start_frame)
-				{
-					relaod_python_script();
-				}
+				relaod_python_script();
+				exportedFrames.clear();
+				is_exporting = true;
+			}
+			if (exportedFrames.find(process_frame) == exportedFrames.end())
+			{
 				run_python_script();
 				exportedFrames[process_frame] = 1;
 				if (process_frame == parameter.end_frame)
 				{
-					exportedFrames.clear();
+					is_exporting = false;
 				}
-				pre_frame = frame;
 			}
 		}
 		BridgeParameter::mutable_instance().finish_buffer_list.clear();
 		presentCount++;
+	}
+	else
+	{
+		// Not exporting
+		is_exporting = false;
 	}
 	HRESULT res = (*original_present)(device, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 	return res;

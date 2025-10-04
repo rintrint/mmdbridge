@@ -101,6 +101,9 @@ private:
 
 static bool start_vmd_export(const int export_mode)
 {
+	// Clear previous export to ensure a clean state
+	VMDArchive::instance().end();
+
 	VMDArchive& archive = VMDArchive::instance();
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 	const BridgeParameter& parameter = BridgeParameter::instance();

@@ -134,6 +134,14 @@ public:
 
 		archive.reset();
 
+		if (m_stream)
+		{
+			m_stream->clear();
+			if (m_stream->is_open())
+			{
+				m_stream->close();
+			}
+		}
 		m_stream = {};
 	}
 
@@ -150,54 +158,55 @@ static bool start_alembic_export(
 	bool is_use_euler_rotation_camera,
 	bool is_use_ogawa)
 {
+	// Clear previous export to ensure a clean state
+	AlembicArchive::instance().end();
+
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	if (parameter.export_fps <= 0)
 	{
 		return false;
 	}
 	auto& alembic_archive = AlembicArchive::instance();
-	if (!alembic_archive.archive)
-	{
-		std::wstring output_path(filepath);
-		if (output_path.empty())
-		{
-			output_path = parameter.base_path + L"out/alembic_file.abc";
-		}
-		if (is_use_ogawa)
-		{
-			// Abc::OArchive doesn't accept wide string path. so create file stream with wide string path and pass it.
-			// (VisualC++'s std::ifstream accepts wide string)
-			alembic_archive.m_stream = std::make_shared<std::ofstream>();
-			alembic_archive.m_stream->open(output_path, std::ios::out | std::ios::binary);
-			if (!alembic_archive.m_stream->is_open())
-			{
-				alembic_archive.end();
-				return false;
-			}
-			const Alembic::AbcCoreOgawa::WriteArchive archive_writer;
-			alembic_archive.archive = std::make_unique<Alembic::Abc::OArchive>(
-				archive_writer(alembic_archive.m_stream.get(), Alembic::AbcCoreAbstract::MetaData()),
-				Alembic::Abc::kWrapExisting,
-				Alembic::Abc::ErrorHandler::kThrowPolicy);
-		}
-		else
-		{
-			alembic_archive.archive =
-				std::make_unique<Alembic::Abc::OArchive>(
-					Alembic::AbcCoreHDF5::WriteArchive(),
-					umbase::UMStringUtil::wstring_to_utf8(output_path));
-		}
 
-		const double dt = 1.0 / parameter.export_fps;
-		alembic_archive.timesampling = std::make_shared<AbcA::TimeSampling>(dt, 0.0);
-		alembic_archive.archive->addTimeSampling(*alembic_archive.timesampling);
-		alembic_archive.is_export_normals = (isExportNomals != 0);
-		alembic_archive.is_export_uvs = (is_export_uvs != 0);
-		alembic_archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
-		alembic_archive.export_mode = export_mode;
-		return true;
+	std::wstring output_path(filepath);
+	if (output_path.empty())
+	{
+		output_path = parameter.base_path + L"out/alembic_file.abc";
 	}
-	return false;
+	if (is_use_ogawa)
+	{
+		// Abc::OArchive doesn't accept wide string path. so create file stream with wide string path and pass it.
+		// (VisualC++'s std::ifstream accepts wide string)
+		alembic_archive.m_stream = std::make_shared<std::ofstream>();
+		alembic_archive.m_stream->open(output_path, std::ios::out | std::ios::binary);
+		if (!alembic_archive.m_stream->is_open())
+		{
+			alembic_archive.end();
+			return false;
+		}
+		const Alembic::AbcCoreOgawa::WriteArchive archive_writer;
+		alembic_archive.archive = std::make_unique<Alembic::Abc::OArchive>(
+			archive_writer(alembic_archive.m_stream.get(), Alembic::AbcCoreAbstract::MetaData()),
+			Alembic::Abc::kWrapExisting,
+			Alembic::Abc::ErrorHandler::kThrowPolicy);
+	}
+	else
+	{
+		alembic_archive.archive =
+			std::make_unique<Alembic::Abc::OArchive>(
+				Alembic::AbcCoreHDF5::WriteArchive(),
+				umbase::UMStringUtil::wstring_to_utf8(output_path));
+	}
+
+	const double dt = 1.0 / parameter.export_fps;
+	alembic_archive.timesampling = std::make_shared<AbcA::TimeSampling>(dt, 0.0);
+	alembic_archive.archive->addTimeSampling(*alembic_archive.timesampling);
+	alembic_archive.is_export_normals = (isExportNomals != 0);
+	alembic_archive.is_export_uvs = (is_export_uvs != 0);
+	alembic_archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
+	alembic_archive.export_mode = export_mode;
+
+	return true;
 }
 
 static bool end_alembic_export()
