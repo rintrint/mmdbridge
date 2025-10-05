@@ -19,6 +19,8 @@
 #include <regex>
 #include <algorithm>
 
+#include <MinHook.h>
+
 #include <pybind11/eval.h>
 #include <pybind11/stl_bind.h>
 namespace py = pybind11;
@@ -32,24 +34,49 @@ namespace py = pybind11;
 #include "UMPath.h"
 #include "EncodingHelper.h"
 
-static HMODULE g_d3d9_system_module = NULL;
-
-// Require Python 3.11 or higher
+// ===== Python Version Check =====
 #if PY_VERSION_HEX < 0x030B0000
 #error "This code requires Python 3.11 or higher"
 #endif
 
+// ===== Platform-Specific Definitions =====
 #ifdef _WIN64
 #define _LONG_PTR LONG_PTR
 #else
 #define _LONG_PTR LONG
 #endif
 
-// +++++ MINHOOK HOOKING LOGIC START +++++
-#include <MinHook.h>
+// ===== Global Variables =====
+static HMODULE g_d3d9_system_module = NULL;
+static bool g_is_window_hooked = false; // Tracks if the window procedure has been hooked
 
-// 宣告一個函式指標，用來儲存原始 ExpGetPmdFilename 函式的位址
-char* (*fpExpGetPmdFilename_Original)(int) = nullptr;
+HWND g_hWnd = NULL;	  // Window handle
+HMENU g_hMenu = NULL; // Menu
+HWND g_hFrame = NULL; // Frame number
+
+LONG_PTR originalWndProc = NULL;
+HINSTANCE hInstance = NULL;
+
+// ===== Forward Declarations =====
+static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
+
+// ===== Helper Functions =====
+// Get the code page for a specific ANSI API function from INI settings
+static UINT GetAnsiFunctionCodePage(const wchar_t* function_name)
+{
+	const auto& encoding_map = BridgeParameter::instance().encoding_map;
+	auto it = encoding_map.find(function_name);
+	if (it != encoding_map.end())
+	{
+		return it->second;
+	}
+	return CP_ACP; // Fall back to system default ANSI code page (0)
+}
+
+// +++++ MINHOOK HOOKING LOGIC START +++++
+// =======================================================================
+// MMD API 修正：攔截 ExpGetPmdFilename
+// =======================================================================
 
 // 宣告一個 thread_local 旗標，用於在我們的 Utf8 函式和 Hook 之間通訊
 thread_local bool g_is_explicit_utf8_call = false;
@@ -101,12 +128,13 @@ const wchar_t* GetInternalPathFromModelIndex(int modelIndex)
 	}
 }
 
-// 撰寫我們自己的版本 (Detour 函數) - 這是最終的、完整的 Hook 函數
+// Original function pointer
+char* (*fpExpGetPmdFilename_Original)(int) = nullptr;
+// Detour
 char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
 {
 	// 步驟 1: 呼叫我們的逆向邏輯，獲取內部真實的 UTF16 路徑
 	const wchar_t* internalPathPtr = GetInternalPathFromModelIndex(modelIndex);
-	// 如果由於某種原因 (例如模型正在卸載) 獲取失敗，就返回一個空字串，避免崩潰
 	if (!internalPathPtr || internalPathPtr[0] == L'\0')
 	{
 		static char empty_string[] = "";
@@ -117,27 +145,18 @@ char* WINAPI Detour_ExpGetPmdFilename(int modelIndex)
 	UINT targetCodePage;
 	if (g_is_explicit_utf8_call)
 	{
-		// 旗標被設定，表示是從我們的 Utf8 函式呼叫來的，回傳 UTF-8
 		targetCodePage = CP_UTF8;
 	}
 	else
 	{
-		// 旗標為 false，是 MMD 或其他插件的呼叫，返回 CP932 以維持相容性
+		// 旗標為 false 返回 CP932 以維持相容性
 		targetCodePage = 932;
 	}
 
 	// 步驟 3: 轉換字串並透過 thread_local 緩衝區返回
 	// 緩衝區大小設置為 MAX_PATH * 4 以應對 UTF8 編碼可能需要更多空間的情況
 	thread_local char resultBuffer[MAX_PATH * 4];
-	WideCharToMultiByte(
-		targetCodePage,
-		0,
-		internalPathPtr,
-		-1, // -1 表示處理到字串結尾
-		resultBuffer,
-		sizeof(resultBuffer),
-		NULL,
-		NULL);
+	WideCharToMultiByte(targetCodePage, 0, internalPathPtr, -1, resultBuffer, sizeof(resultBuffer), NULL, NULL);
 	return resultBuffer;
 }
 
@@ -146,6 +165,209 @@ const char* ExpGetPmdFilenameUtf8(int modelIndex)
 {
 	Utf8CallGuard guard;
 	return ExpGetPmdFilename(modelIndex);
+}
+
+// =======================================================================
+// 導出AVI時的視窗標題亂碼 修正：攔截 SetWindowTextW
+// =======================================================================
+BOOL(WINAPI* fpSetWindowTextW_Original)(HWND hWnd, LPCWSTR lpString) = nullptr;
+BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
+{
+	// Fix RecWindow title using temporary subclassing
+	wchar_t className[256];
+	if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
+	{
+		if (!IsWindowUnicode(hWnd))
+		{
+			WNDPROC oldProc = (WNDPROC)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
+			BOOL result = fpSetWindowTextW_Original(hWnd, lpString);
+			SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)oldProc);
+			return result;
+		}
+	}
+	return fpSetWindowTextW_Original(hWnd, lpString);
+}
+
+// =======================================================================
+// 切換語言時的頂端選單亂碼 修正：攔截 ModifyMenuA
+// =======================================================================
+BOOL(WINAPI* fpModifyMenuA_Original)(HMENU hMnu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem) = nullptr;
+BOOL WINAPI Detour_ModifyMenuA(HMENU hMnu, UINT uPosition, UINT uFlags, UINT_PTR uIDNewItem, LPCSTR lpNewItem)
+{
+	if (lpNewItem && !(uFlags & (MF_BITMAP | MF_OWNERDRAW)))
+	{
+		__try
+		{
+			int code_page = GetAnsiFunctionCodePage(L"ModifyMenuA");
+			int wide_len = MultiByteToWideChar(code_page, 0, lpNewItem, -1, NULL, 0);
+			if (wide_len > 0 && wide_len <= 512)
+			{
+				wchar_t wide_buf[512];
+				MultiByteToWideChar(code_page, 0, lpNewItem, -1, wide_buf, wide_len);
+				return ModifyMenuW(hMnu, uPosition, uFlags, uIDNewItem, wide_buf);
+			}
+		}
+		__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+		{
+			OutputDebugStringW(L"[MMDBridge] Access violation in Detour_ModifyMenuA\n");
+		}
+	}
+	return fpModifyMenuA_Original(hMnu, uPosition, uFlags, uIDNewItem, lpNewItem);
+}
+
+// =======================================================================
+// 切換語言時的頂端子選單亂碼 修正：攔截 SetMenuItemInfoA
+// =======================================================================
+BOOL(WINAPI* fpSetMenuItemInfoA_Original)(HMENU hMenu, UINT uItem, BOOL fByPosition, LPCMENUITEMINFOA lpmii) = nullptr;
+BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, LPCMENUITEMINFOA lpmii)
+{
+	if (lpmii && (lpmii->fMask & MIIM_STRING) && lpmii->dwTypeData)
+	{
+		__try
+		{
+			MENUITEMINFOW miiW;
+			memcpy(&miiW, lpmii, sizeof(MENUITEMINFOA));
+
+			const char* original_str = lpmii->dwTypeData;
+			int code_page = GetAnsiFunctionCodePage(L"SetMenuItemInfoA");
+			int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
+			if (wide_len > 0 && wide_len <= 512)
+			{
+				wchar_t wide_buf[512];
+				MultiByteToWideChar(code_page, 0, original_str, -1, wide_buf, wide_len);
+				miiW.dwTypeData = wide_buf;
+				miiW.cch = 0;
+				return SetMenuItemInfoW(hMenu, uItem, fByPosition, &miiW);
+			}
+		}
+		__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+		{
+			OutputDebugStringW(L"[MMDBridge] Access violation in Detour_SetMenuItemInfoA\n");
+		}
+	}
+	return fpSetMenuItemInfoA_Original(hMenu, uItem, fByPosition, lpmii);
+}
+
+// =======================================================================
+// 按鈕變藍色時的亂碼 修正：攔截 GetWindowTextA
+// =======================================================================
+int(WINAPI* fpGetWindowTextA_Original)(HWND hWnd, LPSTR lpString, int nMaxCount) = nullptr;
+int WINAPI Detour_GetWindowTextA(HWND hWnd, LPSTR lpString, int nMaxCount)
+{
+	wchar_t wide_buf[512];
+	int wide_chars = GetWindowTextW(hWnd, wide_buf, 512);
+	if (wide_chars > 0 && wide_chars <= 510)
+	{
+		__try
+		{
+			int code_page = GetAnsiFunctionCodePage(L"GetWindowTextA");
+			int required_bytes = WideCharToMultiByte(code_page, 0, wide_buf, wide_chars, NULL, 0, NULL, NULL);
+			if (required_bytes > 0 && required_bytes < nMaxCount)
+			{
+				int bytes_written = WideCharToMultiByte(code_page, 0, wide_buf, wide_chars, lpString, nMaxCount, NULL, NULL);
+				if (bytes_written > 0 && bytes_written < nMaxCount)
+				{
+					lpString[bytes_written] = '\0';
+				}
+				return bytes_written;
+			}
+		}
+		__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+		{
+			OutputDebugStringW(L"[MMDBridge] Access violation in Detour_GetWindowTextA\n");
+		}
+	}
+	return fpGetWindowTextA_Original(hWnd, lpString, nMaxCount);
+}
+
+// =======================================================================
+// 骨骼下拉式選單亂碼 亂碼 修正：攔截 SendMessageA
+// =======================================================================
+LRESULT(WINAPI* fpSendMessageA_Original)(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) = nullptr;
+LRESULT WINAPI Detour_SendMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	// Extend our monitoring scope, adding WM_SETTEXT to handle garbled text issues in more UI elements
+	if (Msg == CB_ADDSTRING || Msg == CB_INSERTSTRING || Msg == WM_SETTEXT)
+	{
+		const char* original_str = (const char*)lParam;
+		if (original_str)
+		{
+			__try
+			{
+				// Perform a protected volatile read operation to verify if the pointer is readable.
+				(void)*(volatile char*)original_str;
+
+				// If the read succeeds, proceed with character encoding conversion
+				int code_page = GetAnsiFunctionCodePage(L"SendMessageA");
+				int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
+				if (wide_len > 0 && wide_len <= 512)
+				{
+					wchar_t wide_buf[512];
+					MultiByteToWideChar(code_page, 0, original_str, -1, wide_buf, wide_len);
+					return SendMessageW(hWnd, Msg, wParam, (LPARAM)wide_buf);
+				}
+			}
+			__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+			{
+				OutputDebugStringW(L"[MMDBridge] Access violation in Detour_SendMessageA\n");
+			}
+		}
+	}
+	return fpSendMessageA_Original(hWnd, Msg, wParam, lParam);
+}
+
+// =======================================================================
+// 關閉MMD時的警告視窗 修正：攔截 MessageBoxA
+// =======================================================================
+int(WINAPI* fpMessageBoxA_Original)(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType) = nullptr;
+int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
+{
+	__try
+	{
+		int code_page = GetAnsiFunctionCodePage(L"MessageBoxA");
+		wchar_t wide_caption[512] = { 0 };
+		wchar_t wide_text[4096] = { 0 };
+		bool need_fallback = false;
+
+		// title
+		if (lpCaption)
+		{
+			int caption_len = MultiByteToWideChar(code_page, 0, lpCaption, -1, NULL, 0);
+			if (caption_len > 0 && caption_len <= 512)
+			{
+				MultiByteToWideChar(code_page, 0, lpCaption, -1, wide_caption, caption_len);
+				wide_caption[511] = L'\0';
+			}
+			else
+			{
+				need_fallback = true;
+			}
+		}
+		// content
+		if (lpText)
+		{
+			int text_len = MultiByteToWideChar(code_page, 0, lpText, -1, NULL, 0);
+			if (text_len > 0 && text_len <= 4096)
+			{
+				MultiByteToWideChar(code_page, 0, lpText, -1, wide_text, text_len);
+				wide_text[4095] = L'\0';
+			}
+			else
+			{
+				need_fallback = true;
+			}
+		}
+
+		if (!need_fallback)
+		{
+			return MessageBoxW(hWnd, wide_text, wide_caption, uType);
+		}
+	}
+	__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+	{
+		OutputDebugStringW(L"[MMDBridge] Access violation in Detour_MessageBoxA\n");
+	}
+	return fpMessageBoxA_Original(hWnd, lpText, lpCaption, uType);
 }
 // +++++ MINHOOK HOOKING LOGIC END +++++
 
@@ -1580,16 +1802,6 @@ static HRESULT WINAPI endScene(IDirect3DDevice9* device)
 	return res;
 }
 
-HWND g_hWnd = NULL;	  // Window handle
-HMENU g_hMenu = NULL; // Menu
-HWND g_hFrame = NULL; // Frame number
-
-LONG_PTR originalWndProc = NULL;
-HINSTANCE hInstance = NULL;
-
-// Function declarations for this code module:
-static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
-
 static void GetFrame(HWND hWnd)
 {
 	WCHAR text[256];
@@ -1601,9 +1813,6 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 {
 	RECT rect;
 	GetClientRect(hWnd, &rect);
-
-	WCHAR buf[10];
-	GetWindowTextW(hWnd, buf, 10);
 
 	if (!g_hFrame && rect.right == 48 && rect.bottom == 22)
 	{
@@ -1625,7 +1834,7 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 		GetFrame(g_hFrame);
 		return FALSE;
 	}
-	HANDLE hModule = (HANDLE)GetWindowLongPtr(hWnd, GWLP_HINSTANCE);
+	HANDLE hModule = (HANDLE)GetWindowLongPtrW(hWnd, GWLP_HINSTANCE);
 	if (GetModuleHandle(NULL) == hModule)
 	{
 		// Found window created by our process
@@ -1640,51 +1849,6 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 		}
 	}
 	return TRUE; // continue
-}
-
-static void setMyMenu()
-{
-	if (g_hMenu)
-		return;
-	if (g_hWnd)
-	{
-		HMENU hmenu = GetMenu(g_hWnd);
-		HMENU hsubs = CreatePopupMenu();
-		int count = GetMenuItemCount(hmenu);
-
-		MENUITEMINFO minfo;
-		minfo.cbSize = sizeof(MENUITEMINFO);
-		minfo.fMask = MIIM_ID | MIIM_TYPE | MIIM_SUBMENU;
-		minfo.fType = MFT_STRING;
-		wchar_t bridgeMenuText[] = L"MMDBridge";
-		minfo.dwTypeData = bridgeMenuText;
-		minfo.hSubMenu = hsubs;
-
-		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
-		minfo.fMask = MIIM_ID | MIIM_TYPE;
-		wchar_t settingsMenuText[256];
-		if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 256) == 0)
-		{
-			wcscpy_s(settingsMenuText, L"Plugin Settings");
-		}
-		minfo.dwTypeData = settingsMenuText;
-		minfo.wID = 1020;
-		InsertMenuItem(hsubs, 1, TRUE, &minfo);
-
-		SetMenu(g_hWnd, hmenu);
-		g_hMenu = hmenu;
-	}
-}
-
-static void setMySize()
-{
-	if (!g_hWnd)
-		return;
-	RECT rc;
-	if (!::GetWindowRect(g_hWnd, &rc))
-		return;
-	if (rc.bottom - rc.top <= 40)
-		SetWindowPos(g_hWnd, HWND_TOP, 0, 0, 1920, 1080, NULL);
 }
 
 // Get the full path to the settings file corresponding to the current EXE
@@ -1721,17 +1885,49 @@ void LoadSettings()
 	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
 	wchar_t buffer[MAX_PATH];
+	int code_page;
 
+	// Settings
 	GetPrivateProfileStringW(L"Settings", L"ScriptName", L"", buffer, MAX_PATH, ini_path.c_str());
 	mutable_parameter.python_script_name = buffer;
-
 	script_call_setting = GetPrivateProfileIntW(L"Settings", L"ScriptCallSetting", 1, ini_path.c_str());
-
 	mutable_parameter.start_frame = GetPrivateProfileIntW(L"Settings", L"StartFrame", 0, ini_path.c_str());
 	mutable_parameter.end_frame = GetPrivateProfileIntW(L"Settings", L"EndFrame", 0, ini_path.c_str());
-
 	GetPrivateProfileStringW(L"Settings", L"ExportFPS", L"30.0", buffer, MAX_PATH, ini_path.c_str());
 	mutable_parameter.export_fps = _wtof(buffer);
+
+	// Encoding
+	mutable_parameter.encoding_map.clear();
+	GetPrivateProfileStringW(L"Encoding", L"ModifyMenuA", L"0", buffer, 16, ini_path.c_str());
+	code_page = _wtoi(buffer);
+	if (IsValidCodePage(code_page))
+	{
+		mutable_parameter.encoding_map[L"ModifyMenuA"] = code_page;
+	}
+	GetPrivateProfileStringW(L"Encoding", L"SetMenuItemInfoA", L"0", buffer, 16, ini_path.c_str());
+	code_page = _wtoi(buffer);
+	if (IsValidCodePage(code_page))
+	{
+		mutable_parameter.encoding_map[L"SetMenuItemInfoA"] = code_page;
+	}
+	GetPrivateProfileStringW(L"Encoding", L"SendMessageA", L"0", buffer, 16, ini_path.c_str());
+	code_page = _wtoi(buffer);
+	if (IsValidCodePage(code_page))
+	{
+		mutable_parameter.encoding_map[L"SendMessageA"] = code_page;
+	}
+	GetPrivateProfileStringW(L"Encoding", L"GetWindowTextA", L"0", buffer, 16, ini_path.c_str());
+	code_page = _wtoi(buffer);
+	if (IsValidCodePage(code_page))
+	{
+		mutable_parameter.encoding_map[L"GetWindowTextA"] = code_page;
+	}
+	GetPrivateProfileStringW(L"Encoding", L"MessageBoxA", L"0", buffer, 16, ini_path.c_str());
+	code_page = _wtoi(buffer);
+	if (IsValidCodePage(code_page))
+	{
+		mutable_parameter.encoding_map[L"MessageBoxA"] = code_page;
+	}
 }
 
 // Save current settings to INI file
@@ -1749,25 +1945,67 @@ void SaveSettings()
 	WritePrivateProfileStringW(L"Settings", L"ExportFPS", wss.str().c_str(), ini_path.c_str());
 }
 
+static void setMyMenu()
+{
+	if (g_hMenu)
+		return;
+	if (g_hWnd)
+	{
+		HMENU hmenu = GetMenu(g_hWnd);
+		HMENU hsubs = CreatePopupMenu();
+		int count = GetMenuItemCount(hmenu);
+
+		MENUITEMINFO minfo;
+		minfo.cbSize = sizeof(MENUITEMINFO);
+		minfo.fMask = MIIM_ID | MIIM_TYPE | MIIM_SUBMENU;
+		minfo.fType = MFT_STRING;
+		wchar_t bridgeMenuText[] = L"MMDBridge";
+		minfo.dwTypeData = bridgeMenuText;
+		minfo.hSubMenu = hsubs;
+
+		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
+		minfo.fMask = MIIM_ID | MIIM_TYPE;
+		minfo.dwTypeData = L"Plugin Settings";
+		minfo.wID = 1020;
+		InsertMenuItem(hsubs, 1, TRUE, &minfo);
+
+		SetMenu(g_hWnd, hmenu);
+		g_hMenu = hmenu;
+	}
+}
+
+static void setMySize()
+{
+	if (!g_hWnd)
+		return;
+	RECT rc;
+	if (!::GetWindowRect(g_hWnd, &rc))
+		return;
+	if (rc.bottom - rc.top <= 40)
+		SetWindowPos(g_hWnd, HWND_TOP, 0, 0, 1920, 1080, NULL);
+}
+
 static void OpenSettingsDialog(HWND hWnd)
 {
 	std::wstring ini_path = GetSettingsFilePath();
-
-	// Read the language setting from the INI file. Defaults to "en-US" if not found.
 	wchar_t lang_code[16];
-	GetPrivateProfileStringW(
-		L"Settings",	 // Section name
-		L"Language",	 // Key name
-		L"en-US",		 // Default value
-		lang_code,		 // Buffer to store the result
-		16,				 // Buffer size
-		ini_path.c_str() // INI file path
-	);
+
+	// Check if MMD is in English mode first.
+	if (ExpGetEnglishMode())
+	{
+		wcscpy_s(lang_code, L"en-US");
+	}
+	else
+	{
+		// Read the language setting from the INI file. Defaults to "ja-JP" if not found.
+		GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", lang_code, 16, ini_path.c_str());
+	}
+	lang_code[15] = L'\0';
 
 	LCID locale_id = LocaleNameToLCID(lang_code, 0);
 	LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
-
 	LANGID original_lang_id = GetThreadUILanguage();
+
 	SetThreadUILanguage(target_lang_id);
 	::DialogBoxW(hInstance, L"IDD_DIALOG1", hWnd, DialogProc);
 	SetThreadUILanguage(original_lang_id);
@@ -1777,6 +2015,51 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 {
 	switch (msg)
 	{
+		case WM_INITMENUPOPUP:
+		{
+			// Update menu text based on language settings
+			HMENU hPopupMenu = (HMENU)wp;
+			MENUITEMINFOW mii_check = { sizeof(mii_check) };
+			mii_check.fMask = MIIM_ID;
+
+			if (GetMenuItemInfoW(hPopupMenu, 1020, FALSE, &mii_check))
+			{
+				std::wstring ini_path = GetSettingsFilePath();
+				wchar_t lang_code[16];
+
+				// Check if MMD is in English mode first.
+				if (ExpGetEnglishMode())
+				{
+					wcscpy_s(lang_code, L"en-US");
+				}
+				else
+				{
+					// Read the language setting from the INI file. Defaults to "ja-JP" if not found.
+					GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", lang_code, 16, ini_path.c_str());
+				}
+				lang_code[15] = L'\0';
+
+				LCID locale_id = LocaleNameToLCID(lang_code, 0);
+				LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
+				LANGID original_lang_id = GetThreadUILanguage();
+
+				SetThreadUILanguage(target_lang_id);
+				wchar_t settingsMenuText[256];
+				if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 256) == 0)
+				{
+					wcscpy_s(settingsMenuText, L"Plugin Settings");
+				}
+				SetThreadUILanguage(original_lang_id);
+
+				MENUITEMINFOW mii_update = { sizeof(mii_update) };
+				mii_update.fMask = MIIM_STRING;
+				mii_update.dwTypeData = settingsMenuText;
+
+				SetMenuItemInfoW(hPopupMenu, 1020, FALSE, &mii_update);
+			}
+			break;
+		}
+
 		case WM_COMMAND:
 		{
 			switch (LOWORD(wp))
@@ -1785,8 +2068,8 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 					OpenSettingsDialog(hWnd);
 					break;
 			}
+			break;
 		}
-		break;
 		case WM_DESTROY:
 			break;
 	}
@@ -1810,15 +2093,15 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 			reload_python_file_paths();
 			for (size_t i = 0; i < parameter.python_script_name_list.size(); i++)
 			{
-				SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)parameter.python_script_name_list[i].c_str());
+				SendMessageW(hCombo1, CB_ADDSTRING, 0, (LPARAM)parameter.python_script_name_list[i].c_str());
 			}
 			// Try to restore the previous selection, otherwise default to the first script.
-			LRESULT index1 = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
+			LRESULT index1 = SendMessageW(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)parameter.python_script_name.c_str());
 			if (index1 == CB_ERR && !parameter.python_script_name_list.empty())
 			{
 				index1 = 0;
 			}
-			SendMessage(hCombo1, CB_SETCURSEL, index1, 0);
+			SendMessageW(hCombo1, CB_SETCURSEL, index1, 0);
 
 			// 実行する AUTOCHECKBOX
 			if (script_call_setting == 1)
@@ -1848,7 +2131,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				}
 				case IDOK: // Button was pressed
 				{
-					UINT num1 = (UINT)SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+					UINT num1 = (UINT)SendMessageW(hCombo1, CB_GETCURSEL, 0, 0);
 					if (num1 < parameter.python_script_name_list.size())
 					{
 						const std::wstring& selected_name = parameter.python_script_name_list[num1];
@@ -1892,25 +2175,25 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 				case IDC_BUTTON1: // 再検索
 				{
 					wchar_t current_selection_text[MAX_PATH] = { 0 };
-					LRESULT current_selection_index = SendMessage(hCombo1, CB_GETCURSEL, 0, 0);
+					LRESULT current_selection_index = SendMessageW(hCombo1, CB_GETCURSEL, 0, 0);
 					if (current_selection_index != CB_ERR)
 					{
-						SendMessage(hCombo1, CB_GETLBTEXT, current_selection_index, (LPARAM)current_selection_text);
+						SendMessageW(hCombo1, CB_GETLBTEXT, current_selection_index, (LPARAM)current_selection_text);
 					}
 					reload_python_file_paths();
-					SendMessage(hCombo1, CB_RESETCONTENT, 0, 0);
+					SendMessageW(hCombo1, CB_RESETCONTENT, 0, 0);
 					for (const auto& name : parameter.python_script_name_list)
 					{
-						SendMessage(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
+						SendMessageW(hCombo1, CB_ADDSTRING, 0, (LPARAM)name.c_str());
 					}
-					LRESULT index_to_select = SendMessage(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)current_selection_text);
+					LRESULT index_to_select = SendMessageW(hCombo1, CB_FINDSTRINGEXACT, (WPARAM)-1, (LPARAM)current_selection_text);
 					if (index_to_select == CB_ERR && parameter.python_script_name_list.size() > 0)
 					{
 						index_to_select = 0;
 					}
 					if (index_to_select != CB_ERR)
 					{
-						SendMessage(hCombo1, CB_SETCURSEL, index_to_select, 0);
+						SendMessageW(hCombo1, CB_SETCURSEL, index_to_select, 0);
 					}
 				}
 				break;
@@ -1928,8 +2211,8 @@ static void overrideGLWindow()
 	// Subclassing
 	if (g_hWnd && !originalWndProc)
 	{
-		originalWndProc = GetWindowLongPtr(g_hWnd, GWLP_WNDPROC);
-		SetWindowLongPtr(g_hWnd, GWLP_WNDPROC, (_LONG_PTR)overrideWndProc);
+		originalWndProc = GetWindowLongPtrW(g_hWnd, GWLP_WNDPROC);
+		SetWindowLongPtrW(g_hWnd, GWLP_WNDPROC, (_LONG_PTR)overrideWndProc);
 	}
 }
 
@@ -2003,7 +2286,15 @@ static HRESULT WINAPI present(
 		BridgeParameter::mutable_instance().frame_height = pDestRect->bottom - pDestRect->top;
 	}
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = false;
-	overrideGLWindow();
+	if (!g_is_window_hooked)
+	{
+		EnumWindows(enumWindowsProc, 0);
+		if (g_hWnd)
+		{
+			overrideGLWindow();
+			g_is_window_hooked = true;
+		}
+	}
 	const bool validFrame = IsValidFrame();
 	const bool validCallSetting = IsValidCallSetting();
 	const bool validTechniq = IsValidTechniq();
@@ -2997,37 +3288,146 @@ bool d3d9_initialize()
 	relaod_python_script();
 
 	// +++++ MINHOOK HOOKING LOGIC START +++++
-	// 初始化 MinHook 函式庫
 	if (MH_Initialize() != MH_OK)
 	{
 		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK);
 		return false;
 	}
 
-	// 取得 MMD 主程式的模組控制代碼
 	HMODULE hMMD = GetModuleHandle(NULL);
+
+	// ExpGetPmdFilename Hook
 	if (hMMD)
 	{
-		// 從 MMD 中找到原始 ExpGetPmdFilename 函數的位址
 		void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
 		if (pTarget)
 		{
-			// 建立 Hook：
-			// 1. pTarget: 要 Hook 的目標函數
-			// 2. &Detour_ExpGetPmdFilename: 我們自己的替代函數
-			// 3. (LPVOID*)&fpExpGetPmdFilename_Original: 用來儲存原始函數位址的指標
 			if (MH_CreateHook(pTarget, &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original) != MH_OK)
 			{
-				::MessageBoxW(NULL, L"MH_CreateHook failed!", L"MinHook Error", MB_OK);
+				::MessageBoxW(NULL, L"MH_CreateHook for ExpGetPmdFilename failed!", L"MinHook Error", MB_OK);
 				return false;
 			}
-
-			// 啟用剛剛建立的 Hook
 			if (MH_EnableHook(pTarget) != MH_OK)
 			{
-				::MessageBoxW(NULL, L"MH_EnableHook failed!", L"MinHook Error", MB_OK);
+				::MessageBoxW(NULL, L"MH_EnableHook for ExpGetPmdFilename failed!", L"MinHook Error", MB_OK);
 				return false;
 			}
+		}
+	}
+
+	HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+
+	// SetWindowTextW Hook
+	OutputDebugStringW(L"[MMDBridge] Initializing SetWindowTextW Hook...\n");
+	if (hUser32)
+	{
+		void* pTarget = (void*)GetProcAddress(hUser32, "SetWindowTextW");
+		if (pTarget)
+		{
+			if (MH_CreateHook(pTarget, &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_CreateHook for SetWindowTextW failed!", L"MinHook Error", MB_OK);
+			}
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_EnableHook for SetWindowTextW failed!", L"MinHook Error", MB_OK);
+			}
+			OutputDebugStringW(L"[MMDBridge] SetWindowTextW Hook is active.\n");
+		}
+	}
+
+	// ModifyMenuA Hook
+	OutputDebugStringW(L"[MMDBridge] Initializing ModifyMenuA Hook...\n");
+	if (hUser32)
+	{
+		void* pTarget = (void*)GetProcAddress(hUser32, "ModifyMenuA");
+		if (pTarget)
+		{
+			if (MH_CreateHook(pTarget, &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_CreateHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
+			}
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_EnableHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
+			}
+			OutputDebugStringW(L"[MMDBridge] ModifyMenuA Hook is active.\n");
+		}
+	}
+
+	// SetMenuItemInfoA Hook
+	OutputDebugStringW(L"[MMDBridge] Initializing SetMenuItemInfoA Hook...\n");
+	if (hUser32)
+	{
+		void* pTarget = (void*)GetProcAddress(hUser32, "SetMenuItemInfoA");
+		if (pTarget)
+		{
+			if (MH_CreateHook(pTarget, &Detour_SetMenuItemInfoA, (LPVOID*)&fpSetMenuItemInfoA_Original) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_CreateHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
+			}
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_EnableHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
+			}
+			OutputDebugStringW(L"[MMDBridge] SetMenuItemInfoA Hook is active.\n");
+		}
+	}
+
+	// GetWindowTextA Hook
+	OutputDebugStringW(L"[MMDBridge] Initializing GetWindowTextA Hook...\n");
+	if (hUser32)
+	{
+		void* pTarget = (void*)GetProcAddress(hUser32, "GetWindowTextA");
+		if (pTarget)
+		{
+			if (MH_CreateHook(pTarget, &Detour_GetWindowTextA, (LPVOID*)&fpGetWindowTextA_Original) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_CreateHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
+			}
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_EnableHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
+			}
+			OutputDebugStringW(L"[MMDBridge] GetWindowTextA Hook is active.\n");
+		}
+	}
+
+	// SendMessageA Hook
+	OutputDebugStringW(L"[MMDBridge] Initializing SendMessageA Hook...\n");
+	if (hUser32)
+	{
+		void* pTarget = (void*)GetProcAddress(hUser32, "SendMessageA");
+		if (pTarget)
+		{
+			if (MH_CreateHook(pTarget, &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_CreateHook for SendMessageA failed!", L"MinHook Error", MB_OK);
+			}
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_EnableHook for SendMessageA failed!", L"MinHook Error", MB_OK);
+			}
+			OutputDebugStringW(L"[MMDBridge] SendMessageA Hook is active.\n");
+		}
+	}
+
+	// MessageBoxA Hook
+	OutputDebugStringW(L"[MMDBridge] Initializing MessageBoxA Hook...\n");
+	if (hUser32)
+	{
+		void* pTarget = (void*)GetProcAddress(hUser32, "MessageBoxA");
+		if (pTarget)
+		{
+			if (MH_CreateHook(pTarget, &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_CreateHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
+			}
+			if (MH_EnableHook(pTarget) != MH_OK)
+			{
+				::MessageBoxW(NULL, L"MH_EnableHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
+			}
+			OutputDebugStringW(L"[MMDBridge] MessageBoxA Hook is active.\n");
 		}
 	}
 	// +++++ MINHOOK HOOKING LOGIC END +++++
@@ -3071,26 +3471,56 @@ void d3d9_dispose()
 	}
 
 	// +++++ MINHOOK HOOKING LOGIC START +++++
-	// 取得目標函數位址以便停用
+	// Disable all hooks in the reverse order they were created.
+	// --- Disable hooks in user32.dll ---
+	HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
+	if (hUser32)
+	{
+		void* pTarget;
+
+		pTarget = (void*)GetProcAddress(hUser32, "MessageBoxA");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+
+		pTarget = (void*)GetProcAddress(hUser32, "SendMessageA");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+
+		pTarget = (void*)GetProcAddress(hUser32, "GetWindowTextA");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+
+		pTarget = (void*)GetProcAddress(hUser32, "SetMenuItemInfoA");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+
+		pTarget = (void*)GetProcAddress(hUser32, "ModifyMenuA");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+
+		pTarget = (void*)GetProcAddress(hUser32, "SetWindowTextW");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+	}
+	// --- Disable hooks in MMD's main module ---
 	HMODULE hMMD = GetModuleHandle(NULL);
 	if (hMMD)
 	{
-		void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
-		if (pTarget)
-		{
-			// 停用 Hook
-			MH_DisableHook(pTarget);
-		}
-	}
+		void* pTarget;
 
-	// 反初始化 MinHook
-	MH_Uninitialize();
+		pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
+		if (pTarget)
+			MH_DisableHook(pTarget);
+	}
+	// // CRITICAL: Do NOT call Py_FinalizeEx() here as it is unsafe in DllMain
+	// MH_Uninitialize();
 	// +++++ MINHOOK HOOKING LOGIC END +++++
 
-	if (Py_IsInitialized())
-	{
-		Py_FinalizeEx();
-	}
+	// // CRITICAL: Do NOT call Py_FinalizeEx() here as it is unsafe in DllMain
+	// if (Py_IsInitialized())
+	// {
+	// 	Py_FinalizeEx();
+	// }
 
 	renderData.dispose();
 	DisposePMX();

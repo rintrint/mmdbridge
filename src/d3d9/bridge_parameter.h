@@ -24,7 +24,7 @@ public:
 	/// スクリプトパス
 	std::wstring python_script_path;
 	/// スクリプト名
-	std ::wstring python_script_name;
+	std::wstring python_script_name;
 	/// スクリプト名
 	std::vector<std::wstring> python_script_name_list;
 	/// スクリプトパス
@@ -49,6 +49,10 @@ public:
 	std::map<int, int> py_int_map;
 	/// スクリプトからの一時保存値(float)
 	std::map<int, float> py_float_map;
+
+	/// Mapping between ANSI functions and code pages in INI files
+	// std::less<> avoids temporary object creation in __try blocks
+	std::map<std::wstring, int, std::less<>> encoding_map;
 
 	VertexBufferList finish_buffer_list;
 	RenderBufferMap render_buffer_map;

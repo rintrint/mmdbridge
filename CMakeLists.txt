@@ -16,6 +16,8 @@ add_compile_options(/D_UNICODE /DUNICODE)
 # shared compiler options
 add_compile_options(
     /EHsc
+    # /EHa
+
     # /W0
     # /W1
     # /W2
