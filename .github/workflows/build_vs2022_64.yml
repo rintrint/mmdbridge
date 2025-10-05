@@ -134,15 +134,28 @@ jobs:
       - name: Prepare package for upload
         shell: bash
         run: |
-          # 0. Pack original
+          # Pack original
           7z a -t7z -mx5 _original.7z "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
-          # 1. Move all .py files except *mmdbridge_vmd*.py to the 'other_scripts' folder
+
+          # Copy executables
+          cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_CHS.exe" "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
+          cp "$GITHUB_WORKSPACE/externals/MikuMikuDance_CHT.exe" "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
+
+          # Copy ini files
+          mkdir -p "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_settings"
+          cp "$GITHUB_WORKSPACE/Release/x64/mmdbridge_settings/MikuMikuDance.exe.ini" "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_settings/"
+          cp "$GITHUB_WORKSPACE/Release/x64/mmdbridge_settings/MikuMikuDance_CHS.exe.ini" "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_settings/"
+          cp "$GITHUB_WORKSPACE/Release/x64/mmdbridge_settings/MikuMikuDance_CHT.exe.ini" "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_settings/"
+
+          # Move all .py files except *mmdbridge_vmd*.py to the 'other_scripts' folder
           OTHER_SCRIPTS_DIR="$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_scripts/other_scripts"
           mkdir -p "$OTHER_SCRIPTS_DIR"
           find "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/mmdbridge_scripts" -maxdepth 1 -type f -name "*.py" ! -name "*mmdbridge_vmd*.py" -exec mv {} "$OTHER_SCRIPTS_DIR/" \;
-          # 2. Create the 'out' folder
+
+          # Create the 'out' folder
           mkdir -p "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/out"
-          # 3. Compress the folder with 7z at normal compression level
+
+          # Compress the folder with 7z at normal compression level
           7z a -t7z -mx5 MikuMikuDance_v932x64.7z "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
 
       - name: Upload
