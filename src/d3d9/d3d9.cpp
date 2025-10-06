@@ -589,18 +589,31 @@ namespace
 	int script_call_setting = 1;
 	std::map<int, int> exportedFrames;
 
-	/// Reload script.
+	/// Reloads the active script based on the currently set script name.
 	bool relaod_python_script()
 	{
-		BridgeParameter::mutable_instance().mmdbridge_python_script.clear();
-		std::ifstream ifs(BridgeParameter::instance().python_script_path.c_str());
+		const BridgeParameter& parameter = BridgeParameter::instance();
+		BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
+
+		mutable_parameter.mmdbridge_python_script.clear();
+
+		if (parameter.python_script_name.empty())
+		{
+			mutable_parameter.python_script_path.clear();
+			return false;
+		}
+
+		mutable_parameter.python_script_path = parameter.base_path + L"mmdbridge_scripts/" + parameter.python_script_name;
+
+		std::ifstream ifs(mutable_parameter.python_script_path.c_str());
 		if (!ifs)
 			return false;
+
 		char buf[2048];
 		while (ifs.getline(buf, sizeof(buf)))
 		{
-			BridgeParameter::mutable_instance().mmdbridge_python_script.append(buf);
-			BridgeParameter::mutable_instance().mmdbridge_python_script.append("\r\n");
+			mutable_parameter.mmdbridge_python_script.append(buf);
+			mutable_parameter.mmdbridge_python_script.append("\r\n");
 		}
 		ifs.close();
 		return true;
@@ -609,12 +622,13 @@ namespace
 	/// Reloads the python script paths.
 	void reload_python_file_paths()
 	{
+		const BridgeParameter& parameter = BridgeParameter::instance();
 		BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
 		mutable_parameter.python_script_name_list.clear();
 		mutable_parameter.python_script_path_list.clear();
 
-		std::wstring searchPath = mutable_parameter.base_path + L"mmdbridge_scripts/";
+		std::wstring searchPath = parameter.base_path + L"mmdbridge_scripts/";
 		std::wstring searchStr(searchPath + L"*.py");
 
 		std::vector<std::pair<std::wstring, std::wstring>> found_scripts;
@@ -645,7 +659,7 @@ namespace
 		// Repopulate the main lists from the sorted temporary list.
 		for (const auto& script : found_scripts)
 		{
-			if (mutable_parameter.python_script_name.empty())
+			if (parameter.python_script_name.empty())
 			{
 				mutable_parameter.python_script_name = script.first;
 				mutable_parameter.python_script_path = script.second;
@@ -2134,9 +2148,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					UINT num1 = (UINT)SendMessageW(hCombo1, CB_GETCURSEL, 0, 0);
 					if (num1 < parameter.python_script_name_list.size())
 					{
-						const std::wstring& selected_name = parameter.python_script_name_list[num1];
-						mutable_parameter.python_script_name = selected_name;
-						mutable_parameter.python_script_path = parameter.python_script_path_list[num1];
+						mutable_parameter.python_script_name = parameter.python_script_name_list[num1];
 						relaod_python_script();
 					}
 
@@ -3284,6 +3296,8 @@ bool d3d9_initialize()
 		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), L'\\', L'/');
 	}
 
+	LoadSettings();
+
 	reload_python_file_paths();
 	relaod_python_script();
 
@@ -3557,8 +3571,6 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 				::MessageBoxW(NULL, L"Failed to initialize MMD export functions", L"Initialization Error", MB_OK);
 				return FALSE;
 			}
-
-			LoadSettings();
 
 			d3d9_initialize();
 			break;
