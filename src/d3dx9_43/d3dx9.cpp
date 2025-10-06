@@ -16,16 +16,6 @@
 
 static HMODULE g_d3dx9_module = NULL;
 
-template <class T>
-std::string to_string(T value)
-{
-	std::stringstream converter;
-	std::string str;
-	converter << value;
-	converter >> str;
-	return str;
-}
-
 HRESULT(WINAPI* original_SetFloatArray)(
 	ID3DXEffect* pEffect,
 	D3DXHANDLE hParameter,
