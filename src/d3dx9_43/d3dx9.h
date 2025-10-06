@@ -1,4 +1,3 @@
-
 #ifndef D3DX9_H
 #define D3DX9_H
 
@@ -18,26 +17,33 @@
 #include <d3dx9core.h>
 #include <d3dx9xof.h>
 
-extern "C"
-{
-	void UMSetFlag(int flag);
-	LPD3DXEFFECT* UMGetEffect();
-	void UMSync();
-	int UMGetEffectType();
-	void UMGetCameraFovLH(D3DXVECTOR4* dst);
-	void UMGetCameraEye(D3DXVECTOR3* dst);
-	void UMGetCameraAt(D3DXVECTOR3* dst);
-	void UMGetCameraUp(D3DXVECTOR3* dst);
-	BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex);
-	DWORD UMGetTextureName(LPDIRECT3DTEXTURE9 tex, LPWSTR outBuffer, DWORD bufferSize);
-	BOOL UMIsAlphaTexture(LPDIRECT3DTEXTURE9 tex);
-}
-
+// Effect Type Flags
 #define EgColor (1 << 0)
 #define ToonColor (1 << 1)
 #define LightColor (1 << 2)
 #define SpcColor (1 << 3)
 #define DifColor (1 << 4)
 #define LightDir (1 << 5)
+
+extern "C"
+{
+	// Texture Management
+	BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex);
+	DWORD UMGetTextureName(LPDIRECT3DTEXTURE9 tex, LPWSTR outBuffer, DWORD bufferSize);
+	BOOL UMIsAlphaTexture(LPDIRECT3DTEXTURE9 tex);
+
+	// Effect Management
+	LPD3DXEFFECT* UMGetEffect();
+	size_t UMGetEffectSize();
+	void UMSetFlag(int flag);
+	void UMSync();
+	int UMGetEffectType();
+
+	// Camera Getters
+	void UMGetCameraFovLH(D3DXVECTOR4* dst);
+	void UMGetCameraEye(D3DXVECTOR3* dst);
+	void UMGetCameraAt(D3DXVECTOR3* dst);
+	void UMGetCameraUp(D3DXVECTOR3* dst);
+}
 
 #endif // D3DX9_H

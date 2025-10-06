@@ -2580,60 +2580,27 @@ HRESULT(WINAPI* original_D3DXWeldVertices)(
 
 ///------------------------------------------------------------------------------------------------------------------------------------------------------------------------------///
 
-int effectFlag = 0;
-bool showFloatArray = false;
+///--------------------------------------------------
+// Global Variables
+///--------------------------------------------------
 
-D3DXVECTOR4 fovlh(0.0f, 0.0f, 0.0f, 0.0f);
+// Effect Management
+static std::vector<LPD3DXEFFECT*> effects;
+static int effectFlag = 0;
+static bool showFloatArray = false;
 
-D3DXVECTOR3 v_eye(0.0f, 0.0f, 0.0f);
-D3DXVECTOR3 v_up(0.0f, 0.0f, 0.0f);
-D3DXVECTOR3 v_at(0.0f, 0.0f, 0.0f);
+// Texture Management
+static std::map<LPDIRECT3DTEXTURE9, std::pair<std::wstring, D3DFORMAT>> dxTextureMap;
 
-std::map<LPDIRECT3DTEXTURE9, std::pair<std::wstring, D3DFORMAT>> dxTextureMap;
+// Camera Data
+static D3DXVECTOR4 fovlh(0.0f, 0.0f, 0.0f, 0.0f);
+static D3DXVECTOR3 v_eye(0.0f, 0.0f, 0.0f);
+static D3DXVECTOR3 v_up(0.0f, 0.0f, 0.0f);
+static D3DXVECTOR3 v_at(0.0f, 0.0f, 0.0f);
 
-void UMSetFlag(int flag)
-{
-	showFloatArray = (flag > 0);
-}
-
-void UMSync()
-{
-	effectFlag = 0;
-}
-
-int UMGetEffectType()
-{
-	return effectFlag;
-}
-
-void UMGetCameraFovLH(D3DXVECTOR4* dst)
-{
-	dst->x = fovlh.x;
-	dst->y = fovlh.y;
-	dst->z = fovlh.z;
-	dst->w = fovlh.w;
-}
-
-void UMGetCameraEye(D3DXVECTOR3* dst)
-{
-	dst->x = v_eye.x;
-	dst->y = v_eye.y;
-	dst->z = v_eye.z;
-}
-
-void UMGetCameraAt(D3DXVECTOR3* dst)
-{
-	dst->x = v_at.x;
-	dst->y = v_at.y;
-	dst->z = v_at.z;
-}
-
-void UMGetCameraUp(D3DXVECTOR3* dst)
-{
-	dst->x = v_up.x;
-	dst->y = v_up.y;
-	dst->z = v_up.z;
-}
+///--------------------------------------------------
+// Texture Functions
+///--------------------------------------------------
 
 BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex)
 {
@@ -2708,12 +2675,66 @@ BOOL UMIsAlphaTexture(LPDIRECT3DTEXTURE9 tex)
 	return false;
 }
 
-HRESULT WINAPI setTexture(
-	ID3DXEffect* pEffect,
-	D3DXHANDLE hParameter,
-	LPDIRECT3DBASETEXTURE9 pTexture)
+///--------------------------------------------------
+// Effect Functions
+///--------------------------------------------------
+
+LPD3DXEFFECT* UMGetEffect()
 {
-	return original_SetTexture(pEffect, hParameter, pTexture);
+	return effects.empty() ? NULL : effects[0];
+}
+
+size_t UMGetEffectSize()
+{
+	return effects.size();
+}
+
+void UMSetFlag(int flag)
+{
+	showFloatArray = (flag > 0);
+}
+
+void UMSync()
+{
+	effectFlag = 0;
+}
+
+int UMGetEffectType()
+{
+	return effectFlag;
+}
+
+///--------------------------------------------------
+// Camera Functions
+///--------------------------------------------------
+
+void UMGetCameraFovLH(D3DXVECTOR4* dst)
+{
+	dst->x = fovlh.x;
+	dst->y = fovlh.y;
+	dst->z = fovlh.z;
+	dst->w = fovlh.w;
+}
+
+void UMGetCameraEye(D3DXVECTOR3* dst)
+{
+	dst->x = v_eye.x;
+	dst->y = v_eye.y;
+	dst->z = v_eye.z;
+}
+
+void UMGetCameraAt(D3DXVECTOR3* dst)
+{
+	dst->x = v_at.x;
+	dst->y = v_at.y;
+	dst->z = v_at.z;
+}
+
+void UMGetCameraUp(D3DXVECTOR3* dst)
+{
+	dst->x = v_up.x;
+	dst->y = v_up.y;
+	dst->z = v_up.z;
 }
 
 HRESULT WINAPI setFloatArray(
@@ -3467,25 +3488,6 @@ extern "C"
 		LPD3DXBUFFER* ppCompilationErrors)
 	{
 		return (*original_D3DXCreateEffectFromFileW)(pDevice, pSrcFile, pDefines, pInclude, Flags, pPool, ppEffect, ppCompilationErrors);
-	}
-
-	std::vector<LPD3DXEFFECT*> effects;
-
-	LPD3DXEFFECT* UMGetEffect()
-	{
-		if (effects.size() > 0)
-		{
-			return effects[0];
-		}
-		else
-		{
-			return NULL;
-		}
-	}
-
-	size_t UMGetEffectSize()
-	{
-		return effects.size();
 	}
 
 	HRESULT WINAPI D3DXCreateEffectFromResourceA(
