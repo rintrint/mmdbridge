@@ -62,7 +62,7 @@ static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 
 // ===== Helper Functions =====
 // Get the code page for a specific ANSI API function from INI settings
-static UINT GetAnsiFunctionCodePage(const wchar_t* function_name)
+static int GetAnsiFunctionCodePage(const wchar_t* function_name)
 {
 	const auto& encoding_map = BridgeParameter::instance().encoding_map;
 	auto it = encoding_map.find(function_name);
@@ -3337,97 +3337,112 @@ bool d3d9_initialize()
 	}
 
 	// ModifyMenuA Hook
-	OutputDebugStringW(L"[MMDBridge] Initializing ModifyMenuA Hook...\n");
-	if (hUser32)
+	if (GetAnsiFunctionCodePage(L"ModifyMenuA") > 0)
 	{
-		void* pTarget = (void*)GetProcAddress(hUser32, "ModifyMenuA");
-		if (pTarget)
+		OutputDebugStringW(L"[MMDBridge] Initializing ModifyMenuA Hook...\n");
+		if (hUser32)
 		{
-			if (MH_CreateHook(pTarget, &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original) != MH_OK)
+			void* pTarget = (void*)GetProcAddress(hUser32, "ModifyMenuA");
+			if (pTarget)
 			{
-				::MessageBoxW(NULL, L"MH_CreateHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
+				if (MH_CreateHook(pTarget, &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_CreateHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
+				}
+				if (MH_EnableHook(pTarget) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_EnableHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
+				}
+				OutputDebugStringW(L"[MMDBridge] ModifyMenuA Hook is active.\n");
 			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
-			}
-			OutputDebugStringW(L"[MMDBridge] ModifyMenuA Hook is active.\n");
 		}
 	}
 
 	// SetMenuItemInfoA Hook
-	OutputDebugStringW(L"[MMDBridge] Initializing SetMenuItemInfoA Hook...\n");
-	if (hUser32)
+	if (GetAnsiFunctionCodePage(L"SetMenuItemInfoA") > 0)
 	{
-		void* pTarget = (void*)GetProcAddress(hUser32, "SetMenuItemInfoA");
-		if (pTarget)
+		OutputDebugStringW(L"[MMDBridge] Initializing SetMenuItemInfoA Hook...\n");
+		if (hUser32)
 		{
-			if (MH_CreateHook(pTarget, &Detour_SetMenuItemInfoA, (LPVOID*)&fpSetMenuItemInfoA_Original) != MH_OK)
+			void* pTarget = (void*)GetProcAddress(hUser32, "SetMenuItemInfoA");
+			if (pTarget)
 			{
-				::MessageBoxW(NULL, L"MH_CreateHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
+				if (MH_CreateHook(pTarget, &Detour_SetMenuItemInfoA, (LPVOID*)&fpSetMenuItemInfoA_Original) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_CreateHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
+				}
+				if (MH_EnableHook(pTarget) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_EnableHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
+				}
+				OutputDebugStringW(L"[MMDBridge] SetMenuItemInfoA Hook is active.\n");
 			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
-			}
-			OutputDebugStringW(L"[MMDBridge] SetMenuItemInfoA Hook is active.\n");
 		}
 	}
 
 	// GetWindowTextA Hook
-	OutputDebugStringW(L"[MMDBridge] Initializing GetWindowTextA Hook...\n");
-	if (hUser32)
+	if (GetAnsiFunctionCodePage(L"GetWindowTextA") > 0)
 	{
-		void* pTarget = (void*)GetProcAddress(hUser32, "GetWindowTextA");
-		if (pTarget)
+		OutputDebugStringW(L"[MMDBridge] Initializing GetWindowTextA Hook...\n");
+		if (hUser32)
 		{
-			if (MH_CreateHook(pTarget, &Detour_GetWindowTextA, (LPVOID*)&fpGetWindowTextA_Original) != MH_OK)
+			void* pTarget = (void*)GetProcAddress(hUser32, "GetWindowTextA");
+			if (pTarget)
 			{
-				::MessageBoxW(NULL, L"MH_CreateHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
+				if (MH_CreateHook(pTarget, &Detour_GetWindowTextA, (LPVOID*)&fpGetWindowTextA_Original) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_CreateHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
+				}
+				if (MH_EnableHook(pTarget) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_EnableHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
+				}
+				OutputDebugStringW(L"[MMDBridge] GetWindowTextA Hook is active.\n");
 			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
-			}
-			OutputDebugStringW(L"[MMDBridge] GetWindowTextA Hook is active.\n");
 		}
 	}
 
 	// SendMessageA Hook
-	OutputDebugStringW(L"[MMDBridge] Initializing SendMessageA Hook...\n");
-	if (hUser32)
+	if (GetAnsiFunctionCodePage(L"SendMessageA") > 0)
 	{
-		void* pTarget = (void*)GetProcAddress(hUser32, "SendMessageA");
-		if (pTarget)
+		OutputDebugStringW(L"[MMDBridge] Initializing SendMessageA Hook...\n");
+		if (hUser32)
 		{
-			if (MH_CreateHook(pTarget, &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original) != MH_OK)
+			void* pTarget = (void*)GetProcAddress(hUser32, "SendMessageA");
+			if (pTarget)
 			{
-				::MessageBoxW(NULL, L"MH_CreateHook for SendMessageA failed!", L"MinHook Error", MB_OK);
+				if (MH_CreateHook(pTarget, &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_CreateHook for SendMessageA failed!", L"MinHook Error", MB_OK);
+				}
+				if (MH_EnableHook(pTarget) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_EnableHook for SendMessageA failed!", L"MinHook Error", MB_OK);
+				}
+				OutputDebugStringW(L"[MMDBridge] SendMessageA Hook is active.\n");
 			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for SendMessageA failed!", L"MinHook Error", MB_OK);
-			}
-			OutputDebugStringW(L"[MMDBridge] SendMessageA Hook is active.\n");
 		}
 	}
 
 	// MessageBoxA Hook
-	OutputDebugStringW(L"[MMDBridge] Initializing MessageBoxA Hook...\n");
-	if (hUser32)
+	if (GetAnsiFunctionCodePage(L"MessageBoxA") > 0)
 	{
-		void* pTarget = (void*)GetProcAddress(hUser32, "MessageBoxA");
-		if (pTarget)
+		OutputDebugStringW(L"[MMDBridge] Initializing MessageBoxA Hook...\n");
+		if (hUser32)
 		{
-			if (MH_CreateHook(pTarget, &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original) != MH_OK)
+			void* pTarget = (void*)GetProcAddress(hUser32, "MessageBoxA");
+			if (pTarget)
 			{
-				::MessageBoxW(NULL, L"MH_CreateHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
+				if (MH_CreateHook(pTarget, &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_CreateHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
+				}
+				if (MH_EnableHook(pTarget) != MH_OK)
+				{
+					::MessageBoxW(NULL, L"MH_EnableHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
+				}
+				OutputDebugStringW(L"[MMDBridge] MessageBoxA Hook is active.\n");
 			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
-			}
-			OutputDebugStringW(L"[MMDBridge] MessageBoxA Hook is active.\n");
 		}
 	}
 	// +++++ MINHOOK HOOKING LOGIC END +++++
