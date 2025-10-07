@@ -2101,11 +2101,15 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				LANGID original_lang_id = GetThreadUILanguage();
 
 				SetThreadUILanguage(target_lang_id);
+
+				// Update "Plugin Settings" text
 				wchar_t settingsMenuText[256];
 				if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 256) == 0)
 				{
+					// Fallback
 					wcscpy_s(settingsMenuText, L"Plugin Settings");
 				}
+
 				SetThreadUILanguage(original_lang_id);
 
 				MENUITEMINFOW mii_update = { sizeof(mii_update) };
@@ -2121,7 +2125,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		{
 			switch (LOWORD(wp))
 			{
-				case IDS_MENU_PLUGIN_SETTINGS: // プラグイン設定
+				case IDS_MENU_PLUGIN_SETTINGS: // Plugin Settings
 					OpenSettingsDialog(hWnd);
 					break;
 			}
@@ -2181,7 +2185,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-				case IDS_MENU_PLUGIN_SETTINGS: // プラグイン設定
+				case IDS_MENU_PLUGIN_SETTINGS: // Plugin Settings
 				{
 					OpenSettingsDialog(hWnd);
 					break;
