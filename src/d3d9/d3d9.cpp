@@ -2023,7 +2023,7 @@ static void setMyMenu()
 		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
 		minfo.fMask = MIIM_ID | MIIM_TYPE;
 		minfo.dwTypeData = L"Plugin Settings";
-		minfo.wID = 1020;
+		minfo.wID = IDS_MENU_PLUGIN_SETTINGS;
 		InsertMenuItem(hsubs, 1, TRUE, &minfo);
 
 		SetMenu(g_hWnd, hmenu);
@@ -2079,7 +2079,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 			MENUITEMINFOW mii_check = { sizeof(mii_check) };
 			mii_check.fMask = MIIM_ID;
 
-			if (GetMenuItemInfoW(hPopupMenu, 1020, FALSE, &mii_check))
+			if (GetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_check))
 			{
 				std::wstring ini_path = GetSettingsFilePath();
 				wchar_t lang_code[16];
@@ -2112,7 +2112,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				mii_update.fMask = MIIM_STRING;
 				mii_update.dwTypeData = settingsMenuText;
 
-				SetMenuItemInfoW(hPopupMenu, 1020, FALSE, &mii_update);
+				SetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_update);
 			}
 			break;
 		}
@@ -2121,7 +2121,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		{
 			switch (LOWORD(wp))
 			{
-				case 1020: // プラグイン設定
+				case IDS_MENU_PLUGIN_SETTINGS: // プラグイン設定
 					OpenSettingsDialog(hWnd);
 					break;
 			}
@@ -2181,7 +2181,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 		case WM_COMMAND:
 			switch (LOWORD(wParam))
 			{
-				case 1020: // プラグイン設定
+				case IDS_MENU_PLUGIN_SETTINGS: // プラグイン設定
 				{
 					OpenSettingsDialog(hWnd);
 					break;
