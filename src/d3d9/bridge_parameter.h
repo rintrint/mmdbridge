@@ -19,6 +19,8 @@ public:
 
 	/// ベースディレクトリ
 	std::wstring base_path;
+	/// INI設定ファイルのフルパス
+	std::wstring ini_path;
 	/// pythonスクリプト
 	std::string mmdbridge_python_script;
 	/// スクリプトパス

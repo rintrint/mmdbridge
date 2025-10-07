@@ -1938,7 +1938,7 @@ std::wstring GetSettingsFilePath()
 // Load settings from INI file
 void LoadSettings()
 {
-	std::wstring ini_path = GetSettingsFilePath();
+	const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
 	wchar_t buffer[MAX_PATH];
@@ -1990,7 +1990,7 @@ void LoadSettings()
 // Save current settings to INI file
 void SaveSettings()
 {
-	std::wstring ini_path = GetSettingsFilePath();
+	const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 	const BridgeParameter& parameter = BridgeParameter::instance();
 
 	WritePrivateProfileStringW(L"Settings", L"ScriptName", parameter.python_script_name.c_str(), ini_path.c_str());
@@ -2049,7 +2049,7 @@ static void setMySize()
 
 static void OpenSettingsDialog(HWND hWnd)
 {
-	std::wstring ini_path = GetSettingsFilePath();
+	const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 	wchar_t lang_code[16];
 
 	// Check if MMD is in English mode first.
@@ -2086,7 +2086,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 			if (GetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_check))
 			{
-				std::wstring ini_path = GetSettingsFilePath();
+				const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 				wchar_t lang_code[16];
 
 				// Check if MMD is in English mode first.
@@ -2146,7 +2146,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 				case IDS_MENU_ABOUT: // About MMDBridge
 				{
-					std::wstring ini_path = GetSettingsFilePath();
+					const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 					wchar_t lang_code[16];
 
 					// Check if MMD is in English mode first.
@@ -3369,6 +3369,9 @@ bool d3d9_initialize()
 		BridgeParameter::mutable_instance().base_path = app_full_path;
 		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), L'\\', L'/');
 	}
+
+	// Get and store the INI file path
+	BridgeParameter::mutable_instance().ini_path = GetSettingsFilePath();
 
 	// Load external settings
 	LoadSettings();
