@@ -57,6 +57,11 @@ HWND g_hFrame = NULL; // Frame number
 LONG_PTR originalWndProc = NULL;
 HINSTANCE hInstance = NULL;
 
+// For CBT Hook to detect RecWindow creation/destruction
+static HHOOK g_hCbtHook = NULL;
+static HWND g_hRecWindow = NULL;
+static std::atomic<bool> g_isAviExporting = false;
+
 // ===== Forward Declarations =====
 static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -73,7 +78,7 @@ static int GetAnsiFunctionCodePage(const wchar_t* function_name)
 	return CP_ACP; // Fall back to system default ANSI code page (0)
 }
 
-// +++++ MINHOOK HOOKING LOGIC START +++++
+// +++++ MINHOOK LOGIC START +++++
 // =======================================================================
 // MMD API 修正：攔截 ExpGetPmdFilename
 // =======================================================================
@@ -369,7 +374,45 @@ int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT u
 	}
 	return fpMessageBoxA_Original(hWnd, lpText, lpCaption, uType);
 }
-// +++++ MINHOOK HOOKING LOGIC END +++++
+// +++++ MINHOOK LOGIC END +++++
+
+// +++++ CBT HOOK LOGIC START +++++
+// CBT Hook procedure to detect RecWindow creation and destruction
+static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	if (nCode >= 0)
+	{
+		if (nCode == HCBT_CREATEWND)
+		{
+			HWND hWnd = (HWND)wParam;
+			CBT_CREATEWND* pCreate = (CBT_CREATEWND*)lParam;
+			if (pCreate && pCreate->lpcs)
+			{
+				// Check if the window class is RecWindow
+				wchar_t className[256];
+				if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
+				{
+					g_hRecWindow = hWnd;
+					g_isAviExporting = true;
+				}
+			}
+		}
+		else if (nCode == HCBT_DESTROYWND)
+		{
+			HWND hWnd = (HWND)wParam;
+			// Check if the window being destroyed is the RecWindow we tracked
+			if (hWnd == g_hRecWindow)
+			{
+				g_isAviExporting = false;
+				g_hRecWindow = NULL;
+			}
+		}
+	}
+
+	// Pass the hook information to the next hook procedure in the chain
+	return CallNextHookEx(g_hCbtHook, nCode, wParam, lParam);
+}
+// +++++ CBT HOOK LOGIC END +++++
 
 ///////////////////////////////////////////////////////////////////////////
 // MMD Export Function Pointers - Definitions and Implementation
@@ -2233,48 +2276,9 @@ static bool IsValidCallSetting()
 	return script_call_setting == 1;
 }
 
-// Helper struct for the EnumWindows callback, passing a PID and returning a HWND.
-struct FindWindowData
-{
-	DWORD process_id;
-	HWND found_hwnd;
-};
-
-// EnumWindows callback that finds "RecWindow" belonging to a specific process.
-BOOL CALLBACK FindRecWindowProc(HWND hWnd, LPARAM lParam)
-{
-	FindWindowData* pData = (FindWindowData*)lParam;
-
-	// Check if the window's class name is "RecWindow".
-	WCHAR className[256];
-	if (GetClassNameW(hWnd, className, sizeof(className) / sizeof(className[0])) > 0)
-	{
-		if (wcscmp(className, L"RecWindow") == 0)
-		{
-			DWORD windowProcessId;
-			GetWindowThreadProcessId(hWnd, &windowProcessId);
-
-			if (windowProcessId == pData->process_id)
-			{
-				pData->found_hwnd = hWnd;
-				return FALSE; // Returning FALSE stops the EnumWindows loop.
-			}
-		}
-	}
-
-	// Continue enumerating windows.
-	return TRUE;
-}
-
 static bool IsValidFrame()
 {
-	FindWindowData data;
-	data.process_id = GetCurrentProcessId();
-	data.found_hwnd = NULL;
-
-	EnumWindows(FindRecWindowProc, (LPARAM)&data);
-
-	return (data.found_hwnd != NULL);
+	return g_isAviExporting;
 }
 
 static bool IsValidTechniq()
@@ -3296,12 +3300,14 @@ bool d3d9_initialize()
 		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), L'\\', L'/');
 	}
 
+	// Load external settings
 	LoadSettings();
 
+	// Load scripts based on the settings
 	reload_python_file_paths();
 	reload_python_script();
 
-	// +++++ MINHOOK HOOKING LOGIC START +++++
+	// +++++ MINHOOK LOGIC START +++++
 	if (MH_Initialize() != MH_OK)
 	{
 		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK);
@@ -3459,7 +3465,15 @@ bool d3d9_initialize()
 			}
 		}
 	}
-	// +++++ MINHOOK HOOKING LOGIC END +++++
+	// +++++ MINHOOK LOGIC END +++++
+
+	// +++++ CBT HOOK LOGIC START +++++
+	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
+	if (!g_hCbtHook)
+	{
+		::MessageBoxW(NULL, L"Failed to install CBT hook!", L"Hook Error", MB_OK);
+	}
+	// +++++ CBT HOOK LOGIC END +++++
 
 	// System path storage
 	WCHAR system_path_buffer[MAX_PATH] = { 0 };
@@ -3470,7 +3484,6 @@ bool d3d9_initialize()
 
 	// Original d3d9.dll module
 	g_d3d9_system_module = LoadLibraryW(d3d9_path.c_str());
-
 	if (!g_d3d9_system_module)
 	{
 		return FALSE;
@@ -3493,14 +3506,16 @@ bool d3d9_initialize()
 
 void d3d9_dispose()
 {
-	if (g_d3d9_system_module)
-	{
-		FreeLibrary(g_d3d9_system_module);
-		g_d3d9_system_module = NULL;
-	}
-
-	// +++++ MINHOOK HOOKING LOGIC START +++++
 	// Disable all hooks in the reverse order they were created.
+	// +++++ CBT HOOK LOGIC START +++++
+	if (g_hCbtHook)
+	{
+		UnhookWindowsHookEx(g_hCbtHook);
+		g_hCbtHook = NULL;
+	}
+	// +++++ CBT HOOK LOGIC END +++++
+
+	// +++++ MINHOOK LOGIC START +++++
 	// --- Disable hooks in user32.dll ---
 	HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
 	if (hUser32)
@@ -3541,9 +3556,9 @@ void d3d9_dispose()
 		if (pTarget)
 			MH_DisableHook(pTarget);
 	}
-	// // CRITICAL: Do NOT call Py_FinalizeEx() here as it is unsafe in DllMain
+	// // CRITICAL: Do NOT call MH_Uninitialize() here as it is unsafe in DllMain
 	// MH_Uninitialize();
-	// +++++ MINHOOK HOOKING LOGIC END +++++
+	// +++++ MINHOOK LOGIC END +++++
 
 	// // CRITICAL: Do NOT call Py_FinalizeEx() here as it is unsafe in DllMain
 	// if (Py_IsInitialized())
@@ -3555,6 +3570,12 @@ void d3d9_dispose()
 	DisposePMX();
 	DisposeVMD();
 	DisposeAlembic();
+
+	if (g_d3d9_system_module)
+	{
+		FreeLibrary(g_d3d9_system_module);
+		g_d3d9_system_module = NULL;
+	}
 }
 
 // DLL entry point
