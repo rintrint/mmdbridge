@@ -2026,6 +2026,11 @@ static void setMyMenu()
 		minfo.wID = IDS_MENU_PLUGIN_SETTINGS;
 		InsertMenuItem(hsubs, 1, TRUE, &minfo);
 
+		minfo.fMask = MIIM_ID | MIIM_TYPE;
+		minfo.dwTypeData = L"About MMDBridge";
+		minfo.wID = IDS_MENU_ABOUT;
+		InsertMenuItem(hsubs, 2, TRUE, &minfo);
+
 		SetMenu(g_hWnd, hmenu);
 		g_hMenu = hmenu;
 	}
@@ -2109,14 +2114,24 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 					// Fallback
 					wcscpy_s(settingsMenuText, L"Plugin Settings");
 				}
+				MENUITEMINFOW mii_update_settings = { sizeof(mii_update_settings) };
+				mii_update_settings.fMask = MIIM_STRING;
+				mii_update_settings.dwTypeData = settingsMenuText;
+				SetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_update_settings);
+
+				// Update "About MMDBridge" text
+				wchar_t versionMenuText[256];
+				if (LoadStringW(hInstance, IDS_MENU_ABOUT, versionMenuText, 256) == 0)
+				{
+					// Fallback
+					wcscpy_s(versionMenuText, L"About MMDBridge");
+				}
+				MENUITEMINFOW mii_update_version = { sizeof(mii_update_version) };
+				mii_update_version.fMask = MIIM_STRING;
+				mii_update_version.dwTypeData = versionMenuText;
+				SetMenuItemInfoW(hPopupMenu, IDS_MENU_ABOUT, FALSE, &mii_update_version);
 
 				SetThreadUILanguage(original_lang_id);
-
-				MENUITEMINFOW mii_update = { sizeof(mii_update) };
-				mii_update.fMask = MIIM_STRING;
-				mii_update.dwTypeData = settingsMenuText;
-
-				SetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_update);
 			}
 			break;
 		}
@@ -2128,6 +2143,57 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				case IDS_MENU_PLUGIN_SETTINGS: // Plugin Settings
 					OpenSettingsDialog(hWnd);
 					break;
+
+				case IDS_MENU_ABOUT: // About MMDBridge
+				{
+					std::wstring ini_path = GetSettingsFilePath();
+					wchar_t lang_code[16];
+
+					// Check if MMD is in English mode first.
+					if (ExpGetEnglishMode())
+					{
+						wcscpy_s(lang_code, L"en-US");
+					}
+					else
+					{
+						// Read the language setting from the INI file. Defaults to "ja-JP" if not found.
+						GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", lang_code, 16, ini_path.c_str());
+					}
+					lang_code[15] = L'\0';
+
+					LCID locale_id = LocaleNameToLCID(lang_code, 0);
+					LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
+					LANGID original_lang_id = GetThreadUILanguage();
+
+					SetThreadUILanguage(target_lang_id);
+
+					wchar_t titleBuffer[256];
+					wchar_t formatBuffer[1024];
+					wchar_t finalMessage[2048];
+
+					if (LoadStringW(hInstance, IDS_MENU_ABOUT, titleBuffer, 256) == 0)
+					{
+						// Fallback
+						wcscpy_s(titleBuffer, L"About MMDBridge");
+					}
+					if (LoadStringW(hInstance, IDS_ABOUT_MESSAGE, formatBuffer, 1024) == 0)
+					{
+						// Fallback
+						wcscpy_s(formatBuffer,
+								 L"MMDBridge Plugin (rintrint's fork)\n"
+								 L"Version: %hs\n\n"
+								 L"Original author: Kazuma Hatta\n"
+								 L"Forked and maintained by: rintrint\n\n"
+								 L"Bug reports: https://github.com/rintrint/mmdbridge\n\n"
+								 L"(Press Ctrl+C to copy this message)");
+					}
+
+					SetThreadUILanguage(original_lang_id);
+
+					swprintf_s(finalMessage, formatBuffer, VERSION_STRING);
+					::MessageBoxW(hWnd, finalMessage, titleBuffer, MB_OK | MB_ICONINFORMATION);
+				}
+				break;
 			}
 			break;
 		}

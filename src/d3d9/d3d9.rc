@@ -8,6 +8,7 @@
 #include <commctrl.h>
 #include <richedit.h>
 #include "resource.h"
+// d3d9.rc
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -19,24 +20,32 @@ LANGUAGE 0x11, 0x01 // LANG_JAPANESE, SUBLANG_DEFAULT
 STRINGTABLE
 BEGIN
     IDS_MENU_PLUGIN_SETTINGS, "プラグイン設定"
+    IDS_MENU_ABOUT,           "バージョン情報"
+    IDS_ABOUT_MESSAGE,        "MMDBridge プラグイン (rintrint's フォーク)\nバージョン: %hs\n\nオリジナル開発: Kazuma Hatta\nフォーク・メンテナンス: rintrint\n\nバグ報告: https://github.com/rintrint/mmdbridge\n\n(Ctrl+C でこのメッセージをコピーできます)"
 END
 
 LANGUAGE 0x09, 0x01 // LANG_ENGLISH, SUBLANG_ENGLISH_US
 STRINGTABLE
 BEGIN
     IDS_MENU_PLUGIN_SETTINGS, "Plugin Settings"
+    IDS_MENU_ABOUT,           "About MMDBridge"
+    IDS_ABOUT_MESSAGE,        "MMDBridge Plugin (rintrint's fork)\nVersion: %hs\n\nOriginal author: Kazuma Hatta\nForked and maintained by: rintrint\n\nBug reports: https://github.com/rintrint/mmdbridge\n\n(Press Ctrl+C to copy this message)"
 END
 
 LANGUAGE 0x04, 0x02 // LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 STRINGTABLE
 BEGIN
     IDS_MENU_PLUGIN_SETTINGS, "插件设置"
+    IDS_MENU_ABOUT,           "关于 MMDBridge"
+    IDS_ABOUT_MESSAGE,        "MMDBridge 插件 (rintrint's fork)\n版本: %hs\n\n原作者: Kazuma Hatta\n分支维护: rintrint\n\n问题反馈: https://github.com/rintrint/mmdbridge\n\n(按 Ctrl+C 可复制此消息)"
 END
 
 LANGUAGE 0x04, 0x01 // LANG_CHINESE, SUBLANG_CHINESE_TRADITIONAL
 STRINGTABLE
 BEGIN
     IDS_MENU_PLUGIN_SETTINGS, "插件設定"
+    IDS_MENU_ABOUT,           "關於 MMDBridge"
+    IDS_ABOUT_MESSAGE,        "MMDBridge 插件 (rintrint's fork)\n版本: %hs\n\n原作者: Kazuma Hatta\n分支維護: rintrint\n\n問題反饋: https://github.com/rintrint/mmdbridge\n\n(按 Ctrl+C 可複製此訊息)"
 END
 
 /////////////////////////////////////////////////////////////////////////////
