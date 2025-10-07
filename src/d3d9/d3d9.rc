@@ -66,7 +66,6 @@ BEGIN
     LTEXT           "フレームレート(AVI出力設定とおなじにしてください)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
-    PUSHBUTTON      "詳細設定", 1000, 159, 11, 50, 15, NOT WS_VISIBLE
 END
 
 // -------------------- English (United States) --------------------
@@ -90,7 +89,6 @@ BEGIN
     LTEXT           "Framerate(please match AVI export settings)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
-    PUSHBUTTON      "Advanced Settings", 1000, 159, 11, 50, 15, NOT WS_VISIBLE
 END
 
 // -------------------- Chinese (Simplified, PRC) --------------------
@@ -114,7 +112,6 @@ BEGIN
     LTEXT           "帧率(请与AVI导出设置保持一致)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
-    PUSHBUTTON      "详细设置", 1000, 159, 11, 50, 15, NOT WS_VISIBLE
 END
 
 // -------------------- Chinese (Traditional, Taiwan) --------------------
@@ -138,5 +135,4 @@ BEGIN
     LTEXT           "幀率(請與AVI導出設定保持一致)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
-    PUSHBUTTON      "詳細設定", 1000, 159, 11, 50, 15, NOT WS_VISIBLE
 END
