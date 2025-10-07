@@ -32,6 +32,9 @@ public:
 	/// スクリプトパス
 	std::vector<std::wstring> python_script_path_list;
 
+	/// UI言語コード(例:"ja-JP", "en-US")
+	std::wstring ui_language_code;
+
 	/// スクリプト呼び出し設定
 	// int script_call_setting;
 	/// 開始フレーム
@@ -70,7 +73,8 @@ public:
 private:
 	BridgeParameter()
 		: // script_call_setting(2)
-		start_frame(0)
+		ui_language_code(L"ja-JP")
+		, start_frame(0)
 		, end_frame(0)
 		, frame_width(800)
 		, frame_height(450)

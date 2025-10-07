@@ -78,6 +78,19 @@ static int GetAnsiFunctionCodePage(const wchar_t* function_name)
 	return CP_ACP; // Fall back to system default ANSI code page (0)
 }
 
+// Get the current UI language code to be used
+static std::wstring GetCurrentUILanguageCode()
+{
+	if (ExpGetEnglishMode())
+	{
+		return L"en-US";
+	}
+	else
+	{
+		return BridgeParameter::instance().ui_language_code;
+	}
+}
+
 // +++++ MINHOOK LOGIC START +++++
 // =======================================================================
 // MMD API 修正：攔截 ExpGetPmdFilename
@@ -1953,6 +1966,10 @@ void LoadSettings()
 	GetPrivateProfileStringW(L"Settings", L"ExportFPS", L"30.0", buffer, MAX_PATH, ini_path.c_str());
 	mutable_parameter.export_fps = _wtof(buffer);
 
+	// Localization
+	GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", buffer, 16, ini_path.c_str());
+	mutable_parameter.ui_language_code = buffer;
+
 	// Encoding
 	mutable_parameter.encoding_map.clear();
 	GetPrivateProfileStringW(L"Encoding", L"ModifyMenuA", L"0", buffer, 16, ini_path.c_str());
@@ -2049,22 +2066,8 @@ static void setMySize()
 
 static void OpenSettingsDialog(HWND hWnd)
 {
-	const std::wstring& ini_path = BridgeParameter::instance().ini_path;
-	wchar_t lang_code[16];
-
-	// Check if MMD is in English mode first.
-	if (ExpGetEnglishMode())
-	{
-		wcscpy_s(lang_code, L"en-US");
-	}
-	else
-	{
-		// Read the language setting from the INI file. Defaults to "ja-JP" if not found.
-		GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", lang_code, 16, ini_path.c_str());
-	}
-	lang_code[15] = L'\0';
-
-	LCID locale_id = LocaleNameToLCID(lang_code, 0);
+	const std::wstring lang_code = GetCurrentUILanguageCode();
+	LCID locale_id = LocaleNameToLCID(lang_code.c_str(), 0);
 	LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
 	LANGID original_lang_id = GetThreadUILanguage();
 
@@ -2086,22 +2089,8 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 			if (GetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_check))
 			{
-				const std::wstring& ini_path = BridgeParameter::instance().ini_path;
-				wchar_t lang_code[16];
-
-				// Check if MMD is in English mode first.
-				if (ExpGetEnglishMode())
-				{
-					wcscpy_s(lang_code, L"en-US");
-				}
-				else
-				{
-					// Read the language setting from the INI file. Defaults to "ja-JP" if not found.
-					GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", lang_code, 16, ini_path.c_str());
-				}
-				lang_code[15] = L'\0';
-
-				LCID locale_id = LocaleNameToLCID(lang_code, 0);
+				const std::wstring lang_code = GetCurrentUILanguageCode();
+				LCID locale_id = LocaleNameToLCID(lang_code.c_str(), 0);
 				LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
 				LANGID original_lang_id = GetThreadUILanguage();
 
@@ -2146,22 +2135,8 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 				case IDS_MENU_ABOUT: // About MMDBridge
 				{
-					const std::wstring& ini_path = BridgeParameter::instance().ini_path;
-					wchar_t lang_code[16];
-
-					// Check if MMD is in English mode first.
-					if (ExpGetEnglishMode())
-					{
-						wcscpy_s(lang_code, L"en-US");
-					}
-					else
-					{
-						// Read the language setting from the INI file. Defaults to "ja-JP" if not found.
-						GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", lang_code, 16, ini_path.c_str());
-					}
-					lang_code[15] = L'\0';
-
-					LCID locale_id = LocaleNameToLCID(lang_code, 0);
+					const std::wstring lang_code = GetCurrentUILanguageCode();
+					LCID locale_id = LocaleNameToLCID(lang_code.c_str(), 0);
 					LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
 					LANGID original_lang_id = GetThreadUILanguage();
 
