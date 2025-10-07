@@ -2186,7 +2186,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					OpenSettingsDialog(hWnd);
 					break;
 				}
-				case IDOK: // Button was pressed
+				case IDOK: // OK button was pressed
 				{
 					UINT num1 = (UINT)SendMessageW(hCombo1, CB_GETCURSEL, 0, 0);
 					if (num1 < parameter.python_script_name_list.size())
