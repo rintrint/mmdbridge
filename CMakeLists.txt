@@ -99,13 +99,6 @@ install(
     CONFIGURATIONS Debug
 )
 
-# install Python scripts
-file(GLOB python_scripts Release/x64/mmdbridge_scripts/*.py
-)
-install(FILES ${python_scripts}
-    DESTINATION "${MMD_DIR}/mmdbridge_scripts"
-)
-
 # install Python runtime
 install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
     DESTINATION ${MMD_DIR}
@@ -136,7 +129,8 @@ install(DIRECTORY ${CMAKE_INSTALL_PREFIX}/tools/python3/
 )
 
 # install additional resources
-install(DIRECTORY Release/x64/mmdbridge_alembic_assign_scripts
+install(
+    DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/package/MikuMikuDance_v932x64/
     DESTINATION ${MMD_DIR}
 )
 install(DIRECTORY
