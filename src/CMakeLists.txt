@@ -8,7 +8,7 @@ file(GLOB d3d9_sources
     d3d9/*.cpp
     d3d9/*.h
     d3d9/d3d9.rc
-    d3d9/hook.def
+    d3d9/d3d9.def
     umbase/*.cpp
     umbase/*.h
 )

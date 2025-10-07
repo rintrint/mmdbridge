@@ -12,7 +12,7 @@ link_directories(
 add_library(d3dx9_43 SHARED
     d3dx9.cpp
     d3dx9.h
-    hook64.def
+    d3dx9.def
 )
 target_link_libraries(d3dx9_43
     Shlwapi

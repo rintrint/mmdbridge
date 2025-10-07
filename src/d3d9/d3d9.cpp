@@ -590,7 +590,7 @@ namespace
 	std::map<int, int> exportedFrames;
 
 	/// Reloads the active script based on the currently set script name.
-	bool relaod_python_script()
+	bool reload_python_script()
 	{
 		const BridgeParameter& parameter = BridgeParameter::instance();
 		BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
@@ -2149,7 +2149,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					if (num1 < parameter.python_script_name_list.size())
 					{
 						mutable_parameter.python_script_name = parameter.python_script_name_list[num1];
-						relaod_python_script();
+						reload_python_script();
 					}
 
 					if (IsDlgButtonChecked(hWnd, IDC_COMBO2) == BST_CHECKED)
@@ -2320,7 +2320,7 @@ static HRESULT WINAPI present(
 			process_frame = frame;
 			if (!is_exporting && process_frame == parameter.start_frame)
 			{
-				relaod_python_script();
+				reload_python_script();
 				exportedFrames.clear();
 				is_exporting = true;
 			}
@@ -3299,7 +3299,7 @@ bool d3d9_initialize()
 	LoadSettings();
 
 	reload_python_file_paths();
-	relaod_python_script();
+	reload_python_script();
 
 	// +++++ MINHOOK HOOKING LOGIC START +++++
 	if (MH_Initialize() != MH_OK)

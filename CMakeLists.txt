@@ -25,7 +25,7 @@ add_compile_options(
     /W4 # high warning level (NOT /Wall)
     # /Wall
     /WX # warnings as errors
-    /analyze # static analysis
+    /analyze # static analysis (Can be disabled to speed up builds during testing.)
     /external:W0 # disable warnings for external headers
     /external:I${CMAKE_INSTALL_PREFIX}/include # Mark external include directories
     /analyze:external- # disable static analysis for external headers
