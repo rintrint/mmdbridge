@@ -354,7 +354,6 @@ int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT u
 			if (caption_len > 0 && caption_len <= 512)
 			{
 				MultiByteToWideChar(code_page, 0, lpCaption, -1, wide_caption, caption_len);
-				wide_caption[511] = L'\0';
 			}
 			else
 			{
@@ -368,7 +367,6 @@ int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT u
 			if (text_len > 0 && text_len <= 4096)
 			{
 				MultiByteToWideChar(code_page, 0, lpText, -1, wide_text, text_len);
-				wide_text[4095] = L'\0';
 			}
 			else
 			{
