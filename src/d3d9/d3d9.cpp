@@ -66,16 +66,18 @@ static std::atomic<bool> g_isAviExporting = false;
 static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
 
 // ===== Helper Functions =====
-// Get the code page for a specific ANSI API function from INI settings
-static int GetAnsiFunctionCodePage(const wchar_t* function_name)
+// Checks if the encoding hook for a specific function is enabled in the settings.
+static bool IsEncodingHookEnabled(const wchar_t* function_name)
 {
-	const auto& encoding_map = BridgeParameter::instance().encoding_map;
-	auto it = encoding_map.find(function_name);
-	if (it != encoding_map.end())
-	{
-		return it->second;
-	}
-	return CP_ACP; // Fall back to system default ANSI code page (0)
+	const auto& settings = BridgeParameter::instance().encoding_hook_settings;
+	const auto it = settings.find(function_name);
+	return (it != settings.end() && it->second.is_enabled);
+}
+
+// Retrieves the configured code page for a specific API hook. Assumes the hook is enabled.
+static int GetEncodingHookCodePage(const wchar_t* function_name)
+{
+	return BridgeParameter::instance().encoding_hook_settings.at(function_name).code_page;
 }
 
 // Get the current UI language code to be used
@@ -216,7 +218,7 @@ BOOL WINAPI Detour_ModifyMenuA(HMENU hMnu, UINT uPosition, UINT uFlags, UINT_PTR
 	{
 		__try
 		{
-			int code_page = GetAnsiFunctionCodePage(L"ModifyMenuA");
+			int code_page = GetEncodingHookCodePage(L"ModifyMenuA");
 			int wide_len = MultiByteToWideChar(code_page, 0, lpNewItem, -1, NULL, 0);
 			if (wide_len > 0 && wide_len <= 512)
 			{
@@ -247,7 +249,7 @@ BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, L
 			memcpy(&miiW, lpmii, sizeof(MENUITEMINFOA));
 
 			const char* original_str = lpmii->dwTypeData;
-			int code_page = GetAnsiFunctionCodePage(L"SetMenuItemInfoA");
+			int code_page = GetEncodingHookCodePage(L"SetMenuItemInfoA");
 			int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 			if (wide_len > 0 && wide_len <= 512)
 			{
@@ -278,7 +280,7 @@ int WINAPI Detour_GetWindowTextA(HWND hWnd, LPSTR lpString, int nMaxCount)
 	{
 		__try
 		{
-			int code_page = GetAnsiFunctionCodePage(L"GetWindowTextA");
+			int code_page = GetEncodingHookCodePage(L"GetWindowTextA");
 			int required_bytes = WideCharToMultiByte(code_page, 0, wide_buf, wide_chars, NULL, 0, NULL, NULL);
 			if (required_bytes > 0 && required_bytes < nMaxCount)
 			{
@@ -316,7 +318,7 @@ LRESULT WINAPI Detour_SendMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
 				(void)*(volatile char*)original_str;
 
 				// If the read succeeds, proceed with character encoding conversion
-				int code_page = GetAnsiFunctionCodePage(L"SendMessageA");
+				int code_page = GetEncodingHookCodePage(L"SendMessageA");
 				int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 				if (wide_len > 0 && wide_len <= 512)
 				{
@@ -342,7 +344,7 @@ int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT u
 {
 	__try
 	{
-		int code_page = GetAnsiFunctionCodePage(L"MessageBoxA");
+		int code_page = GetEncodingHookCodePage(L"MessageBoxA");
 		wchar_t wide_caption[512] = { 0 };
 		wchar_t wide_text[4096] = { 0 };
 		bool need_fallback = false;
@@ -1946,6 +1948,30 @@ std::wstring GetSettingsFilePath()
 	return final_ini_path;
 }
 
+static void LoadEncodingHookSetting(const wchar_t* key_name, const std::wstring& ini_path, std::map<std::wstring, EncodingHookSetting, std::less<>>& settings_map)
+{
+	wchar_t buffer[16];
+	GetPrivateProfileStringW(L"Encoding", key_name, L"0", buffer, 16, ini_path.c_str());
+	int raw_value = _wtoi(buffer);
+	EncodingHookSetting setting;
+
+	if (raw_value < 0)
+	{
+		setting.is_enabled = false;
+	}
+	else if (IsValidCodePage(raw_value))
+	{
+		setting.is_enabled = true;
+		setting.code_page = raw_value;
+	}
+	else
+	{
+		setting.is_enabled = false;
+	}
+
+	settings_map[key_name] = setting;
+}
+
 // Load settings from INI file
 void LoadSettings()
 {
@@ -1953,7 +1979,6 @@ void LoadSettings()
 	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
 	wchar_t buffer[MAX_PATH];
-	int code_page;
 
 	// Settings
 	GetPrivateProfileStringW(L"Settings", L"ScriptName", L"", buffer, MAX_PATH, ini_path.c_str());
@@ -1969,37 +1994,12 @@ void LoadSettings()
 	mutable_parameter.ui_language_code = buffer;
 
 	// Encoding
-	mutable_parameter.encoding_map.clear();
-	GetPrivateProfileStringW(L"Encoding", L"ModifyMenuA", L"0", buffer, 16, ini_path.c_str());
-	code_page = _wtoi(buffer);
-	if (IsValidCodePage(code_page))
-	{
-		mutable_parameter.encoding_map[L"ModifyMenuA"] = code_page;
-	}
-	GetPrivateProfileStringW(L"Encoding", L"SetMenuItemInfoA", L"0", buffer, 16, ini_path.c_str());
-	code_page = _wtoi(buffer);
-	if (IsValidCodePage(code_page))
-	{
-		mutable_parameter.encoding_map[L"SetMenuItemInfoA"] = code_page;
-	}
-	GetPrivateProfileStringW(L"Encoding", L"SendMessageA", L"0", buffer, 16, ini_path.c_str());
-	code_page = _wtoi(buffer);
-	if (IsValidCodePage(code_page))
-	{
-		mutable_parameter.encoding_map[L"SendMessageA"] = code_page;
-	}
-	GetPrivateProfileStringW(L"Encoding", L"GetWindowTextA", L"0", buffer, 16, ini_path.c_str());
-	code_page = _wtoi(buffer);
-	if (IsValidCodePage(code_page))
-	{
-		mutable_parameter.encoding_map[L"GetWindowTextA"] = code_page;
-	}
-	GetPrivateProfileStringW(L"Encoding", L"MessageBoxA", L"0", buffer, 16, ini_path.c_str());
-	code_page = _wtoi(buffer);
-	if (IsValidCodePage(code_page))
-	{
-		mutable_parameter.encoding_map[L"MessageBoxA"] = code_page;
-	}
+	mutable_parameter.encoding_hook_settings.clear();
+	LoadEncodingHookSetting(L"ModifyMenuA", ini_path, mutable_parameter.encoding_hook_settings);
+	LoadEncodingHookSetting(L"SetMenuItemInfoA", ini_path, mutable_parameter.encoding_hook_settings);
+	LoadEncodingHookSetting(L"SendMessageA", ini_path, mutable_parameter.encoding_hook_settings);
+	LoadEncodingHookSetting(L"GetWindowTextA", ini_path, mutable_parameter.encoding_hook_settings);
+	LoadEncodingHookSetting(L"MessageBoxA", ini_path, mutable_parameter.encoding_hook_settings);
 }
 
 // Save current settings to INI file
@@ -3406,15 +3406,15 @@ bool d3d9_initialize()
 
 	create_and_enable_hook(hMMD, "ExpGetPmdFilename", &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original, L"ExpGetPmdFilename");
 	create_and_enable_hook(hUser32, "SetWindowTextW", &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original, L"SetWindowTextW");
-	if (GetAnsiFunctionCodePage(L"ModifyMenuA") > 0)
+	if (IsEncodingHookEnabled(L"ModifyMenuA"))
 		create_and_enable_hook(hUser32, "ModifyMenuA", &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original, L"ModifyMenuA");
-	if (GetAnsiFunctionCodePage(L"SetMenuItemInfoA") > 0)
+	if (IsEncodingHookEnabled(L"SetMenuItemInfoA"))
 		create_and_enable_hook(hUser32, "SetMenuItemInfoA", &Detour_SetMenuItemInfoA, (LPVOID*)&fpSetMenuItemInfoA_Original, L"SetMenuItemInfoA");
-	if (GetAnsiFunctionCodePage(L"GetWindowTextA") > 0)
+	if (IsEncodingHookEnabled(L"GetWindowTextA"))
 		create_and_enable_hook(hUser32, "GetWindowTextA", &Detour_GetWindowTextA, (LPVOID*)&fpGetWindowTextA_Original, L"GetWindowTextA");
-	if (GetAnsiFunctionCodePage(L"SendMessageA") > 0)
+	if (IsEncodingHookEnabled(L"SendMessageA"))
 		create_and_enable_hook(hUser32, "SendMessageA", &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original, L"SendMessageA");
-	if (GetAnsiFunctionCodePage(L"MessageBoxA") > 0)
+	if (IsEncodingHookEnabled(L"MessageBoxA"))
 		create_and_enable_hook(hUser32, "MessageBoxA", &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original, L"MessageBoxA");
 	// +++++ MINHOOK LOGIC END +++++
 

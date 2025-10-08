@@ -5,6 +5,12 @@
 #include <map>
 #include "d3d9.h"
 
+struct EncodingHookSetting
+{
+	bool is_enabled = false;
+	int code_page = 0;
+};
+
 class BridgeParameter
 {
 public:
@@ -35,6 +41,10 @@ public:
 	/// UI言語コード(例:"ja-JP", "en-US")
 	std::wstring ui_language_code;
 
+	/// Stores the configuration for each API encoding hook, keyed by function name.
+	// std::less<> avoids temporary object creation in __try blocks
+	std::map<std::wstring, EncodingHookSetting, std::less<>> encoding_hook_settings;
+
 	/// スクリプト呼び出し設定
 	// int script_call_setting;
 	/// 開始フレーム
@@ -54,10 +64,6 @@ public:
 	std::map<int, int> py_int_map;
 	/// スクリプトからの一時保存値(float)
 	std::map<int, float> py_float_map;
-
-	/// Mapping between ANSI functions and code pages in INI files
-	// std::less<> avoids temporary object creation in __try blocks
-	std::map<std::wstring, int, std::less<>> encoding_map;
 
 	VertexBufferList finish_buffer_list;
 	RenderBufferMap render_buffer_map;
