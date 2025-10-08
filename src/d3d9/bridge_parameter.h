@@ -27,16 +27,6 @@ public:
 	std::wstring base_path;
 	/// INI設定ファイルのフルパス
 	std::wstring ini_path;
-	/// pythonスクリプト
-	std::string mmdbridge_python_script;
-	/// スクリプトパス
-	std::wstring python_script_path;
-	/// スクリプト名
-	std::wstring python_script_name;
-	/// スクリプト名
-	std::vector<std::wstring> python_script_name_list;
-	/// スクリプトパス
-	std::vector<std::wstring> python_script_path_list;
 
 	/// UI言語コード(例:"ja-JP", "en-US")
 	std::wstring ui_language_code;
@@ -44,6 +34,17 @@ public:
 	/// Stores the configuration for each API encoding hook, keyed by function name.
 	// std::less<> avoids temporary object creation in __try blocks
 	std::map<std::wstring, EncodingHookSetting, std::less<>> encoding_hook_settings;
+
+	/// スクリプト名
+	std::vector<std::wstring> python_script_name_list;
+	/// スクリプトパス
+	std::vector<std::wstring> python_script_path_list;
+	/// スクリプト名
+	std::wstring python_script_name;
+	/// スクリプトパス
+	std::wstring python_script_path;
+	/// pythonスクリプト
+	std::string mmdbridge_python_script;
 
 	/// スクリプト呼び出し設定
 	// int script_call_setting;
