@@ -1980,15 +1980,6 @@ void LoadSettings()
 
 	wchar_t buffer[MAX_PATH];
 
-	// Settings
-	GetPrivateProfileStringW(L"Settings", L"ScriptName", L"", buffer, MAX_PATH, ini_path.c_str());
-	mutable_parameter.python_script_name = buffer;
-	script_call_setting = GetPrivateProfileIntW(L"Settings", L"ScriptCallSetting", 1, ini_path.c_str());
-	mutable_parameter.start_frame = GetPrivateProfileIntW(L"Settings", L"StartFrame", 0, ini_path.c_str());
-	mutable_parameter.end_frame = GetPrivateProfileIntW(L"Settings", L"EndFrame", 0, ini_path.c_str());
-	GetPrivateProfileStringW(L"Settings", L"ExportFPS", L"30.0", buffer, MAX_PATH, ini_path.c_str());
-	mutable_parameter.export_fps = _wtof(buffer);
-
 	// Localization
 	GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", buffer, 16, ini_path.c_str());
 	mutable_parameter.ui_language_code = buffer;
@@ -2000,6 +1991,15 @@ void LoadSettings()
 	LoadEncodingHookSetting(L"SendMessageA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"GetWindowTextA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"MessageBoxA", ini_path, mutable_parameter.encoding_hook_settings);
+
+	// Settings
+	GetPrivateProfileStringW(L"Settings", L"ScriptName", L"", buffer, MAX_PATH, ini_path.c_str());
+	mutable_parameter.python_script_name = buffer;
+	script_call_setting = GetPrivateProfileIntW(L"Settings", L"ScriptCallSetting", 1, ini_path.c_str());
+	mutable_parameter.start_frame = GetPrivateProfileIntW(L"Settings", L"StartFrame", 0, ini_path.c_str());
+	mutable_parameter.end_frame = GetPrivateProfileIntW(L"Settings", L"EndFrame", 0, ini_path.c_str());
+	GetPrivateProfileStringW(L"Settings", L"ExportFPS", L"30.0", buffer, MAX_PATH, ini_path.c_str());
+	mutable_parameter.export_fps = _wtof(buffer);
 }
 
 // Save current settings to INI file
