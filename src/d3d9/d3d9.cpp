@@ -3360,157 +3360,62 @@ bool d3d9_initialize()
 		return false;
 	}
 
-	HMODULE hMMD = GetModuleHandle(NULL);
-
-	// ExpGetPmdFilename Hook
-	if (hMMD)
-	{
-		void* pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
-		if (pTarget)
+	// Helper lambda to create and enable a MinHook.
+	auto create_and_enable_hook = [](HMODULE hModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID* ppOriginal, const wchar_t* funcNameForLog) -> bool {
+		if (!hModule)
 		{
-			if (MH_CreateHook(pTarget, &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_CreateHook for ExpGetPmdFilename failed!", L"MinHook Error", MB_OK);
-				return false;
-			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for ExpGetPmdFilename failed!", L"MinHook Error", MB_OK);
-				return false;
-			}
+			wchar_t buffer[256];
+			swprintf_s(buffer, L"Module handle is null for %s.", funcNameForLog);
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			return false;
 		}
-	}
 
+		LPVOID pTarget = (LPVOID)GetProcAddress(hModule, pszProcName);
+		if (!pTarget)
+		{
+			wchar_t buffer[256];
+			swprintf_s(buffer, L"GetProcAddress for %s failed.", funcNameForLog);
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			return false;
+		}
+
+		MH_STATUS status = MH_CreateHook(pTarget, pDetour, ppOriginal);
+		if (status != MH_OK)
+		{
+			wchar_t buffer[256];
+			swprintf_s(buffer, L"MH_CreateHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			return false;
+		}
+
+		status = MH_EnableHook(pTarget);
+		if (status != MH_OK)
+		{
+			wchar_t buffer[256];
+			swprintf_s(buffer, L"MH_EnableHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			// If enabling the hook fails, remove it to clean up resources.
+			MH_RemoveHook(pTarget);
+			return false;
+		}
+		return true;
+	};
+
+	HMODULE hMMD = GetModuleHandle(NULL);
 	HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
 
-	// SetWindowTextW Hook
-	OutputDebugStringW(L"[MMDBridge] Initializing SetWindowTextW Hook...\n");
-	if (hUser32)
-	{
-		void* pTarget = (void*)GetProcAddress(hUser32, "SetWindowTextW");
-		if (pTarget)
-		{
-			if (MH_CreateHook(pTarget, &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_CreateHook for SetWindowTextW failed!", L"MinHook Error", MB_OK);
-			}
-			if (MH_EnableHook(pTarget) != MH_OK)
-			{
-				::MessageBoxW(NULL, L"MH_EnableHook for SetWindowTextW failed!", L"MinHook Error", MB_OK);
-			}
-			OutputDebugStringW(L"[MMDBridge] SetWindowTextW Hook is active.\n");
-		}
-	}
-
-	// ModifyMenuA Hook
+	create_and_enable_hook(hMMD, "ExpGetPmdFilename", &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original, L"ExpGetPmdFilename");
+	create_and_enable_hook(hUser32, "SetWindowTextW", &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original, L"SetWindowTextW");
 	if (GetAnsiFunctionCodePage(L"ModifyMenuA") > 0)
-	{
-		OutputDebugStringW(L"[MMDBridge] Initializing ModifyMenuA Hook...\n");
-		if (hUser32)
-		{
-			void* pTarget = (void*)GetProcAddress(hUser32, "ModifyMenuA");
-			if (pTarget)
-			{
-				if (MH_CreateHook(pTarget, &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_CreateHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
-				}
-				if (MH_EnableHook(pTarget) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_EnableHook for ModifyMenuA failed!", L"MinHook Error", MB_OK);
-				}
-				OutputDebugStringW(L"[MMDBridge] ModifyMenuA Hook is active.\n");
-			}
-		}
-	}
-
-	// SetMenuItemInfoA Hook
+		create_and_enable_hook(hUser32, "ModifyMenuA", &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original, L"ModifyMenuA");
 	if (GetAnsiFunctionCodePage(L"SetMenuItemInfoA") > 0)
-	{
-		OutputDebugStringW(L"[MMDBridge] Initializing SetMenuItemInfoA Hook...\n");
-		if (hUser32)
-		{
-			void* pTarget = (void*)GetProcAddress(hUser32, "SetMenuItemInfoA");
-			if (pTarget)
-			{
-				if (MH_CreateHook(pTarget, &Detour_SetMenuItemInfoA, (LPVOID*)&fpSetMenuItemInfoA_Original) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_CreateHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
-				}
-				if (MH_EnableHook(pTarget) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_EnableHook for SetMenuItemInfoA failed!", L"MinHook Error", MB_OK);
-				}
-				OutputDebugStringW(L"[MMDBridge] SetMenuItemInfoA Hook is active.\n");
-			}
-		}
-	}
-
-	// GetWindowTextA Hook
+		create_and_enable_hook(hUser32, "SetMenuItemInfoA", &Detour_SetMenuItemInfoA, (LPVOID*)&fpSetMenuItemInfoA_Original, L"SetMenuItemInfoA");
 	if (GetAnsiFunctionCodePage(L"GetWindowTextA") > 0)
-	{
-		OutputDebugStringW(L"[MMDBridge] Initializing GetWindowTextA Hook...\n");
-		if (hUser32)
-		{
-			void* pTarget = (void*)GetProcAddress(hUser32, "GetWindowTextA");
-			if (pTarget)
-			{
-				if (MH_CreateHook(pTarget, &Detour_GetWindowTextA, (LPVOID*)&fpGetWindowTextA_Original) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_CreateHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
-				}
-				if (MH_EnableHook(pTarget) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_EnableHook for GetWindowTextA failed!", L"MinHook Error", MB_OK);
-				}
-				OutputDebugStringW(L"[MMDBridge] GetWindowTextA Hook is active.\n");
-			}
-		}
-	}
-
-	// SendMessageA Hook
+		create_and_enable_hook(hUser32, "GetWindowTextA", &Detour_GetWindowTextA, (LPVOID*)&fpGetWindowTextA_Original, L"GetWindowTextA");
 	if (GetAnsiFunctionCodePage(L"SendMessageA") > 0)
-	{
-		OutputDebugStringW(L"[MMDBridge] Initializing SendMessageA Hook...\n");
-		if (hUser32)
-		{
-			void* pTarget = (void*)GetProcAddress(hUser32, "SendMessageA");
-			if (pTarget)
-			{
-				if (MH_CreateHook(pTarget, &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_CreateHook for SendMessageA failed!", L"MinHook Error", MB_OK);
-				}
-				if (MH_EnableHook(pTarget) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_EnableHook for SendMessageA failed!", L"MinHook Error", MB_OK);
-				}
-				OutputDebugStringW(L"[MMDBridge] SendMessageA Hook is active.\n");
-			}
-		}
-	}
-
-	// MessageBoxA Hook
+		create_and_enable_hook(hUser32, "SendMessageA", &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original, L"SendMessageA");
 	if (GetAnsiFunctionCodePage(L"MessageBoxA") > 0)
-	{
-		OutputDebugStringW(L"[MMDBridge] Initializing MessageBoxA Hook...\n");
-		if (hUser32)
-		{
-			void* pTarget = (void*)GetProcAddress(hUser32, "MessageBoxA");
-			if (pTarget)
-			{
-				if (MH_CreateHook(pTarget, &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_CreateHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
-				}
-				if (MH_EnableHook(pTarget) != MH_OK)
-				{
-					::MessageBoxW(NULL, L"MH_EnableHook for MessageBoxA failed!", L"MinHook Error", MB_OK);
-				}
-				OutputDebugStringW(L"[MMDBridge] MessageBoxA Hook is active.\n");
-			}
-		}
-	}
+		create_and_enable_hook(hUser32, "MessageBoxA", &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original, L"MessageBoxA");
 	// +++++ MINHOOK LOGIC END +++++
 
 	// +++++ CBT HOOK LOGIC START +++++
@@ -3562,46 +3467,27 @@ void d3d9_dispose()
 	// +++++ CBT HOOK LOGIC END +++++
 
 	// +++++ MINHOOK LOGIC START +++++
-	// --- Disable hooks in user32.dll ---
+	// Helper lambda to disable a MinHook.
+	auto disable_hook = [](HMODULE hModule, LPCSTR pszProcName) {
+		if (!hModule)
+			return;
+		LPVOID pTarget = (LPVOID)GetProcAddress(hModule, pszProcName);
+		if (pTarget)
+		{
+			MH_DisableHook(pTarget);
+		}
+	};
+
 	HMODULE hUser32 = GetModuleHandleW(L"user32.dll");
-	if (hUser32)
-	{
-		void* pTarget;
-
-		pTarget = (void*)GetProcAddress(hUser32, "MessageBoxA");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-
-		pTarget = (void*)GetProcAddress(hUser32, "SendMessageA");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-
-		pTarget = (void*)GetProcAddress(hUser32, "GetWindowTextA");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-
-		pTarget = (void*)GetProcAddress(hUser32, "SetMenuItemInfoA");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-
-		pTarget = (void*)GetProcAddress(hUser32, "ModifyMenuA");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-
-		pTarget = (void*)GetProcAddress(hUser32, "SetWindowTextW");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-	}
-	// --- Disable hooks in MMD's main module ---
 	HMODULE hMMD = GetModuleHandle(NULL);
-	if (hMMD)
-	{
-		void* pTarget;
 
-		pTarget = (void*)GetProcAddress(hMMD, "ExpGetPmdFilename");
-		if (pTarget)
-			MH_DisableHook(pTarget);
-	}
+	disable_hook(hUser32, "MessageBoxA");
+	disable_hook(hUser32, "SendMessageA");
+	disable_hook(hUser32, "GetWindowTextA");
+	disable_hook(hUser32, "SetMenuItemInfoA");
+	disable_hook(hUser32, "ModifyMenuA");
+	disable_hook(hUser32, "SetWindowTextW");
+	disable_hook(hMMD, "ExpGetPmdFilename");
 	// // CRITICAL: Do NOT call MH_Uninitialize() here as it is unsafe in DllMain
 	// MH_Uninitialize();
 	// +++++ MINHOOK LOGIC END +++++
