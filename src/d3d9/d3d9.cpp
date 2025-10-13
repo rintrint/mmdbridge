@@ -2144,7 +2144,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 					wchar_t formatBuffer[1024];
 					wchar_t finalMessage[2048];
 
-					if (LoadStringW(hInstance, IDS_MENU_ABOUT, titleBuffer, 256) == 0)
+					if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 256) == 0)
 					{
 						// Fallback
 						wcscpy_s(titleBuffer, L"About MMDBridge");
