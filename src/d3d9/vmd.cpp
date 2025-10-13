@@ -36,6 +36,20 @@ typedef std::shared_ptr<pmd::PmdModel> PMDPtr;
 typedef std::shared_ptr<pmx::PmxModel> PMXPtr;
 typedef std::shared_ptr<vmd::VmdMotion> VMDPtr;
 
+static void ShowInvalidBoneNameError()
+{
+	MessageBoxW(NULL,
+				L"Invalid bone name detected.\n\n"
+				L"Bone names must comply with CP932 encoding and cannot exceed 15 bytes. "
+				L"Please use tools such as Blender MMD Tools to fix the bone names.\n\n"
+				L"For more information, please refer to the tutorials:\n"
+				L"https://github.com/rintrint/mmdbridge/blob/master/docs/how_to_use.md\n"
+				L"https://www.bilibili.com/opus/1102730546871533640\n\n"
+				L"(Press Ctrl+C to copy this message)",
+				L"Error",
+				MB_OK | MB_ICONERROR);
+}
+
 class FileDataForVMD
 {
 public:
@@ -82,10 +96,10 @@ public:
 	}
 
 	std::vector<FileDataForVMD> data_list;
-
 	std::wstring output_path;
+	bool has_bone_name_error = false;
 
-	// New granular export settings
+	// export settings
 	int export_fk_bone_animation_mode = 1;
 	bool export_ik_bone_animation = false;
 	bool add_turn_off_ik_keyframe = true;
@@ -95,6 +109,7 @@ public:
 	{
 		data_list.clear();
 		output_path.clear();
+		has_bone_name_error = false;
 	}
 
 	~VMDArchive() = default;
@@ -289,6 +304,14 @@ std::vector<T> PostProcessKeyframes(
 static bool end_vmd_export()
 {
 	VMDArchive& archive = VMDArchive::instance();
+
+	if (archive.has_bone_name_error)
+	{
+		archive.end();
+		ShowInvalidBoneNameError();
+		return false;
+	}
+
 	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 	BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
@@ -736,6 +759,12 @@ static bool execute_vmd_export(const int currentframe)
 		for (int k = 0; k < bone_num; ++k)
 		{
 			const char* bone_name = ExpGetPmdBoneName(i, k);
+
+			if (!archive.has_bone_name_error && (bone_name == nullptr || strlen(bone_name) == 0))
+			{
+				archive.has_bone_name_error = true;
+				ShowInvalidBoneNameError();
+			}
 
 			// Validate bone name mapping
 			{
