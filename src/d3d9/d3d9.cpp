@@ -188,16 +188,16 @@ const char* ExpGetPmdFilenameUtf8(int modelIndex)
 }
 
 // =======================================================================
-// 導出AVI時的視窗標題亂碼 修正：攔截 SetWindowTextW
+// 載入PMM後的視窗標題亂碼 導出AVI時的視窗標題亂碼 修正：攔截 SetWindowTextW
 // =======================================================================
 BOOL(WINAPI* fpSetWindowTextW_Original)(HWND hWnd, LPCWSTR lpString) = nullptr;
 BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
 {
 	// Fix RecWindow title using temporary subclassing
 	wchar_t className[256];
-	if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
+	if (GetClassNameW(hWnd, className, 256) > 0)
 	{
-		if (!IsWindowUnicode(hWnd))
+		if (wcscmp(className, L"Polygon Movie Maker") == 0 || wcscmp(className, L"RecWindow") == 0)
 		{
 			WNDPROC oldProc = (WNDPROC)SetWindowLongPtrW(hWnd, GWLP_WNDPROC, (LONG_PTR)DefWindowProcW);
 			BOOL result = fpSetWindowTextW_Original(hWnd, lpString);
