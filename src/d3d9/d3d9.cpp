@@ -2135,7 +2135,16 @@ static void OpenSettingsDialog(HWND hWnd)
 	LANGID original_lang_id = GetThreadUILanguage();
 
 	SetThreadUILanguage(target_lang_id);
-	::DialogBoxW(hInstance, L"IDD_DIALOG1", hWnd, DialogProc);
+
+	INT_PTR result = ::DialogBoxW(hInstance, L"IDD_DIALOG1", hWnd, DialogProc);
+	if (result == -1)
+	{
+		::MessageBoxW(hWnd,
+					  L"Failed to open MMDBridge settings dialog.",
+					  L"Error",
+					  MB_OK | MB_ICONERROR);
+	}
+
 	SetThreadUILanguage(original_lang_id);
 }
 
