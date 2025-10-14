@@ -93,6 +93,71 @@ static std::wstring GetCurrentUILanguageCode()
 	}
 }
 
+// +++++ IAT HOOK LOGIC START +++++
+// IAT Hooking to redirect DialogBoxParamA to DialogBoxParamW
+void PerformIatHook()
+{
+	// Get the base address of the main executable (MikuMikuDance.exe)
+	HMODULE hModule = GetModuleHandle(NULL);
+	if (hModule == NULL)
+	{
+		return;
+	}
+
+	// Parse PE Headers to find the Import Directory
+	PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)hModule;
+	if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
+	{
+		return;
+	}
+	PIMAGE_NT_HEADERS pNtHeaders = (PIMAGE_NT_HEADERS)((BYTE*)hModule + pDosHeader->e_lfanew);
+	if (pNtHeaders->Signature != IMAGE_NT_SIGNATURE)
+	{
+		return;
+	}
+
+	PIMAGE_IMPORT_DESCRIPTOR pImportDesc =
+		(PIMAGE_IMPORT_DESCRIPTOR)((BYTE*)hModule + pNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
+
+	// Iterate through all imported DLLs
+	while (pImportDesc->Name)
+	{
+		char* dllName = (char*)((BYTE*)hModule + pImportDesc->Name);
+		if (_stricmp(dllName, "user32.dll") == 0)
+		{
+			PIMAGE_THUNK_DATA pThunk = (PIMAGE_THUNK_DATA)((BYTE*)hModule + pImportDesc->FirstThunk);
+			PIMAGE_THUNK_DATA pOriginalThunk = (PIMAGE_THUNK_DATA)((BYTE*)hModule + pImportDesc->OriginalFirstThunk);
+
+			// Iterate through all functions imported from this DLL
+			while (pOriginalThunk->u1.AddressOfData)
+			{
+				// Overwrite the IAT entry
+				PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((BYTE*)hModule + pOriginalThunk->u1.AddressOfData);
+				if (strcmp(pImportByName->Name, "DialogBoxParamA") == 0)
+				{
+					HMODULE hUser32 = GetModuleHandleA("user32.dll");
+					if (hUser32)
+					{
+						FARPROC pDialogBoxParamW = GetProcAddress(hUser32, "DialogBoxParamW");
+						if (pDialogBoxParamW)
+						{
+							DWORD oldProtect;
+							VirtualProtect(&pThunk->u1.Function, sizeof(pThunk->u1.Function), PAGE_READWRITE, &oldProtect);
+							pThunk->u1.Function = (ULONGLONG)pDialogBoxParamW;
+							VirtualProtect(&pThunk->u1.Function, sizeof(pThunk->u1.Function), oldProtect, &oldProtect);
+						}
+					}
+					return;
+				}
+				pOriginalThunk++;
+				pThunk++;
+			}
+		}
+		pImportDesc++;
+	}
+}
+// +++++ IAT HOOK LOGIC END +++++
+
 // +++++ CBT HOOK LOGIC START +++++
 // CBT Hook procedure to detect RecWindow creation and destruction
 static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -3352,6 +3417,10 @@ bool d3d9_initialize()
 	// Load scripts based on the settings
 	reload_python_file_paths();
 	reload_python_script();
+
+	// +++++ IAT HOOK LOGIC START +++++
+	PerformIatHook();
+	// +++++ IAT HOOK LOGIC END +++++
 
 	// +++++ CBT HOOK LOGIC START +++++
 	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
