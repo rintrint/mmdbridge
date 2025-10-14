@@ -93,6 +93,44 @@ static std::wstring GetCurrentUILanguageCode()
 	}
 }
 
+// +++++ CBT HOOK LOGIC START +++++
+// CBT Hook procedure to detect RecWindow creation and destruction
+static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
+{
+	if (nCode >= 0)
+	{
+		if (nCode == HCBT_CREATEWND)
+		{
+			HWND hWnd = (HWND)wParam;
+			CBT_CREATEWND* pCreate = (CBT_CREATEWND*)lParam;
+			if (pCreate && pCreate->lpcs)
+			{
+				// Check if the window class is RecWindow
+				wchar_t className[256];
+				if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
+				{
+					g_hRecWindow = hWnd;
+					g_isAviExporting = true;
+				}
+			}
+		}
+		else if (nCode == HCBT_DESTROYWND)
+		{
+			HWND hWnd = (HWND)wParam;
+			// Check if the window being destroyed is the RecWindow we tracked
+			if (hWnd == g_hRecWindow)
+			{
+				g_isAviExporting = false;
+				g_hRecWindow = NULL;
+			}
+		}
+	}
+
+	// Pass the hook information to the next hook procedure in the chain
+	return CallNextHookEx(g_hCbtHook, nCode, wParam, lParam);
+}
+// +++++ CBT HOOK LOGIC END +++++
+
 // +++++ MINHOOK LOGIC START +++++
 // =======================================================================
 // MMD API 修正：攔截 ExpGetPmdFilename
@@ -388,44 +426,6 @@ int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT u
 	return fpMessageBoxA_Original(hWnd, lpText, lpCaption, uType);
 }
 // +++++ MINHOOK LOGIC END +++++
-
-// +++++ CBT HOOK LOGIC START +++++
-// CBT Hook procedure to detect RecWindow creation and destruction
-static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
-{
-	if (nCode >= 0)
-	{
-		if (nCode == HCBT_CREATEWND)
-		{
-			HWND hWnd = (HWND)wParam;
-			CBT_CREATEWND* pCreate = (CBT_CREATEWND*)lParam;
-			if (pCreate && pCreate->lpcs)
-			{
-				// Check if the window class is RecWindow
-				wchar_t className[256];
-				if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
-				{
-					g_hRecWindow = hWnd;
-					g_isAviExporting = true;
-				}
-			}
-		}
-		else if (nCode == HCBT_DESTROYWND)
-		{
-			HWND hWnd = (HWND)wParam;
-			// Check if the window being destroyed is the RecWindow we tracked
-			if (hWnd == g_hRecWindow)
-			{
-				g_isAviExporting = false;
-				g_hRecWindow = NULL;
-			}
-		}
-	}
-
-	// Pass the hook information to the next hook procedure in the chain
-	return CallNextHookEx(g_hCbtHook, nCode, wParam, lParam);
-}
-// +++++ CBT HOOK LOGIC END +++++
 
 ///////////////////////////////////////////////////////////////////////////
 // MMD Export Function Pointers - Definitions and Implementation
@@ -3353,6 +3353,14 @@ bool d3d9_initialize()
 	reload_python_file_paths();
 	reload_python_script();
 
+	// +++++ CBT HOOK LOGIC START +++++
+	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
+	if (!g_hCbtHook)
+	{
+		::MessageBoxW(NULL, L"Failed to install CBT hook!", L"Hook Error", MB_OK);
+	}
+	// +++++ CBT HOOK LOGIC END +++++
+
 	// +++++ MINHOOK LOGIC START +++++
 	if (MH_Initialize() != MH_OK)
 	{
@@ -3418,14 +3426,6 @@ bool d3d9_initialize()
 		create_and_enable_hook(hUser32, "MessageBoxA", &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original, L"MessageBoxA");
 	// +++++ MINHOOK LOGIC END +++++
 
-	// +++++ CBT HOOK LOGIC START +++++
-	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
-	if (!g_hCbtHook)
-	{
-		::MessageBoxW(NULL, L"Failed to install CBT hook!", L"Hook Error", MB_OK);
-	}
-	// +++++ CBT HOOK LOGIC END +++++
-
 	// System path storage
 	WCHAR system_path_buffer[MAX_PATH] = { 0 };
 	GetSystemDirectoryW(system_path_buffer, MAX_PATH);
@@ -3458,14 +3458,6 @@ bool d3d9_initialize()
 void d3d9_dispose()
 {
 	// Disable all hooks in the reverse order they were created.
-	// +++++ CBT HOOK LOGIC START +++++
-	if (g_hCbtHook)
-	{
-		UnhookWindowsHookEx(g_hCbtHook);
-		g_hCbtHook = NULL;
-	}
-	// +++++ CBT HOOK LOGIC END +++++
-
 	// +++++ MINHOOK LOGIC START +++++
 	// Helper lambda to disable a MinHook.
 	auto disable_hook = [](HMODULE hModule, LPCSTR pszProcName) {
@@ -3491,6 +3483,14 @@ void d3d9_dispose()
 	// // CRITICAL: Do NOT call MH_Uninitialize() here as it is unsafe in DllMain
 	// MH_Uninitialize();
 	// +++++ MINHOOK LOGIC END +++++
+
+	// +++++ CBT HOOK LOGIC START +++++
+	if (g_hCbtHook)
+	{
+		UnhookWindowsHookEx(g_hCbtHook);
+		g_hCbtHook = NULL;
+	}
+	// +++++ CBT HOOK LOGIC END +++++
 
 	// // CRITICAL: Do NOT call Py_FinalizeEx() here as it is unsafe in DllMain
 	// if (Py_IsInitialized())
