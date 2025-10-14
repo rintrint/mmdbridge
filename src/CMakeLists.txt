@@ -1,5 +1,6 @@
 add_subdirectory(MikuMikuFormats)
 add_subdirectory(d3dx9_43)
+add_subdirectory(msimg32)
 
 ##############################################################################
 # d3d9

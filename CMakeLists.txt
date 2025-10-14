@@ -71,7 +71,7 @@ add_subdirectory(src)
 set_directory_properties(PROPERTIES VS_STARTUP_PROJECT d3d9)
 
 # install runtime dependencies
-install(TARGETS d3d9 d3dx9_43 RUNTIME DESTINATION ${MMD_DIR})
+install(TARGETS d3d9 d3dx9_43 msimg32 RUNTIME DESTINATION ${MMD_DIR})
 install(FILES $<TARGET_RUNTIME_DLLS:d3d9> DESTINATION ${MMD_DIR})
 # install(FILES $<TARGET_RUNTIME_DLLS:Alembic::Alembic> DESTINATION ${MMD_DIR})
 # The automatic approach using $<TARGET_RUNTIME_DLLS:Alembic::Alembic> fails.
