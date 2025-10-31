@@ -2435,8 +2435,8 @@ static HRESULT WINAPI present(
 	{
 		// Exporting
 		const BridgeParameter& parameter = BridgeParameter::instance();
-		// Use 0.50001f instead of 0.5f to compensate for floating-point precision errors.
-		int frame = static_cast<int>(time * BridgeParameter::instance().export_fps + 0.50001f);
+		// Add 0.00001f to compensate for floating-point precision errors.
+		int frame = static_cast<int>(time * BridgeParameter::instance().export_fps + 0.00001f);
 		if (frame >= parameter.start_frame && frame <= parameter.end_frame)
 		{
 			process_frame = frame;
