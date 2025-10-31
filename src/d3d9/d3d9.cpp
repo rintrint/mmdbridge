@@ -2450,10 +2450,6 @@ static HRESULT WINAPI present(
 			{
 				run_python_script();
 				exportedFrames[process_frame] = 1;
-				if (process_frame == parameter.end_frame)
-				{
-					is_exporting = false;
-				}
 			}
 		}
 		BridgeParameter::mutable_instance().finish_buffer_list.clear();
