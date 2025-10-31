@@ -2331,9 +2331,9 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					mutable_parameter.end_frame = _wtoi(text2);
 					mutable_parameter.export_fps = _wtof(text5);
 
-					if (parameter.start_frame > parameter.end_frame)
+					if (parameter.end_frame < parameter.start_frame)
 					{
-						mutable_parameter.end_frame = parameter.start_frame + 1;
+						mutable_parameter.end_frame = parameter.start_frame;
 						::SetWindowTextW(hEdit2, to_wstring(parameter.end_frame).c_str());
 					}
 
