@@ -2435,12 +2435,15 @@ static HRESULT WINAPI present(
 	{
 		// Exporting
 		const BridgeParameter& parameter = BridgeParameter::instance();
+		// MMD uses 30 fps as its base and calculates interpolated frames.
+		// MMD also exports the interpolated frames between the end frame and end frame + 1.
 		// Add 0.00001f to compensate for floating-point precision errors.
-		int frame = static_cast<int>(time * BridgeParameter::instance().export_fps + 0.00001f);
-		if (frame >= parameter.start_frame && frame <= parameter.end_frame)
+		int target_frame = static_cast<int>(time * parameter.export_fps + 0.00001f);
+		int mmd_30fps_frame = static_cast<int>(time * 30.0f + 0.00001f);
+		if (mmd_30fps_frame >= parameter.start_frame && mmd_30fps_frame <= parameter.end_frame)
 		{
-			process_frame = frame;
-			if (!is_exporting && process_frame == parameter.start_frame)
+			process_frame = target_frame;
+			if (!is_exporting && mmd_30fps_frame == parameter.start_frame)
 			{
 				reload_python_script();
 				exportedFrames.clear();

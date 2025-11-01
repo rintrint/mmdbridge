@@ -21,8 +21,17 @@ export_mode = 2
 txmakepath = "txmake"
 alembic_dll_path = "C:\\\\Program Files\\\\Pixar\\\\RenderManProServer-19.0\\\\etc\\\\AlembicProcPrim.dll"
 
-start_frame = get_start_frame()
-end_frame = get_end_frame()
+# MMD uses 30 fps as its base and calculates interpolated frames.
+# MMD also exports the interpolated frames between the end frame and end frame + 1.
+mmd_start_frame = get_start_frame()
+mmd_end_frame = get_end_frame()
+
+target_fps = get_export_fps()
+mmd_base_fps = 30.0
+ratio = target_fps / mmd_base_fps
+
+start_frame = int(mmd_start_frame * ratio)
+end_frame = int((mmd_end_frame + 1) * ratio) - 1
 
 
 def clip_cos(angle):
@@ -230,7 +239,7 @@ if framenumber == start_frame:
     if os.path.isfile(ribpath):
         os.remove(ribpath)
 
-    messagebox("alembic export started")
+    messagebox("alembic export started.")
     copy_textures(texture_export_dir.replace("/", "\\"))
     export_mtl(mtlpath, export_mode)
     start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
@@ -240,5 +249,5 @@ if start_frame <= framenumber <= end_frame:
     export_rib(ribpath, framenumber)
 
 if framenumber == end_frame:
-    messagebox("alembic export ended at " + str(framenumber))
+    messagebox("alembic export ended.")
     end_alembic_export()

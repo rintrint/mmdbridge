@@ -62,8 +62,18 @@ def move_files(filepaths, dst_dir):
         shutil.move(filepath, os.path.join(dst_dir, os.path.basename(filepath)))
 
 
-start_frame = get_start_frame()
-end_frame = get_end_frame()
+# MMD uses 30 fps as its base and calculates interpolated frames.
+# MMD also exports the interpolated frames between the end frame and end frame + 1.
+mmd_start_frame = get_start_frame()
+mmd_end_frame = get_end_frame()
+
+target_fps = get_export_fps()
+mmd_base_fps = 30.0
+ratio = target_fps / mmd_base_fps
+
+start_frame = int(mmd_start_frame * ratio)
+end_frame = int((mmd_end_frame + 1) * ratio) - 1
+
 framenumber = get_frame_number()
 
 # Check if there is anything to export
@@ -98,12 +108,9 @@ if is_anything_to_export:
         modified_files = {snapshot.path for snapshot in modified_file_snapshots}
         move_files(modified_files, final_dst_dir)
 
-        message = "VMD export ended at frame " + str(framenumber) + "."
-        message += "\n"
-        message += "\nExported to:"
-        message += "\n" + final_dst_dir
-        message += "\n"
-        message += "\n" + "Total: " + str(len(modified_files)) + " file(s)"
+        message = "VMD export ended."
+        message += f"\n\nExported to:\n{final_dst_dir}"
+        message += f"\n\nTotal: {len(modified_files)} file(s)"
         messagebox(message)
 else:
     if framenumber == start_frame:

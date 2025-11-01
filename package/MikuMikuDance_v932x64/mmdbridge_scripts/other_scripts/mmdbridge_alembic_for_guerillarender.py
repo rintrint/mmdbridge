@@ -113,12 +113,22 @@ outpath = get_base_path().replace("\\", "/") + "out/"
 mtlpath = outpath + "alembic_file.mtl"
 gnodepath = outpath + "surface_with_tex.gnode"
 texture_export_dir = outpath
-start_frame = get_start_frame()
-end_frame = get_end_frame()
+
+# MMD uses 30 fps as its base and calculates interpolated frames.
+# MMD also exports the interpolated frames between the end frame and end frame + 1.
+mmd_start_frame = get_start_frame()
+mmd_end_frame = get_end_frame()
+
+target_fps = get_export_fps()
+mmd_base_fps = 30.0
+ratio = target_fps / mmd_base_fps
+
+start_frame = int(mmd_start_frame * ratio)
+end_frame = int((mmd_end_frame + 1) * ratio) - 1
 
 framenumber = get_frame_number()
 if framenumber == start_frame:
-    messagebox("alembic export started")
+    messagebox("alembic export started.")
     export_mtl(mtlpath, export_mode)
     export_gnode(gnodepath, export_mode)
     copy_textures(texture_export_dir.replace("/", "\\"))
@@ -128,5 +138,5 @@ if start_frame <= framenumber <= end_frame:
     execute_alembic_export(framenumber)
 
 if framenumber == end_frame:
-    messagebox("alembic export ended at " + str(framenumber))
+    messagebox("alembic export ended.")
     end_alembic_export()

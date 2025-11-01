@@ -173,8 +173,17 @@ mtlfilename = framenumber + ".mtl"
 texture_export_dir = tmppath
 
 
-start_frame = get_start_frame()
-end_frame = get_end_frame()
+# MMD uses 30 fps as its base and calculates interpolated frames.
+# MMD also exports the interpolated frames between the end frame and end frame + 1.
+mmd_start_frame = get_start_frame()
+mmd_end_frame = get_end_frame()
+
+target_fps = get_export_fps()
+mmd_base_fps = 30.0
+ratio = target_fps / mmd_base_fps
+
+start_frame = int(mmd_start_frame * ratio)
+end_frame = int((mmd_end_frame + 1) * ratio) - 1
 if get_frame_number() == start_frame:
     copy_textures(texture_export_dir.replace("/", "\\"))
     export_textures(texture_export_dir.replace("/", "\\"), "png")

@@ -76,7 +76,7 @@ BEGIN
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "フレームレート(AVI出力設定とおなじにしてください)", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "フレームレート", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
@@ -95,11 +95,11 @@ BEGIN
     COMBOBOX        1101, 10, 31, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
     AUTOCHECKBOX    "Execute on AVI export", 1102, 10, 70, 200, 10
     PUSHBUTTON      "Reload List", 1103, 159, 31, 50, 15
-    LTEXT           "Frame Range to Export", 4, 35, 92, 140, 8, SS_LEFT
+    LTEXT           "Frame range to export", 4, 35, 92, 140, 8, SS_LEFT
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "Framerate(please match AVI export settings)", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "Frame rate", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
@@ -122,7 +122,7 @@ BEGIN
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "帧率(请与AVI导出设置保持一致)", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "帧率", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
@@ -145,7 +145,7 @@ BEGIN
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "幀率(請與AVI導出設定保持一致)", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "幀率", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
