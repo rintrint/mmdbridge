@@ -6,7 +6,7 @@ from bpy_extras.io_utils import ImportHelper
 bl_info = {
     "name": "MMDBridge Alembic and Material Import",
     "author": "Kazuma Hatta",
-    "version": (1, 0),
+    "version": (1, 0, 1),
     "blender": (3, 0, 0),
     "location": "File > Import > MMDBridge Alembic and Material (.abc, .mtl)",
     "description": "Import Alembic files (.abc) and MMDBridge Materials (.mtl)",
