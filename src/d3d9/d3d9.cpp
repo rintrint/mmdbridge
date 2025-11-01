@@ -18,6 +18,7 @@
 #include <fstream>
 #include <regex>
 #include <algorithm>
+#include <mutex>
 
 #include <MinHook.h>
 
@@ -61,6 +62,9 @@ HINSTANCE hInstance = NULL;
 static HHOOK g_hCbtHook = NULL;
 static HWND g_hRecWindow = NULL;
 static std::atomic<bool> g_isAviExporting = false;
+
+// Flag to ensure hooks are initialized only once.
+static std::once_flag g_hook_init_flag;
 
 // ===== Forward Declarations =====
 static INT_PTR CALLBACK DialogProc(HWND, UINT, WPARAM, LPARAM);
@@ -3404,77 +3408,10 @@ static HRESULT WINAPI createDeviceEx(
 	return res;
 }
 
-extern "C"
+// This function contains all hook initializations that are unsafe to run in DllMain.
+// It will be called exactly once by Direct3DCreate9 or Direct3DCreate9Ex.
+void initialize_hooks()
 {
-	// Fake Direct3DCreate9
-	IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
-	{
-		IDirect3D9* direct3d((*original_direct3d_create)(SDKVersion));
-		original_create_device = direct3d->lpVtbl->CreateDevice;
-
-		// Grant write attribute
-		DWORD old_protect;
-		VirtualProtect(reinterpret_cast<void*>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
-
-		direct3d->lpVtbl->CreateDevice = createDevice;
-
-		// Restore original write attribute
-		VirtualProtect(reinterpret_cast<void*>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), old_protect, &old_protect);
-
-		return direct3d;
-	}
-
-	HRESULT WINAPI Direct3DCreate9Ex(UINT SDKVersion, IDirect3D9Ex** ppD3D)
-	{
-		IDirect3D9Ex* direct3d9ex = NULL;
-		(*original_direct3d9ex_create)(SDKVersion, &direct3d9ex);
-
-		if (direct3d9ex)
-		{
-			original_create_deviceex = direct3d9ex->lpVtbl->CreateDeviceEx;
-			if (original_create_deviceex)
-			{
-				// Grant write attribute
-				DWORD old_protect;
-				VirtualProtect(reinterpret_cast<void*>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
-
-				direct3d9ex->lpVtbl->CreateDeviceEx = createDeviceEx;
-
-				// Restore original write attribute
-				VirtualProtect(reinterpret_cast<void*>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), old_protect, &old_protect);
-
-				*ppD3D = direct3d9ex;
-				return S_OK;
-			}
-		}
-		return E_ABORT;
-	}
-
-} // extern "C"
-
-bool d3d9_initialize()
-{
-	// Get MMD full path.
-	{
-		WCHAR app_full_path[MAX_PATH] = { 0 };
-		GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
-		PathRemoveFileSpecW(app_full_path);
-		PathAddBackslashW(app_full_path);
-
-		BridgeParameter::mutable_instance().base_path = app_full_path;
-		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), L'\\', L'/');
-	}
-
-	// Get and store the INI file path
-	BridgeParameter::mutable_instance().ini_path = GetSettingsFilePath();
-
-	// Load external settings
-	LoadSettings();
-
-	// Load scripts based on the settings
-	reload_python_file_paths();
-	reload_python_script();
-
 	// +++++ CBT HOOK LOGIC START +++++
 	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
 	if (!g_hCbtHook)
@@ -3484,12 +3421,6 @@ bool d3d9_initialize()
 	// +++++ CBT HOOK LOGIC END +++++
 
 	// +++++ MINHOOK LOGIC START +++++
-	if (MH_Initialize() != MH_OK)
-	{
-		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK);
-		return false;
-	}
-
 	// Helper lambda to create and enable a MinHook.
 	auto create_and_enable_hook = [](HMODULE hModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID* ppOriginal, const wchar_t* funcNameForLog) -> bool {
 		if (!hModule)
@@ -3552,6 +3483,93 @@ bool d3d9_initialize()
 		create_and_enable_hook(hUser32, "SendMessageA", &Detour_SendMessageA, (LPVOID*)&fpSendMessageA_Original, L"SendMessageA");
 	if (IsEncodingHookEnabled(L"MessageBoxA"))
 		create_and_enable_hook(hUser32, "MessageBoxA", &Detour_MessageBoxA, (LPVOID*)&fpMessageBoxA_Original, L"MessageBoxA");
+	// +++++ MINHOOK LOGIC END +++++
+}
+
+extern "C"
+{
+	// Fake Direct3DCreate9
+	IDirect3D9* WINAPI Direct3DCreate9(UINT SDKVersion)
+	{
+		// Safely initialize all hooks exactly once and outside of the DllMain Loader Lock.
+		std::call_once(g_hook_init_flag, initialize_hooks);
+
+		IDirect3D9* direct3d((*original_direct3d_create)(SDKVersion));
+		original_create_device = direct3d->lpVtbl->CreateDevice;
+
+		// Grant write attribute
+		DWORD old_protect;
+		VirtualProtect(reinterpret_cast<void*>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
+
+		direct3d->lpVtbl->CreateDevice = createDevice;
+
+		// Restore original write attribute
+		VirtualProtect(reinterpret_cast<void*>(direct3d->lpVtbl), sizeof(direct3d->lpVtbl), old_protect, &old_protect);
+
+		return direct3d;
+	}
+
+	HRESULT WINAPI Direct3DCreate9Ex(UINT SDKVersion, IDirect3D9Ex** ppD3D)
+	{
+		// Safely initialize all hooks exactly once and outside of the DllMain Loader Lock.
+		std::call_once(g_hook_init_flag, initialize_hooks);
+
+		IDirect3D9Ex* direct3d9ex = NULL;
+		(*original_direct3d9ex_create)(SDKVersion, &direct3d9ex);
+
+		if (direct3d9ex)
+		{
+			original_create_deviceex = direct3d9ex->lpVtbl->CreateDeviceEx;
+			if (original_create_deviceex)
+			{
+				// Grant write attribute
+				DWORD old_protect;
+				VirtualProtect(reinterpret_cast<void*>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), PAGE_EXECUTE_READWRITE, &old_protect);
+
+				direct3d9ex->lpVtbl->CreateDeviceEx = createDeviceEx;
+
+				// Restore original write attribute
+				VirtualProtect(reinterpret_cast<void*>(direct3d9ex->lpVtbl), sizeof(direct3d9ex->lpVtbl), old_protect, &old_protect);
+
+				*ppD3D = direct3d9ex;
+				return S_OK;
+			}
+		}
+		return E_ABORT;
+	}
+
+} // extern "C"
+
+bool d3d9_initialize()
+{
+	// Get MMD full path.
+	{
+		WCHAR app_full_path[MAX_PATH] = { 0 };
+		GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
+		PathRemoveFileSpecW(app_full_path);
+		PathAddBackslashW(app_full_path);
+
+		BridgeParameter::mutable_instance().base_path = app_full_path;
+		replace(BridgeParameter::mutable_instance().base_path.begin(), BridgeParameter::mutable_instance().base_path.end(), L'\\', L'/');
+	}
+
+	// Get and store the INI file path
+	BridgeParameter::mutable_instance().ini_path = GetSettingsFilePath();
+
+	// Load external settings
+	LoadSettings();
+
+	// Load scripts based on the settings
+	reload_python_file_paths();
+	reload_python_script();
+
+	// +++++ MINHOOK LOGIC START +++++
+	// Initialize MinHook framework. This is safe in DllMain.
+	if (MH_Initialize() != MH_OK)
+	{
+		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK);
+		return false;
+	}
 	// +++++ MINHOOK LOGIC END +++++
 
 	// System path storage
