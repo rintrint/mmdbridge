@@ -260,8 +260,6 @@ INT_PTR WINAPI Detour_DialogBoxParamA(HINSTANCE hInst, LPCSTR lpTemplateName, HW
 	{
 		// Perform a protected volatile read operation to verify if the pointer is readable.
 		(void)*(volatile char*)lpTemplateName;
-
-		// If the read succeeds, proceed with character encoding conversion
 		int code_page = GetEncodingHookCodePage(L"DialogBoxParamA");
 		int wide_len = MultiByteToWideChar(code_page, 0, lpTemplateName, -1, NULL, 0);
 		if (wide_len > 0 && wide_len < 512)
@@ -276,6 +274,35 @@ INT_PTR WINAPI Detour_DialogBoxParamA(HINSTANCE hInst, LPCSTR lpTemplateName, HW
 		OutputDebugStringW(L"[MMDBridge] Access violation in Detour_DialogBoxParamA\n");
 	}
 	return fpDialogBoxParamA_Original(hInst, lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
+}
+
+// =======================================================================
+// 載入PMM時的找不到模型的對話視窗亂碼(內容) 修正：攔截 SetWindowTextA
+// =======================================================================
+BOOL(WINAPI* fpSetWindowTextA_Original)(HWND, LPCSTR) = nullptr;
+BOOL WINAPI Detour_SetWindowTextA(HWND hWnd, LPCSTR lpString)
+{
+	if (lpString)
+	{
+		__try
+		{
+			// Perform a protected volatile read operation to verify if the pointer is readable.
+			(void)*(volatile char*)lpString;
+			int code_page = GetEncodingHookCodePage(L"SetWindowTextA");
+			int wide_len = MultiByteToWideChar(code_page, 0, lpString, -1, NULL, 0);
+			if (wide_len > 0 && wide_len < 4096)
+			{
+				wchar_t wide_buf[4096] = { 0 };
+				MultiByteToWideChar(code_page, 0, lpString, -1, wide_buf, wide_len);
+				return SetWindowTextW(hWnd, wide_buf);
+			}
+		}
+		__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+		{
+			OutputDebugStringW(L"[MMDBridge] Access violation in Detour_SetWindowTextA\n");
+		}
+	}
+	return fpSetWindowTextA_Original(hWnd, lpString);
 }
 
 // =======================================================================
@@ -429,8 +456,6 @@ LRESULT WINAPI Detour_SendMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
 			{
 				// Perform a protected volatile read operation to verify if the pointer is readable.
 				(void)*(volatile char*)original_str;
-
-				// If the read succeeds, proceed with character encoding conversion
 				int code_page = GetEncodingHookCodePage(L"SendMessageA");
 				int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 				if (wide_len > 0 && wide_len <= 512)
@@ -2067,6 +2092,7 @@ void LoadSettings()
 	// Encoding
 	mutable_parameter.encoding_hook_settings.clear();
 	LoadEncodingHookSetting(L"DialogBoxParamA", ini_path, mutable_parameter.encoding_hook_settings);
+	LoadEncodingHookSetting(L"SetWindowTextA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"CreateWindowExA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"ModifyMenuA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"SetMenuItemInfoA", ini_path, mutable_parameter.encoding_hook_settings);
@@ -3512,6 +3538,8 @@ bool d3d9_initialize()
 	create_and_enable_hook(hUser32, "SetWindowTextW", &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original, L"SetWindowTextW");
 	if (IsEncodingHookEnabled(L"DialogBoxParamA"))
 		create_and_enable_hook(hUser32, "DialogBoxParamA", &Detour_DialogBoxParamA, (LPVOID*)&fpDialogBoxParamA_Original, L"DialogBoxParamA");
+	if (IsEncodingHookEnabled(L"SetWindowTextA"))
+		create_and_enable_hook(hUser32, "SetWindowTextA", &Detour_SetWindowTextA, (LPVOID*)&fpSetWindowTextA_Original, L"SetWindowTextA");
 	if (IsEncodingHookEnabled(L"CreateWindowExA"))
 		create_and_enable_hook(hUser32, "CreateWindowExA", &Detour_CreateWindowExA, (LPVOID*)&fpCreateWindowExA_Original, L"CreateWindowExA");
 	if (IsEncodingHookEnabled(L"ModifyMenuA"))
@@ -3579,6 +3607,7 @@ void d3d9_dispose()
 	disable_hook(hUser32, "SetMenuItemInfoA");
 	disable_hook(hUser32, "ModifyMenuA");
 	disable_hook(hUser32, "CreateWindowExA");
+	disable_hook(hUser32, "SetWindowTextA");
 	disable_hook(hUser32, "DialogBoxParamA");
 	disable_hook(hUser32, "SetWindowTextW");
 	disable_hook(hMMD, "ExpGetPmdFilename");
