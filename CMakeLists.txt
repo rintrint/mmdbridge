@@ -140,7 +140,7 @@ install(DIRECTORY
 # visual studio debugger configuration
 if(MSVC)
     set_target_properties(d3d9 PROPERTIES
-        VS_DEBUGGER_COMMAND "${MMD_DIR}/MikuMikuDance.exe"
+        VS_DEBUGGER_COMMAND "${MMD_DIR}/MikuMikuDance_Console.exe"
     )
     set_target_properties(d3d9 PROPERTIES
         VS_DEBUGGER_WORKING_DIRECTORY "${MMD_DIR}"
