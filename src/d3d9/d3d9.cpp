@@ -93,71 +93,6 @@ static std::wstring GetCurrentUILanguageCode()
 	}
 }
 
-// +++++ IAT HOOK LOGIC START +++++
-// IAT Hooking to redirect DialogBoxParamA to DialogBoxParamW
-void PerformIatHook()
-{
-	// Get the base address of the main executable (MikuMikuDance.exe)
-	HMODULE hModule = GetModuleHandle(NULL);
-	if (hModule == NULL)
-	{
-		return;
-	}
-
-	// Parse PE Headers to find the Import Directory
-	PIMAGE_DOS_HEADER pDosHeader = (PIMAGE_DOS_HEADER)hModule;
-	if (pDosHeader->e_magic != IMAGE_DOS_SIGNATURE)
-	{
-		return;
-	}
-	PIMAGE_NT_HEADERS pNtHeaders = (PIMAGE_NT_HEADERS)((BYTE*)hModule + pDosHeader->e_lfanew);
-	if (pNtHeaders->Signature != IMAGE_NT_SIGNATURE)
-	{
-		return;
-	}
-
-	PIMAGE_IMPORT_DESCRIPTOR pImportDesc =
-		(PIMAGE_IMPORT_DESCRIPTOR)((BYTE*)hModule + pNtHeaders->OptionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_IMPORT].VirtualAddress);
-
-	// Iterate through all imported DLLs
-	while (pImportDesc->Name)
-	{
-		char* dllName = (char*)((BYTE*)hModule + pImportDesc->Name);
-		if (_stricmp(dllName, "user32.dll") == 0)
-		{
-			PIMAGE_THUNK_DATA pThunk = (PIMAGE_THUNK_DATA)((BYTE*)hModule + pImportDesc->FirstThunk);
-			PIMAGE_THUNK_DATA pOriginalThunk = (PIMAGE_THUNK_DATA)((BYTE*)hModule + pImportDesc->OriginalFirstThunk);
-
-			// Iterate through all functions imported from this DLL
-			while (pOriginalThunk->u1.AddressOfData)
-			{
-				// Overwrite the IAT entry
-				PIMAGE_IMPORT_BY_NAME pImportByName = (PIMAGE_IMPORT_BY_NAME)((BYTE*)hModule + pOriginalThunk->u1.AddressOfData);
-				if (strcmp(pImportByName->Name, "DialogBoxParamA") == 0)
-				{
-					HMODULE hUser32 = GetModuleHandleA("user32.dll");
-					if (hUser32)
-					{
-						FARPROC pDialogBoxParamW = GetProcAddress(hUser32, "DialogBoxParamW");
-						if (pDialogBoxParamW)
-						{
-							DWORD oldProtect;
-							VirtualProtect(&pThunk->u1.Function, sizeof(pThunk->u1.Function), PAGE_READWRITE, &oldProtect);
-							pThunk->u1.Function = (ULONGLONG)pDialogBoxParamW;
-							VirtualProtect(&pThunk->u1.Function, sizeof(pThunk->u1.Function), oldProtect, &oldProtect);
-						}
-					}
-					return;
-				}
-				pOriginalThunk++;
-				pThunk++;
-			}
-		}
-		pImportDesc++;
-	}
-}
-// +++++ IAT HOOK LOGIC END +++++
-
 // +++++ CBT HOOK LOGIC START +++++
 // CBT Hook procedure to detect RecWindow creation and destruction
 static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
@@ -309,6 +244,38 @@ BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
 		}
 	}
 	return fpSetWindowTextW_Original(hWnd, lpString);
+}
+
+// =======================================================================
+// 載入PMM時的找不到模型的對話視窗亂碼(標題)、出力画面サイズ変更視窗標題亂碼 修正：攔截 DialogBoxParamA
+// =======================================================================
+INT_PTR(WINAPI* fpDialogBoxParamA_Original)(HINSTANCE, LPCSTR, HWND, DLGPROC, LPARAM) = nullptr;
+INT_PTR WINAPI Detour_DialogBoxParamA(HINSTANCE hInst, LPCSTR lpTemplateName, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam)
+{
+	if (IS_INTRESOURCE(lpTemplateName))
+	{
+		return DialogBoxParamW(hInst, (LPCWSTR)lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
+	}
+	__try
+	{
+		// Perform a protected volatile read operation to verify if the pointer is readable.
+		(void)*(volatile char*)lpTemplateName;
+
+		// If the read succeeds, proceed with character encoding conversion
+		int code_page = GetEncodingHookCodePage(L"DialogBoxParamA");
+		int wide_len = MultiByteToWideChar(code_page, 0, lpTemplateName, -1, NULL, 0);
+		if (wide_len > 0 && wide_len < 512)
+		{
+			wchar_t wide_template_name[512] = { 0 };
+			MultiByteToWideChar(code_page, 0, lpTemplateName, -1, wide_template_name, wide_len);
+			return DialogBoxParamW(hInst, wide_template_name, hWndParent, lpDialogFunc, dwInitParam);
+		}
+	}
+	__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+	{
+		OutputDebugStringW(L"[MMDBridge] Access violation in Detour_DialogBoxParamA\n");
+	}
+	return fpDialogBoxParamA_Original(hInst, lpTemplateName, hWndParent, lpDialogFunc, dwInitParam);
 }
 
 // =======================================================================
@@ -2099,6 +2066,7 @@ void LoadSettings()
 
 	// Encoding
 	mutable_parameter.encoding_hook_settings.clear();
+	LoadEncodingHookSetting(L"DialogBoxParamA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"CreateWindowExA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"ModifyMenuA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"SetMenuItemInfoA", ini_path, mutable_parameter.encoding_hook_settings);
@@ -3481,10 +3449,6 @@ bool d3d9_initialize()
 	reload_python_file_paths();
 	reload_python_script();
 
-	// +++++ IAT HOOK LOGIC START +++++
-	PerformIatHook();
-	// +++++ IAT HOOK LOGIC END +++++
-
 	// +++++ CBT HOOK LOGIC START +++++
 	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
 	if (!g_hCbtHook)
@@ -3546,6 +3510,8 @@ bool d3d9_initialize()
 
 	create_and_enable_hook(hMMD, "ExpGetPmdFilename", &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original, L"ExpGetPmdFilename");
 	create_and_enable_hook(hUser32, "SetWindowTextW", &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original, L"SetWindowTextW");
+	if (IsEncodingHookEnabled(L"DialogBoxParamA"))
+		create_and_enable_hook(hUser32, "DialogBoxParamA", &Detour_DialogBoxParamA, (LPVOID*)&fpDialogBoxParamA_Original, L"DialogBoxParamA");
 	if (IsEncodingHookEnabled(L"CreateWindowExA"))
 		create_and_enable_hook(hUser32, "CreateWindowExA", &Detour_CreateWindowExA, (LPVOID*)&fpCreateWindowExA_Original, L"CreateWindowExA");
 	if (IsEncodingHookEnabled(L"ModifyMenuA"))
@@ -3613,6 +3579,7 @@ void d3d9_dispose()
 	disable_hook(hUser32, "SetMenuItemInfoA");
 	disable_hook(hUser32, "ModifyMenuA");
 	disable_hook(hUser32, "CreateWindowExA");
+	disable_hook(hUser32, "DialogBoxParamA");
 	disable_hook(hUser32, "SetWindowTextW");
 	disable_hook(hMMD, "ExpGetPmdFilename");
 	// // CRITICAL: Do NOT call MH_Uninitialize() here as it is unsafe in DllMain
