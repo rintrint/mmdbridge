@@ -773,7 +773,7 @@ namespace
 		if (!ifs)
 			return false;
 
-		char buf[2048] = { 0 };
+		char buf[4096] = { 0 };
 		while (ifs.getline(buf, sizeof(buf)))
 		{
 			mutable_parameter.mmdbridge_python_script.append(buf);
@@ -2219,8 +2219,8 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				SetThreadUILanguage(target_lang_id);
 
 				// Update "Plugin Settings" text
-				wchar_t settingsMenuText[256] = { 0 };
-				if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 256) == 0)
+				wchar_t settingsMenuText[512] = { 0 };
+				if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 512) == 0)
 				{
 					// Fallback
 					wcscpy_s(settingsMenuText, L"Plugin Settings");
@@ -2232,8 +2232,8 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				SetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_update_settings);
 
 				// Update "About MMDBridge" text
-				wchar_t versionMenuText[256] = { 0 };
-				if (LoadStringW(hInstance, IDS_MENU_ABOUT, versionMenuText, 256) == 0)
+				wchar_t versionMenuText[512] = { 0 };
+				if (LoadStringW(hInstance, IDS_MENU_ABOUT, versionMenuText, 512) == 0)
 				{
 					// Fallback
 					wcscpy_s(versionMenuText, L"About MMDBridge");
@@ -2266,16 +2266,16 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 					SetThreadUILanguage(target_lang_id);
 
-					wchar_t titleBuffer[256] = { 0 };
-					wchar_t formatBuffer[1024] = { 0 };
-					wchar_t finalMessage[2048] = { 0 };
+					static wchar_t titleBuffer[512] = { 0 };
+					static wchar_t formatBuffer[4096] = { 0 };
+					static wchar_t finalMessage[4096] = { 0 };
 
-					if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 256) == 0)
+					if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 512) == 0)
 					{
 						// Fallback
 						wcscpy_s(titleBuffer, L"About MMDBridge");
 					}
-					if (LoadStringW(hInstance, IDS_ABOUT_MESSAGE, formatBuffer, 1024) == 0)
+					if (LoadStringW(hInstance, IDS_ABOUT_MESSAGE, formatBuffer, 4096) == 0)
 					{
 						// Fallback
 						wcscpy_s(formatBuffer,
@@ -3502,7 +3502,7 @@ bool d3d9_initialize()
 	auto create_and_enable_hook = [](HMODULE hModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID* ppOriginal, const wchar_t* funcNameForLog) -> bool {
 		if (!hModule)
 		{
-			wchar_t buffer[256] = { 0 };
+			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"Module handle is null for %s.", funcNameForLog);
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			return false;
@@ -3511,7 +3511,7 @@ bool d3d9_initialize()
 		LPVOID pTarget = (LPVOID)GetProcAddress(hModule, pszProcName);
 		if (!pTarget)
 		{
-			wchar_t buffer[256] = { 0 };
+			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"GetProcAddress for %s failed.", funcNameForLog);
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			return false;
@@ -3520,7 +3520,7 @@ bool d3d9_initialize()
 		MH_STATUS status = MH_CreateHook(pTarget, pDetour, ppOriginal);
 		if (status != MH_OK)
 		{
-			wchar_t buffer[256] = { 0 };
+			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"MH_CreateHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			return false;
@@ -3529,7 +3529,7 @@ bool d3d9_initialize()
 		status = MH_EnableHook(pTarget);
 		if (status != MH_OK)
 		{
-			wchar_t buffer[256] = { 0 };
+			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"MH_EnableHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			// If enabling the hook fails, remove it to clean up resources.
