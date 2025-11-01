@@ -291,7 +291,7 @@ const char* ExpGetPmdFilenameUtf8(int modelIndex)
 }
 
 // =======================================================================
-// 載入PMM後的視窗標題亂碼 導出AVI時的視窗標題亂碼 修正：攔截 SetWindowTextW
+// 載入PMM後的視窗標題亂碼 導出AVI時的中途視窗標題亂碼(0ﾌﾚｰﾑ録画中(0ﾌﾚｰﾑまで)) 修正：攔截 SetWindowTextW
 // =======================================================================
 BOOL(WINAPI* fpSetWindowTextW_Original)(HWND hWnd, LPCWSTR lpString) = nullptr;
 BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
@@ -309,6 +309,49 @@ BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
 		}
 	}
 	return fpSetWindowTextW_Original(hWnd, lpString);
+}
+
+// =======================================================================
+// 導出AVI時的初始視窗標題亂碼(録画中...) 修正：攔截 CreateWindowExA
+// =======================================================================
+HWND(WINAPI* fpCreateWindowExA_Original)(DWORD, LPCSTR, LPCSTR, DWORD, int, int, int, int, HWND, HMENU, HINSTANCE, LPVOID) = nullptr;
+HWND WINAPI Detour_CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInst, LPVOID lpParam)
+{
+	__try
+	{
+		if (lpClassName && ((ULONG_PTR)lpClassName >> 16 != 0))
+		{
+			// Perform a protected volatile read operation to verify if the pointer is readable.
+			(void)*(volatile char*)lpClassName;
+			if (_stricmp(lpClassName, "RecWindow") == 0)
+			{
+				wchar_t wideClassName[512] = { 0 };
+				wchar_t wideWindowName[512] = { 0 };
+
+				int code_page = GetEncodingHookCodePage(L"CreateWindowExA");
+				MultiByteToWideChar(code_page, 0, lpClassName, -1, wideClassName, 512);
+				if (lpWindowName)
+				{
+					// Perform a protected volatile read operation to verify if the pointer is readable.
+					(void)*(volatile char*)lpWindowName;
+					MultiByteToWideChar(code_page, 0, lpWindowName, -1, wideWindowName, 512);
+				}
+
+				HWND hWnd = CreateWindowExW(dwExStyle, wideClassName, wideWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInst, lpParam);
+				if (hWnd)
+				{
+					SetWindowTextW(hWnd, wideWindowName);
+				}
+
+				return hWnd;
+			}
+		}
+	}
+	__except ((GetExceptionCode() == EXCEPTION_ACCESS_VIOLATION) ? EXCEPTION_EXECUTE_HANDLER : EXCEPTION_CONTINUE_SEARCH)
+	{
+		OutputDebugStringW(L"[MMDBridge] Access violation in Detour_CreateWindowExA\n");
+	}
+	return fpCreateWindowExA_Original(dwExStyle, lpClassName, lpWindowName, dwStyle, X, Y, nWidth, nHeight, hWndParent, hMenu, hInst, lpParam);
 }
 
 // =======================================================================
@@ -2051,6 +2094,7 @@ void LoadSettings()
 
 	// Encoding
 	mutable_parameter.encoding_hook_settings.clear();
+	LoadEncodingHookSetting(L"CreateWindowExA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"ModifyMenuA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"SetMenuItemInfoA", ini_path, mutable_parameter.encoding_hook_settings);
 	LoadEncodingHookSetting(L"SendMessageA", ini_path, mutable_parameter.encoding_hook_settings);
@@ -3492,6 +3536,8 @@ bool d3d9_initialize()
 
 	create_and_enable_hook(hMMD, "ExpGetPmdFilename", &Detour_ExpGetPmdFilename, (LPVOID*)&fpExpGetPmdFilename_Original, L"ExpGetPmdFilename");
 	create_and_enable_hook(hUser32, "SetWindowTextW", &Detour_SetWindowTextW, (LPVOID*)&fpSetWindowTextW_Original, L"SetWindowTextW");
+	if (IsEncodingHookEnabled(L"CreateWindowExA"))
+		create_and_enable_hook(hUser32, "CreateWindowExA", &Detour_CreateWindowExA, (LPVOID*)&fpCreateWindowExA_Original, L"CreateWindowExA");
 	if (IsEncodingHookEnabled(L"ModifyMenuA"))
 		create_and_enable_hook(hUser32, "ModifyMenuA", &Detour_ModifyMenuA, (LPVOID*)&fpModifyMenuA_Original, L"ModifyMenuA");
 	if (IsEncodingHookEnabled(L"SetMenuItemInfoA"))
@@ -3556,6 +3602,7 @@ void d3d9_dispose()
 	disable_hook(hUser32, "GetWindowTextA");
 	disable_hook(hUser32, "SetMenuItemInfoA");
 	disable_hook(hUser32, "ModifyMenuA");
+	disable_hook(hUser32, "CreateWindowExA");
 	disable_hook(hUser32, "SetWindowTextW");
 	disable_hook(hMMD, "ExpGetPmdFilename");
 	// // CRITICAL: Do NOT call MH_Uninitialize() here as it is unsafe in DllMain
