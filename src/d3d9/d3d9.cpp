@@ -171,7 +171,7 @@ static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			if (pCreate && pCreate->lpcs)
 			{
 				// Check if the window class is RecWindow
-				wchar_t className[256];
+				wchar_t className[256] = { 0 };
 				if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
 				{
 					g_hRecWindow = hWnd;
@@ -297,7 +297,7 @@ BOOL(WINAPI* fpSetWindowTextW_Original)(HWND hWnd, LPCWSTR lpString) = nullptr;
 BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
 {
 	// Fix RecWindow title using temporary subclassing
-	wchar_t className[256];
+	wchar_t className[256] = { 0 };
 	if (GetClassNameW(hWnd, className, 256) > 0)
 	{
 		if (wcscmp(className, L"Polygon Movie Maker") == 0 || wcscmp(className, L"RecWindow") == 0)
@@ -368,7 +368,7 @@ BOOL WINAPI Detour_ModifyMenuA(HMENU hMnu, UINT uPosition, UINT uFlags, UINT_PTR
 			int wide_len = MultiByteToWideChar(code_page, 0, lpNewItem, -1, NULL, 0);
 			if (wide_len > 0 && wide_len <= 512)
 			{
-				wchar_t wide_buf[512];
+				wchar_t wide_buf[512] = { 0 };
 				MultiByteToWideChar(code_page, 0, lpNewItem, -1, wide_buf, wide_len);
 				return ModifyMenuW(hMnu, uPosition, uFlags, uIDNewItem, wide_buf);
 			}
@@ -391,7 +391,7 @@ BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, L
 	{
 		__try
 		{
-			MENUITEMINFOW miiW;
+			MENUITEMINFOW miiW = { 0 };
 			memcpy(&miiW, lpmii, sizeof(MENUITEMINFOA));
 
 			const char* original_str = lpmii->dwTypeData;
@@ -399,7 +399,7 @@ BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, L
 			int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 			if (wide_len > 0 && wide_len <= 512)
 			{
-				wchar_t wide_buf[512];
+				wchar_t wide_buf[512] = { 0 };
 				MultiByteToWideChar(code_page, 0, original_str, -1, wide_buf, wide_len);
 				miiW.dwTypeData = wide_buf;
 				miiW.cch = 0;
@@ -420,7 +420,7 @@ BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, L
 int(WINAPI* fpGetWindowTextA_Original)(HWND hWnd, LPSTR lpString, int nMaxCount) = nullptr;
 int WINAPI Detour_GetWindowTextA(HWND hWnd, LPSTR lpString, int nMaxCount)
 {
-	wchar_t wide_buf[512];
+	wchar_t wide_buf[512] = { 0 };
 	int wide_chars = GetWindowTextW(hWnd, wide_buf, 512);
 	if (wide_chars > 0 && wide_chars <= 510)
 	{
@@ -468,7 +468,7 @@ LRESULT WINAPI Detour_SendMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
 				int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 				if (wide_len > 0 && wide_len <= 512)
 				{
-					wchar_t wide_buf[512];
+					wchar_t wide_buf[512] = { 0 };
 					MultiByteToWideChar(code_page, 0, original_str, -1, wide_buf, wide_len);
 					return SendMessageW(hWnd, Msg, wParam, (LPARAM)wide_buf);
 				}
@@ -773,7 +773,7 @@ namespace
 		if (!ifs)
 			return false;
 
-		char buf[2048];
+		char buf[2048] = { 0 };
 		while (ifs.getline(buf, sizeof(buf)))
 		{
 			mutable_parameter.mmdbridge_python_script.append(buf);
@@ -798,7 +798,7 @@ namespace
 		std::vector<std::pair<std::wstring, std::wstring>> found_scripts;
 
 		// Find python files.
-		WIN32_FIND_DATA find;
+		WIN32_FIND_DATA find = { 0 };
 		HANDLE hFind = FindFirstFile(searchStr.c_str(), &find);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
@@ -1409,7 +1409,7 @@ namespace
 			throw py::error_already_set();
 		}
 		std::vector<double> result;
-		UMMat44d src;
+		UMMat44d src = { 0 };
 		for (int i = 0; i < 4; ++i)
 		{
 			for (int k = 0; k < 4; ++k)
@@ -1436,7 +1436,7 @@ namespace
 			throw py::error_already_set();
 		}
 		std::vector<double> result;
-		UMMat44d src;
+		UMMat44d src = { 0 };
 		for (int i = 0; i < 4; ++i)
 		{
 			for (int k = 0; k < 4; ++k)
@@ -1824,7 +1824,7 @@ static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstr
 		return false;
 	}
 
-	wchar_t dir[MAX_PATH];
+	wchar_t dir[MAX_PATH] = { 0 };
 	wcscpy_s(dir, MAX_PATH, texturePath.c_str());
 	PathRemoveFileSpecW(dir);
 
@@ -1838,7 +1838,7 @@ static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstr
 			{
 				if (!copied)
 				{
-					wchar_t path[MAX_PATH];
+					wchar_t path[MAX_PATH] = { 0 };
 					PathCombineW(path, dir, to_wstring(texture).c_str());
 					std::wstring wpath(path);
 					wpath += L"." + textureType;
@@ -1850,7 +1850,7 @@ static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstr
 			}
 			else
 			{
-				wchar_t path[MAX_PATH];
+				wchar_t path[MAX_PATH] = { 0 };
 				PathCombineW(path, dir, to_wstring(texture).c_str());
 				std::wstring wpath(path);
 				wpath += L"." + textureType;
@@ -1919,10 +1919,15 @@ static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTextu
 		if (tit != renderData.textureBuffers.end())
 		{
 			// Write texture to memory
-			D3DLOCKED_RECT lockRect;
+			D3DLOCKED_RECT lockRect = { 0 };
 			HRESULT isLocked = texture->lpVtbl->LockRect(texture, 0, &lockRect, NULL, D3DLOCK_READONLY);
 			if (isLocked != D3D_OK)
 			{
+				return false;
+			}
+			if (lockRect.pBits == NULL)
+			{
+				texture->lpVtbl->UnlockRect(texture, 0);
 				return false;
 			}
 
@@ -1943,7 +1948,7 @@ static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTextu
 				{
 					if (format == D3DFMT_A8R8G8B8)
 					{
-						UMVec4f rgba;
+						UMVec4f rgba = { 0 };
 						rgba.x = lineHead[4 * x + 0];
 						rgba.y = lineHead[4 * x + 1];
 						rgba.z = lineHead[4 * x + 2];
@@ -1982,14 +1987,14 @@ static HRESULT WINAPI endScene(IDirect3DDevice9* device)
 
 static void GetFrame(HWND hWnd)
 {
-	WCHAR text[256];
+	WCHAR text[256] = { 0 };
 	::GetWindowTextW(hWnd, text, sizeof(text) / sizeof(text[0]));
 	ui_frame = _wtoi(text);
 }
 
 static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 {
-	RECT rect;
+	RECT rect = { 0 };
 	GetClientRect(hWnd, &rect);
 
 	if (!g_hFrame && rect.right == 48 && rect.bottom == 22)
@@ -2016,7 +2021,7 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 	if (GetModuleHandle(NULL) == hModule)
 	{
 		// Found window created by our process
-		WCHAR szClassName[256];
+		WCHAR szClassName[256] = { 0 };
 		GetClassNameW(hWnd, szClassName, sizeof(szClassName) / sizeof(szClassName[0]));
 		std::wstring name = szClassName;
 		if (name == L"Polygon Movie Maker")
@@ -2032,11 +2037,11 @@ static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
 // Get the full path to the settings file corresponding to the current EXE
 std::wstring GetSettingsFilePath()
 {
-	wchar_t module_path[MAX_PATH];
+	wchar_t module_path[MAX_PATH] = { 0 };
 	GetModuleFileNameW(hInstance, module_path, MAX_PATH);
 	PathRemoveFileSpecW(module_path);
 
-	wchar_t settings_dir[MAX_PATH];
+	wchar_t settings_dir[MAX_PATH] = { 0 };
 	PathCombineW(settings_dir, module_path, L"mmdbridge_settings");
 
 	if (!PathFileExistsW(settings_dir))
@@ -2045,12 +2050,12 @@ std::wstring GetSettingsFilePath()
 	}
 
 	// Get host executable filename (e.g., MikuMikuDance.exe)
-	wchar_t exe_path[MAX_PATH];
+	wchar_t exe_path[MAX_PATH] = { 0 };
 	GetModuleFileNameW(NULL, exe_path, MAX_PATH);
 	const wchar_t* exe_filename = PathFindFileNameW(exe_path);
 
 	// Build settings file path: settings_dir\{exe_filename}.ini
-	wchar_t final_ini_path[MAX_PATH];
+	wchar_t final_ini_path[MAX_PATH] = { 0 };
 	PathCombineW(final_ini_path, settings_dir, (std::wstring(exe_filename) + L".ini").c_str());
 
 	return final_ini_path;
@@ -2058,7 +2063,7 @@ std::wstring GetSettingsFilePath()
 
 static void LoadEncodingHookSetting(const wchar_t* key_name, const std::wstring& ini_path, std::map<std::wstring, EncodingHookSetting, std::less<>>& settings_map)
 {
-	wchar_t buffer[16];
+	wchar_t buffer[16] = { 0 };
 	GetPrivateProfileStringW(L"Encoding", key_name, L"0", buffer, 16, ini_path.c_str());
 	int raw_value = _wtoi(buffer);
 	EncodingHookSetting setting;
@@ -2086,7 +2091,7 @@ void LoadSettings()
 	const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
-	wchar_t buffer[MAX_PATH];
+	wchar_t buffer[MAX_PATH] = { 0 };
 
 	// Localization
 	GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", buffer, 16, ini_path.c_str());
@@ -2136,7 +2141,7 @@ static void setMyMenu()
 		HMENU hsubs = CreatePopupMenu();
 		int count = GetMenuItemCount(hmenu);
 
-		MENUITEMINFO minfo;
+		MENUITEMINFO minfo = { 0 };
 		minfo.cbSize = sizeof(MENUITEMINFO);
 		minfo.fMask = MIIM_ID | MIIM_TYPE | MIIM_SUBMENU;
 		minfo.fType = MFT_STRING;
@@ -2164,7 +2169,7 @@ static void setMySize()
 {
 	if (!g_hWnd)
 		return;
-	RECT rc;
+	RECT rc = { 0 };
 	if (!::GetWindowRect(g_hWnd, &rc))
 		return;
 	if (rc.bottom - rc.top <= 40)
@@ -2200,7 +2205,8 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 		{
 			// Update menu text based on language settings
 			HMENU hPopupMenu = (HMENU)wp;
-			MENUITEMINFOW mii_check = { sizeof(mii_check) };
+			MENUITEMINFOW mii_check = { 0 };
+			mii_check.cbSize = sizeof(mii_check);
 			mii_check.fMask = MIIM_ID;
 
 			if (GetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_check))
@@ -2213,25 +2219,27 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				SetThreadUILanguage(target_lang_id);
 
 				// Update "Plugin Settings" text
-				wchar_t settingsMenuText[256];
+				wchar_t settingsMenuText[256] = { 0 };
 				if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 256) == 0)
 				{
 					// Fallback
 					wcscpy_s(settingsMenuText, L"Plugin Settings");
 				}
-				MENUITEMINFOW mii_update_settings = { sizeof(mii_update_settings) };
+				MENUITEMINFOW mii_update_settings = { 0 };
+				mii_update_settings.cbSize = sizeof(mii_update_settings);
 				mii_update_settings.fMask = MIIM_STRING;
 				mii_update_settings.dwTypeData = settingsMenuText;
 				SetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_update_settings);
 
 				// Update "About MMDBridge" text
-				wchar_t versionMenuText[256];
+				wchar_t versionMenuText[256] = { 0 };
 				if (LoadStringW(hInstance, IDS_MENU_ABOUT, versionMenuText, 256) == 0)
 				{
 					// Fallback
 					wcscpy_s(versionMenuText, L"About MMDBridge");
 				}
-				MENUITEMINFOW mii_update_version = { sizeof(mii_update_version) };
+				MENUITEMINFOW mii_update_version = { 0 };
+				mii_update_version.cbSize = sizeof(mii_update_version);
 				mii_update_version.fMask = MIIM_STRING;
 				mii_update_version.dwTypeData = versionMenuText;
 				SetMenuItemInfoW(hPopupMenu, IDS_MENU_ABOUT, FALSE, &mii_update_version);
@@ -2258,9 +2266,9 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 
 					SetThreadUILanguage(target_lang_id);
 
-					wchar_t titleBuffer[256];
-					wchar_t formatBuffer[1024];
-					wchar_t finalMessage[2048];
+					wchar_t titleBuffer[256] = { 0 };
+					wchar_t formatBuffer[1024] = { 0 };
+					wchar_t finalMessage[2048] = { 0 };
 
 					if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 256) == 0)
 					{
@@ -2365,9 +2373,9 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						script_call_setting = 2; // 実行しない
 					}
 
-					wchar_t text1[32];
-					wchar_t text2[32];
-					wchar_t text5[32];
+					wchar_t text1[32] = { 0 };
+					wchar_t text2[32] = { 0 };
+					wchar_t text5[32] = { 0 };
 					::GetWindowTextW(hEdit1, text1, 32);
 					::GetWindowTextW(hEdit2, text2, 32);
 					::GetWindowTextW(hEdit5, text5, 32);
@@ -2637,7 +2645,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9* device)
 			pStreamData->lpVtbl->Lock(pStreamData, 0, 0, (void**)&pVertexBuf, D3DLOCK_READONLY);
 
 			// Get FVF
-			DWORD fvf;
+			DWORD fvf = 0;
 			device->lpVtbl->GetFVF(device, &fvf);
 			if (renderData.fvf != fvf)
 			{
@@ -2747,7 +2755,7 @@ static bool writeBuffersToMemory(IDirect3DDevice9* device)
 				{
 					for (size_t i = bytePos; i < vit->second; i += renderData.stride)
 					{
-						UMVec2f uv;
+						UMVec2f uv = { 0 };
 						memcpy(&uv, &pVertexBuf[i], sizeof(UMVec2f));
 						renderedBuffer.uvs.push_back(uv);
 					}
@@ -2838,11 +2846,11 @@ static bool writeMaterialsToMemory(TextureParameter& textureParameter)
 				D3DXHANDLE hSpecular = (*effect)->lpVtbl->GetParameterByName(*effect, NULL, "SpcColor");
 				D3DXHANDLE hTransp = (*effect)->lpVtbl->GetParameterByName(*effect, NULL, "transp");
 
-				float edge[4];
-				float diffuse[4];
-				float specular[4];
-				float toon[4];
-				BOOL transp;
+				float edge[4] = { 0.0f };
+				float diffuse[4] = { 0.0f };
+				float specular[4] = { 0.0f };
+				float toon[4] = { 0.0f };
+				BOOL transp = FALSE;
 				(*effect)->lpVtbl->GetFloatArray(*effect, hEdge, edge, 4);
 				(*effect)->lpVtbl->GetFloatArray(*effect, hToon, toon, 4);
 				(*effect)->lpVtbl->GetFloatArray(*effect, hDiffuse, diffuse, 4);
@@ -2865,8 +2873,8 @@ static bool writeMaterialsToMemory(TextureParameter& textureParameter)
 
 		if (renderData.texcount > 0)
 		{
-			DWORD colorRop0;
-			DWORD colorRop1;
+			DWORD colorRop0 = 0;
+			DWORD colorRop1 = 0;
 
 			p_device->lpVtbl->GetTextureStageState(p_device, 0, D3DTSS_COLOROP, &colorRop0);
 			p_device->lpVtbl->GetTextureStageState(p_device, 1, D3DTSS_COLOROP, &colorRop1);
@@ -2949,12 +2957,12 @@ static void writeMatrixToMemory(IDirect3DDevice9* device, RenderedBuffer& dst)
 
 static void writeLightToMemory(IDirect3DDevice9* device, RenderedBuffer& renderedBuffer)
 {
-	BOOL isLight;
+	BOOL isLight = FALSE;
 	int lightNumber = 0;
 	p_device->lpVtbl->GetLightEnable(p_device, lightNumber, &isLight);
 	if (isLight)
 	{
-		D3DLIGHT9 light;
+		D3DLIGHT9 light = { 0 };
 		p_device->lpVtbl->GetLight(p_device, lightNumber, &light);
 		UMVec3f& umlight = renderedBuffer.light;
 		D3DXVECTOR3 v(light.Direction.x, light.Direction.y, light.Direction.z);
@@ -3049,7 +3057,7 @@ static HRESULT WINAPI drawIndexedPrimitive(
 			IDirect3DVertexBuffer9* pStreamData = renderData.pStreamData;
 			IDirect3DIndexBuffer9* pIndexData = renderData.pIndexData;
 
-			D3DINDEXBUFFER_DESC indexDesc;
+			D3DINDEXBUFFER_DESC indexDesc = { 0 };
 			if (pIndexData->lpVtbl->GetDesc(pIndexData, &indexDesc) == D3D_OK)
 			{
 				void* pIndexBuf;
@@ -3070,7 +3078,7 @@ static HRESULT WINAPI drawIndexedPrimitive(
 					// Fix normals
 					for (size_t i = 0, size = primitiveCount * 3; i < size; i += 3)
 					{
-						UMVec3i face;
+						UMVec3i face = { 0 };
 						if (indexDesc.Format == D3DFMT_INDEX16)
 						{
 							WORD* p = (WORD*)pIndexBuf;
@@ -3147,7 +3155,7 @@ static HRESULT WINAPI createTexture(
 {
 	HRESULT res = (*original_create_texture)(device, width, height, levels, usage, format, pool, ppTexture, pSharedHandle);
 
-	TextureInfo info;
+	TextureInfo info = { 0 };
 	info.wh.x = width;
 	info.wh.y = height;
 	info.format = format;
@@ -3494,7 +3502,7 @@ bool d3d9_initialize()
 	auto create_and_enable_hook = [](HMODULE hModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID* ppOriginal, const wchar_t* funcNameForLog) -> bool {
 		if (!hModule)
 		{
-			wchar_t buffer[256];
+			wchar_t buffer[256] = { 0 };
 			swprintf_s(buffer, L"Module handle is null for %s.", funcNameForLog);
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			return false;
@@ -3503,7 +3511,7 @@ bool d3d9_initialize()
 		LPVOID pTarget = (LPVOID)GetProcAddress(hModule, pszProcName);
 		if (!pTarget)
 		{
-			wchar_t buffer[256];
+			wchar_t buffer[256] = { 0 };
 			swprintf_s(buffer, L"GetProcAddress for %s failed.", funcNameForLog);
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			return false;
@@ -3512,7 +3520,7 @@ bool d3d9_initialize()
 		MH_STATUS status = MH_CreateHook(pTarget, pDetour, ppOriginal);
 		if (status != MH_OK)
 		{
-			wchar_t buffer[256];
+			wchar_t buffer[256] = { 0 };
 			swprintf_s(buffer, L"MH_CreateHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			return false;
@@ -3521,7 +3529,7 @@ bool d3d9_initialize()
 		status = MH_EnableHook(pTarget);
 		if (status != MH_OK)
 		{
-			wchar_t buffer[256];
+			wchar_t buffer[256] = { 0 };
 			swprintf_s(buffer, L"MH_EnableHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
 			// If enabling the hook fails, remove it to clean up resources.
