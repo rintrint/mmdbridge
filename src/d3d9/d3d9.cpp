@@ -2197,6 +2197,42 @@ static void OpenSettingsDialog(HWND hWnd)
 	SetThreadUILanguage(original_lang_id);
 }
 
+static void ShowAboutDialog(HWND hWnd)
+{
+	const std::wstring lang_code = GetCurrentUILanguageCode();
+	LCID locale_id = LocaleNameToLCID(lang_code.c_str(), 0);
+	LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
+	LANGID original_lang_id = GetThreadUILanguage();
+
+	SetThreadUILanguage(target_lang_id);
+
+	static wchar_t titleBuffer[512] = { 0 };
+	static wchar_t formatBuffer[4096] = { 0 };
+	static wchar_t finalMessage[4096] = { 0 };
+
+	if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 512) == 0)
+	{
+		// Fallback
+		wcscpy_s(titleBuffer, L"About MMDBridge");
+	}
+	if (LoadStringW(hInstance, IDS_ABOUT_MESSAGE, formatBuffer, 4096) == 0)
+	{
+		// Fallback
+		wcscpy_s(formatBuffer,
+				 L"MMDBridge Plugin (rintrint's fork)\n"
+				 L"Version: %hs\n\n"
+				 L"Original author: Kazuma Hatta\n"
+				 L"Forked and maintained by: rintrint\n\n"
+				 L"Bug reports: https://github.com/rintrint/mmdbridge\n\n"
+				 L"(Press Ctrl+C to copy this message)");
+	}
+
+	SetThreadUILanguage(original_lang_id);
+
+	swprintf_s(finalMessage, formatBuffer, VERSION_STRING);
+	::MessageBoxW(hWnd, finalMessage, titleBuffer, MB_OK | MB_ICONINFORMATION);
+}
+
 static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
 {
 	switch (msg)
@@ -2256,43 +2292,9 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				case IDS_MENU_PLUGIN_SETTINGS: // Plugin Settings
 					OpenSettingsDialog(hWnd);
 					break;
-
 				case IDS_MENU_ABOUT: // About MMDBridge
-				{
-					const std::wstring lang_code = GetCurrentUILanguageCode();
-					LCID locale_id = LocaleNameToLCID(lang_code.c_str(), 0);
-					LANGID target_lang_id = MAKELANGID(PRIMARYLANGID(locale_id), SUBLANGID(locale_id));
-					LANGID original_lang_id = GetThreadUILanguage();
-
-					SetThreadUILanguage(target_lang_id);
-
-					static wchar_t titleBuffer[512] = { 0 };
-					static wchar_t formatBuffer[4096] = { 0 };
-					static wchar_t finalMessage[4096] = { 0 };
-
-					if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 512) == 0)
-					{
-						// Fallback
-						wcscpy_s(titleBuffer, L"About MMDBridge");
-					}
-					if (LoadStringW(hInstance, IDS_ABOUT_MESSAGE, formatBuffer, 4096) == 0)
-					{
-						// Fallback
-						wcscpy_s(formatBuffer,
-								 L"MMDBridge Plugin (rintrint's fork)\n"
-								 L"Version: %hs\n\n"
-								 L"Original author: Kazuma Hatta\n"
-								 L"Forked and maintained by: rintrint\n\n"
-								 L"Bug reports: https://github.com/rintrint/mmdbridge\n\n"
-								 L"(Press Ctrl+C to copy this message)");
-					}
-
-					SetThreadUILanguage(original_lang_id);
-
-					swprintf_s(finalMessage, formatBuffer, VERSION_STRING);
-					::MessageBoxW(hWnd, finalMessage, titleBuffer, MB_OK | MB_ICONINFORMATION);
-				}
-				break;
+					ShowAboutDialog(hWnd);
+					break;
 			}
 			break;
 		}
