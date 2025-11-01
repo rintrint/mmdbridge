@@ -3611,8 +3611,6 @@ void d3d9_dispose()
 	disable_hook(hUser32, "DialogBoxParamA");
 	disable_hook(hUser32, "SetWindowTextW");
 	disable_hook(hMMD, "ExpGetPmdFilename");
-	// // CRITICAL: Do NOT call MH_Uninitialize() here as it is unsafe in DllMain
-	// MH_Uninitialize();
 	// +++++ MINHOOK LOGIC END +++++
 
 	// +++++ CBT HOOK LOGIC START +++++
@@ -3623,16 +3621,20 @@ void d3d9_dispose()
 	}
 	// +++++ CBT HOOK LOGIC END +++++
 
-	// // CRITICAL: Do NOT call Py_FinalizeEx() here as it is unsafe in DllMain
-	// if (Py_IsInitialized())
-	// {
-	// 	Py_FinalizeEx();
-	// }
+	if (Py_IsInitialized())
+	{
+		Py_FinalizeEx();
+	}
 
 	renderData.dispose();
 	DisposePMX();
 	DisposeVMD();
 	DisposeAlembic();
+
+	// +++++ MINHOOK LOGIC START +++++
+	// Uninitialize MinHook after all hooks are removed and dependent systems are finalized.
+	MH_Uninitialize();
+	// +++++ MINHOOK LOGIC END +++++
 
 	if (g_d3d9_system_module)
 	{
@@ -3642,7 +3644,7 @@ void d3d9_dispose()
 }
 
 // DLL entry point
-BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
+BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID lpReserved)
 {
 	switch (reason)
 	{
@@ -3659,7 +3661,16 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID)
 			d3d9_initialize();
 			break;
 		case DLL_PROCESS_DETACH:
-			d3d9_dispose();
+			if (lpReserved != nullptr)
+			{
+				// Process terminating, skip cleanup and let OS reclaim resources.
+				break;
+			}
+			else
+			{
+				// DLL unloaded via FreeLibrary, perform cleanup to prevent crash.
+				d3d9_dispose();
+			}
 			break;
 	}
 	return TRUE;
