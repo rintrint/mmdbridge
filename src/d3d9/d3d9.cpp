@@ -2507,7 +2507,6 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 			if (!is_exporting && mmd_30fps_frame == parameter.start_frame)
 			{
 				reload_python_script();
-				exportedFrames.clear();
 				is_exporting = true;
 			}
 			if (exportedFrames.find(process_frame) == exportedFrames.end())
@@ -2516,15 +2515,23 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 				exportedFrames[process_frame] = 1;
 			}
 		}
-		BridgeParameter::mutable_instance().finish_buffer_list.clear();
 		presentCount++;
 	}
 	else
 	{
 		// Not exporting
 		is_exporting = false;
+		exportedFrames.clear();
 	}
+
 	HRESULT res = (*original_present)(device, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
+
+	// Always perform cleanup to ensure a clean state for the next frame.
+	BridgeParameter::mutable_instance().finish_buffer_list.clear();
+	BridgeParameter::mutable_instance().render_buffer_map.clear();
+	renderedMaterials.clear();
+	renderData.textureSamplers.clear();
+
 	return res;
 }
 

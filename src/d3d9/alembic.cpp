@@ -217,6 +217,8 @@ static bool end_alembic_export()
 		return true;
 	}
 
+	// Always perform cleanup
+	AlembicArchive::instance().end();
 	return false;
 }
 
