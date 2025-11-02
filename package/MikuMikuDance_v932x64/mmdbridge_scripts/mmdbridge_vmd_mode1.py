@@ -1,5 +1,7 @@
 import os
 import shutil
+import tempfile
+import time
 from collections import namedtuple
 
 from mmdbridge import *
@@ -82,6 +84,17 @@ is_anything_to_export = export_fk_bone_animation or export_ik_bone_animation or 
 if is_anything_to_export:
     if framenumber == start_frame:
         messagebox("VMD export started.")
+
+        # Record start time to temp file in system temp directory
+        # Use hwnd in filename to avoid conflicts between multiple instances
+        hwnd = get_hwnd()
+        timer_file = os.path.join(tempfile.gettempdir(), f"vmd_export_timer_{hwnd}.txt")
+        try:
+            with open(timer_file, "w", encoding="utf-8") as f:
+                f.write(str(time.time()))
+        except Exception:
+            pass
+
         start_vmd_export(
             export_fk_bone_animation_mode=export_fk_bone_animation_mode if export_fk_bone_animation else -1,  # Pass -1 if FK is off
             export_ik_bone_animation=export_ik_bone_animation,
@@ -111,6 +124,27 @@ if is_anything_to_export:
         message = "VMD export ended."
         message += f"\n\nExported to:\n{final_dst_dir}"
         message += f"\n\nTotal: {len(modified_files)} file(s)"
+
+        # Read start time, calculate elapsed time, and delete temp file
+        # Use hwnd in filename to match the file created at start
+        hwnd = get_hwnd()
+        timer_file = os.path.join(tempfile.gettempdir(), f"vmd_export_timer_{hwnd}.txt")
+        if os.path.exists(timer_file):
+            start_time = None
+            try:
+                with open(timer_file, "r", encoding="utf-8") as f:
+                    start_time = float(f.read().strip())
+                os.remove(timer_file)
+            except Exception:
+                pass
+
+            if start_time is not None:
+                end_time = time.time()
+                elapsed_time = end_time - start_time
+                message += f"\n\nTime elapsed: {elapsed_time:.3f}s"
+            else:
+                message += "\n\nTime elapsed: N/A"
+
         messagebox(message)
 else:
     if framenumber == start_frame:

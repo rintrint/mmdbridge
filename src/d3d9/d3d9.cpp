@@ -1496,6 +1496,11 @@ namespace
 		result.push_back(vec.z);
 		return result;
 	}
+
+	uintptr_t get_hwnd()
+	{
+		return (uintptr_t)g_hWnd;
+	}
 } // namespace
 
 PYBIND11_MAKE_OPAQUE(std::vector<float>);
@@ -1573,6 +1578,7 @@ PYBIND11_MODULE(mmdbridge, m)
 	m.def("extract_xyz_degree", extract_xyz_degree);
 	m.def("invert_matrix", invert_matrix);
 	m.def("d3dx_vec3_normalize", d3dx_vec3_normalize);
+	m.def("get_hwnd", get_hwnd);
 
 	py::bind_vector<std::vector<float>>(m, "VectorFloat");
 	py::bind_vector<std::vector<int>>(m, "VectorInt");
