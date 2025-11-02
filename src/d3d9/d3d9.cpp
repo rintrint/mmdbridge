@@ -2003,36 +2003,10 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 	if (!g_hFrame && rect.right == 48 && rect.bottom == 22)
 	{
 		g_hFrame = hWnd;
-		GetFrame(hWnd);
 	}
 	if (g_hFrame)
 	{
 		return FALSE;
-	}
-	return TRUE; // continue
-}
-
-// Search for target window to hijack
-static BOOL CALLBACK enumWindowsProc(HWND hWnd, LPARAM lParam)
-{
-	if (g_hWnd && g_hFrame)
-	{
-		GetFrame(g_hFrame);
-		return FALSE;
-	}
-	HANDLE hModule = (HANDLE)GetWindowLongPtrW(hWnd, GWLP_HINSTANCE);
-	if (GetModuleHandle(NULL) == hModule)
-	{
-		// Found window created by our process
-		WCHAR szClassName[256] = { 0 };
-		GetClassNameW(hWnd, szClassName, sizeof(szClassName) / sizeof(szClassName[0]));
-		std::wstring name = szClassName;
-		if (name == L"Polygon Movie Maker")
-		{
-			g_hWnd = hWnd;
-			EnumChildWindows(hWnd, enumChildWindowsProc, 0);
-			return FALSE; // break
-		}
 	}
 	return TRUE; // continue
 }
@@ -2468,12 +2442,22 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 	// Add MMDBridge to MMD's menu bar safely and efficiently
 	if (!g_is_window_hooked)
 	{
-		EnumWindows(enumWindowsProc, 0);
 		if (g_hWnd)
 		{
 			overrideGLWindow();
 			g_is_window_hooked = true;
 		}
+	}
+
+	// Update ui_frame
+	if (g_hFrame)
+	{
+		GetFrame(g_hFrame);
+	}
+	else
+	{
+		// Find g_hFrame
+		EnumChildWindows(g_hWnd, enumChildWindowsProc, 0);
 	}
 
 	// Update frame data in every frame
