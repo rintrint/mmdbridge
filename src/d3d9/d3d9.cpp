@@ -2463,24 +2463,9 @@ static bool IsValidTechniq()
 	return (technic == 0 || technic == 1 || technic == 2);
 }
 
-static HRESULT WINAPI present(
-	IDirect3DDevice9* device,
-	const RECT* pSourceRect,
-	const RECT* pDestRect,
-	HWND hDestWindowOverride,
-	const RGNDATA* pDirtyRegion)
+static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect, const RECT* pDestRect, HWND hDestWindowOverride, const RGNDATA* pDirtyRegion)
 {
-	const float original_time = ExpGetFrameTime();
-	// Define a relative compensation (10 ULP) to prevent frame drops from floating-point undershoots
-	const float RELATIVE_COMPENSATION_RATIO = std::numeric_limits<float>::epsilon() * 10.0f;
-	const float time = original_time + original_time * RELATIVE_COMPENSATION_RATIO;
-
-	if (pDestRect)
-	{
-		BridgeParameter::mutable_instance().frame_width = pDestRect->right - pDestRect->left;
-		BridgeParameter::mutable_instance().frame_height = pDestRect->bottom - pDestRect->top;
-	}
-	BridgeParameter::mutable_instance().is_exporting_without_mesh = false;
+	// Add MMDBridge to MMD's menu bar safely and efficiently
 	if (!g_is_window_hooked)
 	{
 		EnumWindows(enumWindowsProc, 0);
@@ -2490,15 +2475,30 @@ static HRESULT WINAPI present(
 			g_is_window_hooked = true;
 		}
 	}
+
+	// Update and reset data in every frame
+	if (pDestRect)
+	{
+		BridgeParameter::mutable_instance().frame_width = pDestRect->right - pDestRect->left;
+		BridgeParameter::mutable_instance().frame_height = pDestRect->bottom - pDestRect->top;
+	}
+	BridgeParameter::mutable_instance().is_exporting_without_mesh = false;
+
+	// Run python script during exporting
 	const bool validFrame = IsValidFrame();
 	const bool validCallSetting = IsValidCallSetting();
 	const bool validTechniq = IsValidTechniq();
 	if (validFrame && validCallSetting && validTechniq)
 	{
 		// Exporting
+		const float original_time = ExpGetFrameTime();
+		// Define a relative compensation (10 ULP) to prevent frame drops from floating-point undershoots
+		const float RELATIVE_COMPENSATION_RATIO = std::numeric_limits<float>::epsilon() * 10.0f;
+		const float time = original_time + original_time * RELATIVE_COMPENSATION_RATIO;
+
 		const BridgeParameter& parameter = BridgeParameter::instance();
 		// MMD uses 30 fps as its base and calculates interpolated frames.
-		// MMD also exports the interpolated frames between the end frame and end frame + 1.
+		// MMD also exports the interpolated frames between the end frame and end frame + 1. (Handled in Python scripts)
 		int target_frame = static_cast<int>(time * parameter.export_fps);
 		int mmd_30fps_frame = static_cast<int>(time * 30.0); // Use 30.0 since parameter.export_fps is double
 		if (mmd_30fps_frame >= parameter.start_frame && mmd_30fps_frame <= parameter.end_frame)
