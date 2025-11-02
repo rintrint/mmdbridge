@@ -337,6 +337,8 @@ static void export_pmx(int currentframe, bool isfirst)
 
 static bool execute_pmx_export(int currentframe)
 {
+	BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
+
 	PMXArchive& archive = PMXArchive::instance();
 
 	const BridgeParameter& parameter = BridgeParameter::instance();

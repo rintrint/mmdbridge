@@ -1231,6 +1231,8 @@ static void export_alembic_camera(AlembicArchive& archive, const RenderedBuffer&
 
 static bool execute_alembic_export(int currentframe)
 {
+	BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
+
 	AlembicArchive& archive = AlembicArchive::instance();
 	if (!archive.archive)
 	{

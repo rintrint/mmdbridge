@@ -128,7 +128,6 @@ static bool start_vmd_export(
 	VMDArchive::instance().end();
 
 	VMDArchive& archive = VMDArchive::instance();
-	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	if (parameter.export_fps <= 0)
 	{
@@ -304,7 +303,6 @@ std::vector<T> PostProcessKeyframes(
 static bool end_vmd_export()
 {
 	VMDArchive& archive = VMDArchive::instance();
-
 	if (archive.has_bone_name_error)
 	{
 		archive.end();
@@ -312,12 +310,8 @@ static bool end_vmd_export()
 		return false;
 	}
 
-	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
-	BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
-
 	std::map<std::wstring, int> output_name_counts;
-
 	for (int i = 0; i < pmd_num; ++i)
 	{
 		FileDataForVMD& file_data = archive.data_list.at(i);
@@ -726,11 +720,11 @@ static vmd::VmdFaceFrame calculate_face_frame(
 
 static bool execute_vmd_export(const int currentframe)
 {
+	BridgeParameter::mutable_instance().is_exporting_with_mesh = false;
+
 	VMDArchive& archive = VMDArchive::instance();
-	BridgeParameter::mutable_instance().is_exporting_without_mesh = true;
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
-
 	const int pmd_num = ExpGetPmdNum();
 
 	if (currentframe == parameter.start_frame)

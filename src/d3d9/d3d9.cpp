@@ -2476,13 +2476,16 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		}
 	}
 
-	// Update and reset data in every frame
+	// Update frame data in every frame
 	if (pDestRect)
 	{
 		BridgeParameter::mutable_instance().frame_width = pDestRect->right - pDestRect->left;
 		BridgeParameter::mutable_instance().frame_height = pDestRect->bottom - pDestRect->top;
 	}
-	BridgeParameter::mutable_instance().is_exporting_without_mesh = false;
+
+	// Reset the is_exporting_with_mesh flag
+	// Set true to ensure proper .abc export
+	BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
 
 	// Run python script during exporting
 	const bool validFrame = IsValidFrame();
@@ -3033,7 +3036,7 @@ static HRESULT WINAPI drawIndexedPrimitive(
 	const bool validCallSetting = IsValidCallSetting();
 	const bool validFrame = IsValidFrame();
 	const bool validTechniq = IsValidTechniq();
-	const bool validBuffer = (!BridgeParameter::instance().is_exporting_without_mesh);
+	const bool validBuffer = BridgeParameter::instance().is_exporting_with_mesh;
 
 	if (validBuffer && validCallSetting && validFrame && validTechniq && type == D3DPT_TRIANGLELIST)
 	{
