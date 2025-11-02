@@ -12,13 +12,14 @@
 #include <direct.h>
 #include <excpt.h>
 
-#include <vector>
-#include <string>
-#include <sstream>
-#include <fstream>
-#include <regex>
 #include <algorithm>
+#include <fstream>
+#include <limits>
 #include <mutex>
+#include <regex>
+#include <sstream>
+#include <string>
+#include <vector>
 
 #include <MinHook.h>
 
@@ -2463,7 +2464,10 @@ static HRESULT WINAPI present(
 	HWND hDestWindowOverride,
 	const RGNDATA* pDirtyRegion)
 {
-	const float time = ExpGetFrameTime();
+	const float original_time = ExpGetFrameTime();
+	// Define a relative compensation (10 ULP) to prevent frame drops from floating-point undershoots
+	const float RELATIVE_COMPENSATION_RATIO = std::numeric_limits<float>::epsilon() * 10.0f;
+	const float time = original_time + original_time * RELATIVE_COMPENSATION_RATIO;
 
 	if (pDestRect)
 	{
@@ -2489,9 +2493,8 @@ static HRESULT WINAPI present(
 		const BridgeParameter& parameter = BridgeParameter::instance();
 		// MMD uses 30 fps as its base and calculates interpolated frames.
 		// MMD also exports the interpolated frames between the end frame and end frame + 1.
-		// Add 0.00001f to compensate for floating-point precision errors.
-		int target_frame = static_cast<int>(time * parameter.export_fps + 0.00001f);
-		int mmd_30fps_frame = static_cast<int>(time * 30.0f + 0.00001f);
+		int target_frame = static_cast<int>(time * parameter.export_fps);
+		int mmd_30fps_frame = static_cast<int>(time * 30.0); // Use 30.0 since parameter.export_fps is double
 		if (mmd_30fps_frame >= parameter.start_frame && mmd_30fps_frame <= parameter.end_frame)
 		{
 			process_frame = target_frame;
