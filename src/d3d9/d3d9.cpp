@@ -707,8 +707,8 @@ static bool copyTextureToFiles(const std::wstring& texturePath);
 static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTexture9* texture, bool copied);
 
 //------------------------------------------Python invocation--------------------------------------------------------
-static bool is_exporting = false;
-static int presentCount = 0;
+static bool is_exporting_initialized = false;
+static int exportingPresentCount = 0;
 static int process_frame = -1;
 static int ui_frame = 0;
 
@@ -2504,10 +2504,10 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		if (mmd_30fps_frame >= parameter.start_frame && mmd_30fps_frame <= parameter.end_frame)
 		{
 			process_frame = target_frame;
-			if (!is_exporting && mmd_30fps_frame == parameter.start_frame)
+			if (!is_exporting_initialized && mmd_30fps_frame == parameter.start_frame)
 			{
 				reload_python_script();
-				is_exporting = true;
+				is_exporting_initialized = true;
 			}
 			if (exportedFrames.find(process_frame) == exportedFrames.end())
 			{
@@ -2515,12 +2515,13 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 				exportedFrames[process_frame] = 1;
 			}
 		}
-		presentCount++;
+		exportingPresentCount++;
 	}
 	else
 	{
 		// Not exporting
-		is_exporting = false;
+		is_exporting_initialized = false;
+		exportingPresentCount = 0;
 		exportedFrames.clear();
 	}
 
@@ -3202,7 +3203,7 @@ static HRESULT WINAPI setTexture(
 	DWORD sampler,
 	IDirect3DBaseTexture9* pTexture)
 {
-	if (presentCount == 0)
+	if (g_isAviExporting && exportingPresentCount == 0)
 	{
 		IDirect3DTexture9* texture = reinterpret_cast<IDirect3DTexture9*>(pTexture);
 		renderData.textureSamplers[sampler] = texture;
