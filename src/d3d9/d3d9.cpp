@@ -2467,10 +2467,6 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		BridgeParameter::mutable_instance().frame_height = pDestRect->bottom - pDestRect->top;
 	}
 
-	// Reset the is_exporting_with_mesh flag
-	// Set true to ensure proper .abc export
-	BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
-
 	// Run python script during exporting
 	const bool validFrame = IsValidFrame();
 	const bool validCallSetting = IsValidCallSetting();
@@ -2502,6 +2498,15 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 				exportedFrames[process_frame] = 1;
 			}
 		}
+
+		// Default is_exporting_with_mesh to true to ensure proper .abc export, as setTexture and drawIndexedPrimitive run before present.
+		// Set it to false when exporting VMD for better performance.
+		const ExportType export_type = parameter.current_export_type;
+		if (export_type == ExportType::VMD)
+		{
+			BridgeParameter::mutable_instance().is_exporting_with_mesh = false;
+		}
+
 		exportingPresentCount++;
 	}
 	else
@@ -2510,6 +2515,8 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		is_exporting_initialized = false;
 		exportingPresentCount = 0;
 		exportedFrames.clear();
+		BridgeParameter::mutable_instance().current_export_type = ExportType::None;
+		BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
 	}
 
 	HRESULT res = (*original_present)(device, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);

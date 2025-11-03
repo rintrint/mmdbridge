@@ -124,6 +124,8 @@ static bool start_vmd_export(
 	const bool add_turn_off_ik_keyframe,
 	const bool export_morph_animation)
 {
+	BridgeParameter::mutable_instance().current_export_type = ExportType::VMD;
+
 	// Clear previous export to ensure a clean state
 	VMDArchive::instance().end();
 
@@ -720,8 +722,6 @@ static vmd::VmdFaceFrame calculate_face_frame(
 
 static bool execute_vmd_export(const int currentframe)
 {
-	BridgeParameter::mutable_instance().is_exporting_with_mesh = false;
-
 	VMDArchive& archive = VMDArchive::instance();
 
 	const BridgeParameter& parameter = BridgeParameter::instance();

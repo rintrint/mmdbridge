@@ -5,6 +5,14 @@
 #include <map>
 #include "d3d9.h"
 
+enum class ExportType
+{
+	None,
+	Alembic,
+	PMX,
+	VMD,
+};
+
 struct EncodingHookSetting
 {
 	bool is_enabled = false;
@@ -77,6 +85,8 @@ public:
 	/// VertexBuffer, RenderedBufferが必要場合trueにする.
 	bool is_exporting_with_mesh;
 
+	ExportType current_export_type;
+
 private:
 	BridgeParameter()
 		: // script_call_setting(2)
@@ -88,6 +98,7 @@ private:
 		, export_fps(30.0)
 		, is_texture_buffer_enabled(false)
 		, is_exporting_with_mesh(true)
+		, current_export_type(ExportType::None)
 	{
 	}
 

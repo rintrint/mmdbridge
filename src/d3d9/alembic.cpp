@@ -158,6 +158,8 @@ static bool start_alembic_export(
 	bool is_use_euler_rotation_camera,
 	bool is_use_ogawa)
 {
+	BridgeParameter::mutable_instance().current_export_type = ExportType::Alembic;
+
 	// Clear previous export to ensure a clean state
 	AlembicArchive::instance().end();
 
@@ -1231,8 +1233,6 @@ static void export_alembic_camera(AlembicArchive& archive, const RenderedBuffer&
 
 static bool execute_alembic_export(int currentframe)
 {
-	BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
-
 	AlembicArchive& archive = AlembicArchive::instance();
 	if (!archive.archive)
 	{

@@ -66,6 +66,8 @@ private:
 
 static bool start_pmx_export(const std::string& directory_path, const std::string& model_name)
 {
+	BridgeParameter::mutable_instance().current_export_type = ExportType::PMX;
+
 	// Clear previous export to ensure a clean state
 	PMXArchive::instance().end();
 
@@ -337,8 +339,6 @@ static void export_pmx(int currentframe, bool isfirst)
 
 static bool execute_pmx_export(int currentframe)
 {
-	BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
-
 	PMXArchive& archive = PMXArchive::instance();
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
