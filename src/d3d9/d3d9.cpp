@@ -596,7 +596,7 @@ bool InitializeMMDExports()
 	HMODULE hExe = GetModuleHandle(NULL);
 	if (!hExe)
 	{
-		::MessageBoxW(NULL, L"Failed to get EXE module handle", L"MMD Export Init Error", MB_OK);
+		::MessageBoxW(NULL, L"Failed to get EXE module handle", L"MMD Export Init Error", MB_OK | MB_SETFOREGROUND);
 		g_mmd_exports_initialized = false;
 		return false;
 	}
@@ -609,7 +609,7 @@ bool InitializeMMDExports()
 		std::string error_msg = "Failed to load function: " #name;                 \
 		std::wstring w_error_msg = umbase::UMStringUtil::utf16_to_wstring(         \
 			umbase::UMStringUtil::utf8_to_utf16(error_msg));                       \
-		::MessageBoxW(NULL, w_error_msg.c_str(), L"MMD Export Init Error", MB_OK); \
+		::MessageBoxW(NULL, w_error_msg.c_str(), L"MMD Export Init Error", MB_OK | MB_SETFOREGROUND); \
 		g_mmd_exports_initialized = false;                                         \
 		return false;                                                              \
 	}
@@ -681,7 +681,7 @@ std::wstring to_wstring(T value)
 
 static void messagebox(const std::wstring& message, const std::wstring& title = L"MMDBridge")
 {
-	::MessageBoxW(NULL, message.c_str(), title.c_str(), MB_OK);
+	::MessageBoxW(NULL, message.c_str(), title.c_str(), MB_OK | MB_SETFOREGROUND);
 }
 
 // Hook functions for IDirect3DDevice9
@@ -1616,7 +1616,7 @@ void run_python_script()
 
 		if (PyStatus_Exception(status))
 		{
-			::MessageBoxW(NULL, L"Failed to initialize Python", L"Python Error", MB_OK);
+			::MessageBoxW(NULL, L"Failed to initialize Python", L"Python Error", MB_OK | MB_SETFOREGROUND);
 			return;
 		}
 	}
@@ -1711,7 +1711,7 @@ void run_python_script()
 		std::string error_report_utf8 = error_report.str();
 
 		std::wstring wide_error_message = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(error_report_utf8));
-		::MessageBoxW(NULL, wide_error_message.c_str(), L"MMDBridge Detailed Error Report", MB_OK | MB_ICONERROR);
+		::MessageBoxW(NULL, wide_error_message.c_str(), L"MMDBridge Detailed Error Report", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 	}
 }
 //-----------------------------------------------------------Hook function pointers-----------------------------------------------------------
@@ -1963,7 +1963,7 @@ static bool writeTextureToMemory(const std::wstring& textureName, IDirect3DTextu
 						std::stringstream ss;
 						ss << "Not supported texture format: " << format;
 						std::wstring error_message = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(ss.str()));
-						::MessageBoxW(NULL, error_message.c_str(), L"Info", MB_OK);
+						::MessageBoxW(NULL, error_message.c_str(), L"Info", MB_OK | MB_SETFOREGROUND);
 					}
 				}
 			}
@@ -2170,7 +2170,7 @@ static void OpenSettingsDialog(HWND hWnd)
 		::MessageBoxW(hWnd,
 					  L"Failed to open MMDBridge settings dialog.",
 					  L"Error",
-					  MB_OK | MB_ICONERROR);
+					  MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 	}
 
 	SetThreadUILanguage(original_lang_id);
@@ -2209,7 +2209,7 @@ static void ShowAboutDialog(HWND hWnd)
 	SetThreadUILanguage(original_lang_id);
 
 	swprintf_s(finalMessage, formatBuffer, VERSION_STRING);
-	::MessageBoxW(hWnd, finalMessage, titleBuffer, MB_OK | MB_ICONINFORMATION);
+	::MessageBoxW(hWnd, finalMessage, titleBuffer, MB_OK | MB_SETFOREGROUND | MB_ICONINFORMATION);
 }
 
 static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM lp)
@@ -2534,7 +2534,7 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 static HRESULT WINAPI reset(IDirect3DDevice9* device, D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
 	HRESULT res = (*original_reset)(device, pPresentationParameters);
-	::MessageBoxW(NULL, L"MMDBridge does not support 3D Vision", L"HOGE", MB_OK);
+	::MessageBoxW(NULL, L"MMDBridge does not support 3D Vision", L"HOGE", MB_OK | MB_SETFOREGROUND);
 	return res;
 }
 
@@ -3428,7 +3428,7 @@ void initialize_hooks()
 	g_hCbtHook = SetWindowsHookEx(WH_CBT, CbtHookProc, hInstance, GetCurrentThreadId());
 	if (!g_hCbtHook)
 	{
-		::MessageBoxW(NULL, L"Failed to install CBT hook!", L"Hook Error", MB_OK);
+		::MessageBoxW(NULL, L"Failed to install CBT hook!", L"Hook Error", MB_OK | MB_SETFOREGROUND);
 	}
 	// +++++ CBT HOOK LOGIC END +++++
 
@@ -3439,7 +3439,7 @@ void initialize_hooks()
 		{
 			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"Module handle is null for %s.", funcNameForLog);
-			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			return false;
 		}
 
@@ -3448,7 +3448,7 @@ void initialize_hooks()
 		{
 			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"GetProcAddress for %s failed.", funcNameForLog);
-			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			return false;
 		}
 
@@ -3457,7 +3457,7 @@ void initialize_hooks()
 		{
 			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"MH_CreateHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
-			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			return false;
 		}
 
@@ -3466,7 +3466,7 @@ void initialize_hooks()
 		{
 			wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"MH_EnableHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
-			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK);
+			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			// If enabling the hook fails, remove it to clean up resources.
 			MH_RemoveHook(pTarget);
 			return false;
@@ -3579,7 +3579,7 @@ bool d3d9_initialize()
 	// Initialize MinHook framework. This is safe in DllMain.
 	if (MH_Initialize() != MH_OK)
 	{
-		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK);
+		::MessageBoxW(NULL, L"MH_Initialize failed!", L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 		return false;
 	}
 	// +++++ MINHOOK LOGIC END +++++
@@ -3684,7 +3684,7 @@ BOOL APIENTRY DllMain(HINSTANCE hinst, DWORD reason, LPVOID lpReserved)
 			// Initialize MMD export function pointers
 			if (!InitializeMMDExports())
 			{
-				::MessageBoxW(NULL, L"Failed to initialize MMD export functions", L"Initialization Error", MB_OK);
+				::MessageBoxW(NULL, L"Failed to initialize MMD export functions", L"Initialization Error", MB_OK | MB_SETFOREGROUND);
 				return FALSE;
 			}
 

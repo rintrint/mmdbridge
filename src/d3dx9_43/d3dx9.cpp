@@ -6397,7 +6397,7 @@ BOOL init()
 					  L"This application requires the DirectX End-User Runtimes (June 2010).\n"
 					  L"Please install it and try again.",
 					  L"Missing DirectX Component",
-					  MB_OK | MB_ICONERROR);
+					  MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 		return FALSE;
 	}
 

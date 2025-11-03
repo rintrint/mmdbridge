@@ -57,7 +57,7 @@ namespace umbase
 
 		if (show_message_box_)
 		{
-			::MessageBoxW(NULL, w_message.c_str(), L"hoge", MB_OK);
+			::MessageBoxW(NULL, w_message.c_str(), L"hoge", MB_OK | MB_SETFOREGROUND);
 		}
 #endif
 	}

@@ -47,7 +47,7 @@ static void ShowInvalidBoneNameError()
 				L"https://www.bilibili.com/opus/1102730546871533640\n\n"
 				L"(Press Ctrl+C to copy this message)",
 				L"Error",
-				MB_OK | MB_ICONERROR);
+				MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 }
 
 class FileDataForVMD
@@ -142,7 +142,7 @@ static bool start_vmd_export(
 	if (!CreateDirectoryW(output_path.c_str(), NULL) && GetLastError() != ERROR_ALREADY_EXISTS)
 	{
 		std::wstring error_message = L"Cannot create output folder: " + output_path;
-		::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+		::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 	}
 
 	VMDArchive::instance().output_path = output_path;
@@ -169,7 +169,7 @@ static bool start_vmd_export(
 			else
 			{
 				std::wstring error_message = L"Failed to load pmd file: " + filepath_wstring;
-				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 			}
 			FileDataForVMD data;
 			data.pmd = pmd;
@@ -187,7 +187,7 @@ static bool start_vmd_export(
 			else
 			{
 				std::wstring error_message = L"Failed to open pmx file: " + filepath_wstring;
-				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 			}
 			FileDataForVMD data;
 			data.pmx = pmx;
@@ -204,7 +204,7 @@ static bool start_vmd_export(
 			{
 				error_message = L"This is not a pmd/pmx file: " + filepath_wstring;
 			}
-			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 		}
 	}
 
@@ -370,7 +370,7 @@ static bool end_vmd_export()
 		if (filename_wstring.empty())
 		{
 			std::wstring error_message = L"Unable to get pmd/pmx filepath.";
-			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 			continue;
 		}
 

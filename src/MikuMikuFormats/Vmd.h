@@ -234,7 +234,7 @@ namespace vmd
 			if (stream.fail())
 			{
 				std::wstring error_message = L"Could not open file: " + filename_wstring;
-				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_ICONERROR);
+				::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 				return nullptr;
 			}
 			auto result = LoadFromStream(&stream);
