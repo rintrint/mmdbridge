@@ -2460,11 +2460,14 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		EnumChildWindows(g_hWnd, enumChildWindowsProc, 0);
 	}
 
+	const BridgeParameter& parameter = BridgeParameter::instance();
+	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
+
 	// Update frame data in every frame
 	if (pDestRect)
 	{
-		BridgeParameter::mutable_instance().frame_width = pDestRect->right - pDestRect->left;
-		BridgeParameter::mutable_instance().frame_height = pDestRect->bottom - pDestRect->top;
+		mutable_parameter.frame_width = pDestRect->right - pDestRect->left;
+		mutable_parameter.frame_height = pDestRect->bottom - pDestRect->top;
 	}
 
 	// Run python script during exporting
@@ -2478,8 +2481,6 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		// Define a relative compensation (10 ULP) to prevent frame drops from floating-point undershoots
 		const float RELATIVE_COMPENSATION_RATIO = std::numeric_limits<float>::epsilon() * 10.0f;
 		const float time = original_time + original_time * RELATIVE_COMPENSATION_RATIO;
-
-		const BridgeParameter& parameter = BridgeParameter::instance();
 		// MMD uses 30 fps as its base and calculates interpolated frames.
 		// MMD also exports the interpolated frames between the end frame and end frame + 1. (Handled in Python scripts)
 		int target_frame = static_cast<int>(time * parameter.export_fps);
@@ -2504,7 +2505,7 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		const ExportType export_type = parameter.current_export_type;
 		if (export_type == ExportType::VMD)
 		{
-			BridgeParameter::mutable_instance().is_exporting_with_mesh = false;
+			mutable_parameter.is_exporting_with_mesh = false;
 		}
 
 		exportingPresentCount++;
@@ -2515,15 +2516,15 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 		is_exporting_initialized = false;
 		exportingPresentCount = 0;
 		exportedFrames.clear();
-		BridgeParameter::mutable_instance().current_export_type = ExportType::None;
-		BridgeParameter::mutable_instance().is_exporting_with_mesh = true;
+		mutable_parameter.current_export_type = ExportType::None;
+		mutable_parameter.is_exporting_with_mesh = true;
 	}
 
 	HRESULT res = (*original_present)(device, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 
 	// Always perform cleanup to ensure a clean state for the next frame.
-	BridgeParameter::mutable_instance().finish_buffer_list.clear();
-	BridgeParameter::mutable_instance().render_buffer_map.clear();
+	mutable_parameter.finish_buffer_list.clear();
+	mutable_parameter.render_buffer_map.clear();
 	renderedMaterials.clear();
 	renderData.textureSamplers.clear();
 
