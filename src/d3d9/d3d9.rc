@@ -37,7 +37,7 @@ END
 LANGUAGE 0x04, 0x02 // LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 STRINGTABLE
 BEGIN
-    IDS_MENU_PLUGIN_SETTINGS, "插件设置"
+    IDS_MENU_PLUGIN_SETTINGS, "插件设定"
     IDS_MENU_ABOUT,           "关于 MMDBridge"
     IDS_ABOUT_TITLE,          "关于 MMDBridge"
     IDS_ABOUT_MESSAGE,        "MMDBridge 插件 (rintrint's fork)\n版本: %hs\n\n原作者: Kazuma Hatta\n分支维护: rintrint\n\n问题反馈: https://github.com/rintrint/mmdbridge\n\n(按 Ctrl+C 可复制此消息)"
@@ -67,16 +67,16 @@ FONT 9, "ＭＳ Ｐゴシック", 400, 0, 0x80
 BEGIN
     DEFPUSHBUTTON   "OK", 1, 102, 186, 50, 15
     PUSHBUTTON      "キャンセル", 2, 159, 186, 50, 15
-    LTEXT           "使用するスクリプト", 65535, 12, 13, 140, 8, SS_LEFT
+    LTEXT           "使用するスクリプト", 65535, 10, 13, 140, 8, SS_LEFT
     LTEXT           "スクリプトの呼び出し設定", 3, 10, 55, 140, 8, SS_LEFT
-    COMBOBOX        1101, 10, 31, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        1101, 10, 29, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
     AUTOCHECKBOX    "実行する", 1102, 10, 70, 200, 10
-    PUSHBUTTON      "再検索", 1103, 159, 31, 50, 15
+    PUSHBUTTON      "再検索", 1103, 159, 28, 50, 16
     LTEXT           "出力対象フレーム", 4, 35, 92, 140, 8, SS_LEFT
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "フレームレート", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "フレームレート(AVI出力設定を超えないでください)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
@@ -90,16 +90,16 @@ FONT 9, "Arial", 400, 0, 0x0
 BEGIN
     DEFPUSHBUTTON   "OK", 1, 102, 186, 50, 15
     PUSHBUTTON      "Cancel", 2, 159, 186, 50, 15
-    LTEXT           "Script to use", 65535, 12, 13, 140, 8, SS_LEFT
+    LTEXT           "Script to use", 65535, 10, 13, 140, 8, SS_LEFT
     LTEXT           "Script Execution Settings", 3, 10, 55, 140, 8, SS_LEFT
-    COMBOBOX        1101, 10, 31, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        1101, 10, 29, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
     AUTOCHECKBOX    "Execute on AVI export", 1102, 10, 70, 200, 10
-    PUSHBUTTON      "Reload List", 1103, 159, 31, 50, 15
+    PUSHBUTTON      "Reload List", 1103, 159, 28, 50, 14
     LTEXT           "Frame range to export", 4, 35, 92, 140, 8, SS_LEFT
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "Frame rate", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "Frame rate(please do not exceed AVI export settings)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
@@ -108,21 +108,21 @@ END
 LANGUAGE 0x04, 0x02 // LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 IDD_DIALOG1 DIALOGEX 0, 0, 221, 215
 STYLE DS_SETFONT | DS_3DLOOK | DS_CENTER | DS_MODALFRAME | WS_CAPTION | WS_VISIBLE | WS_POPUP | WS_SYSMENU
-CAPTION "MMDBridge - 插件设置"
+CAPTION "MMDBridge - 插件设定"
 FONT 9, "ＭＳ Ｐゴシック", 400, 0, 0x86
 BEGIN
     DEFPUSHBUTTON   "确定", 1, 102, 186, 50, 15
     PUSHBUTTON      "取消", 2, 159, 186, 50, 15
-    LTEXT           "要使用的脚本", 65535, 12, 13, 140, 8, SS_LEFT
-    LTEXT           "脚本调用设置", 3, 10, 55, 140, 8, SS_LEFT
-    COMBOBOX        1101, 10, 31, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "要使用的脚本", 65535, 10, 13, 140, 8, SS_LEFT
+    LTEXT           "脚本执行设定", 3, 10, 55, 140, 8, SS_LEFT
+    COMBOBOX        1101, 10, 29, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
     AUTOCHECKBOX    "导出AVI时执行", 1102, 10, 70, 200, 10
-    PUSHBUTTON      "刷新列表", 1103, 159, 31, 50, 15
+    PUSHBUTTON      "刷新列表", 1103, 159, 28, 50, 16
     LTEXT           "导出帧范围", 4, 35, 92, 140, 8, SS_LEFT
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "帧率", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "帧率(请不要超过AVI导出设定)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
@@ -136,16 +136,16 @@ FONT 9, "ＭＳ Ｐゴシック", 400, 0, 0x88
 BEGIN
     DEFPUSHBUTTON   "確定", 1, 102, 186, 50, 15
     PUSHBUTTON      "取消", 2, 159, 186, 50, 15
-    LTEXT           "要使用的腳本", 65535, 12, 13, 140, 8, SS_LEFT
-    LTEXT           "腳本呼叫設定", 3, 10, 55, 140, 8, SS_LEFT
-    COMBOBOX        1101, 10, 31, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "要使用的腳本", 65535, 10, 13, 140, 8, SS_LEFT
+    LTEXT           "腳本執行設定", 3, 10, 55, 140, 8, SS_LEFT
+    COMBOBOX        1101, 10, 29, 143, 100, CBS_DROPDOWN | CBS_HASSTRINGS | WS_VSCROLL | WS_TABSTOP
     AUTOCHECKBOX    "導出AVI時執行", 1102, 10, 70, 200, 10
-    PUSHBUTTON      "刷新列表", 1103, 159, 31, 50, 15
-    LTEXT           "導出影格範圍", 4, 35, 92, 140, 8, SS_LEFT
+    PUSHBUTTON      "刷新列表", 1103, 159, 28, 50, 16
+    LTEXT           "導出幀範圍", 4, 35, 92, 140, 8, SS_LEFT
     EDITTEXT        1104, 46, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     EDITTEXT        1105, 116, 108, 50, 15, ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "～", 5, 102, 111, 8, 8, SS_LEFT
-    LTEXT           "幀率", 6, 35, 138, 185, 8, SS_LEFT
+    LTEXT           "幀率(請不要超過AVI導出設定)", 6, 35, 138, 185, 8, SS_LEFT
     EDITTEXT        1108, 83, 154, 50, 15, ES_AUTOHSCROLL
     LTEXT           "fps", 7, 139, 158, 70, 8, SS_LEFT
 END
