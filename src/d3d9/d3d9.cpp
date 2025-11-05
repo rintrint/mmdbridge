@@ -2112,13 +2112,10 @@ void SaveSettings()
 
 static void setMyMenu()
 {
-	if (g_hMenu)
-		return;
-	if (g_hWnd)
+	if (g_hWnd && g_hMenu)
 	{
-		HMENU hmenu = GetMenu(g_hWnd);
 		HMENU hsubs = CreatePopupMenu();
-		int count = GetMenuItemCount(hmenu);
+		int count = GetMenuItemCount(g_hMenu);
 
 		MENUITEMINFO minfo = { 0 };
 		minfo.cbSize = sizeof(MENUITEMINFO);
@@ -2128,7 +2125,7 @@ static void setMyMenu()
 		minfo.dwTypeData = bridgeMenuText;
 		minfo.hSubMenu = hsubs;
 
-		InsertMenuItem(hmenu, count + 1, TRUE, &minfo);
+		InsertMenuItem(g_hMenu, count + 1, TRUE, &minfo);
 		minfo.fMask = MIIM_ID | MIIM_TYPE;
 		minfo.dwTypeData = L"Plugin Settings";
 		minfo.wID = IDS_MENU_PLUGIN_SETTINGS;
@@ -2139,8 +2136,7 @@ static void setMyMenu()
 		minfo.wID = IDS_MENU_ABOUT;
 		InsertMenuItem(hsubs, 2, TRUE, &minfo);
 
-		SetMenu(g_hWnd, hmenu);
-		g_hMenu = hmenu;
+		SetMenu(g_hWnd, g_hMenu);
 	}
 }
 
@@ -2444,8 +2440,12 @@ static HRESULT WINAPI present(IDirect3DDevice9* device, const RECT* pSourceRect,
 	{
 		if (g_hWnd)
 		{
-			overrideGLWindow();
-			g_is_window_hooked = true;
+			g_hMenu = GetMenu(g_hWnd);
+			if (g_hMenu)
+			{
+				overrideGLWindow();
+				g_is_window_hooked = true;
+			}
 		}
 	}
 
