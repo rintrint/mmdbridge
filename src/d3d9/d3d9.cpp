@@ -602,16 +602,16 @@ bool InitializeMMDExports()
 	}
 
 // Load all function pointers
-#define LOAD_FUNC(name)                                                            \
-	name = (decltype(name))GetProcAddress(hExe, #name);                            \
-	if (!name)                                                                     \
-	{                                                                              \
-		std::string error_msg = "Failed to load function: " #name;                 \
-		std::wstring w_error_msg = umbase::UMStringUtil::utf16_to_wstring(         \
-			umbase::UMStringUtil::utf8_to_utf16(error_msg));                       \
+#define LOAD_FUNC(name)                                                                               \
+	name = (decltype(name))GetProcAddress(hExe, #name);                                               \
+	if (!name)                                                                                        \
+	{                                                                                                 \
+		std::string error_msg = "Failed to load function: " #name;                                    \
+		std::wstring w_error_msg = umbase::UMStringUtil::utf16_to_wstring(                            \
+			umbase::UMStringUtil::utf8_to_utf16(error_msg));                                          \
 		::MessageBoxW(NULL, w_error_msg.c_str(), L"MMD Export Init Error", MB_OK | MB_SETFOREGROUND); \
-		g_mmd_exports_initialized = false;                                         \
-		return false;                                                              \
+		g_mmd_exports_initialized = false;                                                            \
+		return false;                                                                                 \
 	}
 
 	// PMD related functions
