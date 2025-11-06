@@ -803,7 +803,7 @@ static bool execute_vmd_export(const int currentframe)
 			}
 			else // This is a FK bone
 			{
-				if (!is_simulated_physics_bone && archive.export_fk_bone_animation_mode == 0) // 0 = simulated physics bones only
+				if (!is_simulated_physics_bone && archive.export_fk_bone_animation_mode == 0) // 0: Simulated physics bones only
 				{
 					continue;
 				}
@@ -812,9 +812,9 @@ static bool execute_vmd_export(const int currentframe)
 			// Use helper function to calculate bone frame
 			vmd::VmdBoneFrame bone_frame = calculate_bone_frame(i, k, currentframe, file_data);
 
-			if (archive.export_fk_bone_animation_mode == 1) // 1 = All FK bones, keep 付与親 constraint (for MMD, MMD Tools)
+			if (archive.export_fk_bone_animation_mode == 1) // 1: All FK bones. Exclude 付与親 and Bone Morph influences from bone animation. (For MMD / MMD Tools, which re-apply them at runtime)
 			{
-				// Remove grant parent influence if this is a grant child bone
+				// Remove grant parent influence
 				if (file_data.pmx && k < static_cast<int>(file_data.pmx->bones.size()))
 				{
 					const pmx::PmxBone& current_bone = file_data.pmx->bones[k];
@@ -837,7 +837,7 @@ static bool execute_vmd_export(const int currentframe)
 							bone_frame.position[2] -= grant_parent_frame.position[2] * grant_weight;
 						}
 
-						// Remove rotation grant influence - using Imath::Quat
+						// Remove rotation grant influence
 						if (grant_flags & 0x0100) // Rotation grant
 						{
 							// Create Imath quaternion objects
@@ -871,10 +871,120 @@ static bool execute_vmd_export(const int currentframe)
 						}
 					}
 				}
+
+				// Remove bone morph influence
+				if (file_data.pmx)
+				{
+					Imath::Vec3 total_pos_offset(0.0f, 0.0f, 0.0f);
+					Imath::Quatf total_rot_offset = Imath::Quatf::identity();
+					const int morph_num = ExpGetPmdMorphNum(i);
+
+					for (int m = 0; m < morph_num; ++m)
+					{
+						const float morph_weight = ExpGetPmdMorphValue(i, m);
+						if (morph_weight == 0.0f)
+						{
+							continue;
+						}
+
+						// Validate morph name mapping (safety check)
+						const char* morph_name = ExpGetPmdMorphName(i, m);
+						auto it = file_data.morph_name_map.find(m);
+						if (it == file_data.morph_name_map.end() || it->second != morph_name)
+						{
+							continue;
+						}
+
+						const pmx::PmxMorph& morph = file_data.pmx->morphs[m];
+
+						// Case 1: Direct Bone Morph
+						if (morph.morph_type == pmx::MorphType::Bone)
+						{
+							for (const auto& bone_offset : morph.bone_offsets)
+							{
+								if (bone_offset.bone_index == k)
+								{
+									// Accumulate position offset
+									total_pos_offset.x += bone_offset.translation[0] * morph_weight;
+									total_pos_offset.y += bone_offset.translation[1] * morph_weight;
+									total_pos_offset.z += bone_offset.translation[2] * morph_weight;
+
+									// Accumulate rotation offset
+									Imath::Quatf offset_quat(bone_offset.rotation[3],  // w
+															 bone_offset.rotation[0],  // x
+															 bone_offset.rotation[1],  // y
+															 bone_offset.rotation[2]); // z
+									Imath::Quatf slerped_rot = slerpShortestArc(Imath::Quatf::identity(), offset_quat, morph_weight);
+									total_rot_offset = slerped_rot * total_rot_offset; // Apply in order
+								}
+							}
+						}
+						// Case 2: Group Morph (which might contain Bone Morphs)
+						else if (morph.morph_type == pmx::MorphType::Group)
+						{
+							for (const auto& group_offset : morph.group_offsets)
+							{
+								const float effective_weight = morph_weight * group_offset.morph_weight;
+								if (effective_weight == 0.0f ||
+									group_offset.morph_index < 0 ||
+									group_offset.morph_index >= file_data.pmx->morphs.size())
+								{
+									continue;
+								}
+
+								const pmx::PmxMorph& child_morph = file_data.pmx->morphs[group_offset.morph_index];
+								if (child_morph.morph_type == pmx::MorphType::Bone)
+								{
+									for (const auto& bone_offset : child_morph.bone_offsets)
+									{
+										if (bone_offset.bone_index == k)
+										{
+											// Accumulate position offset
+											total_pos_offset.x += bone_offset.translation[0] * effective_weight;
+											total_pos_offset.y += bone_offset.translation[1] * effective_weight;
+											total_pos_offset.z += bone_offset.translation[2] * effective_weight;
+
+											// Accumulate rotation offset
+											Imath::Quatf offset_quat(bone_offset.rotation[3],  // w
+																	 bone_offset.rotation[0],  // x
+																	 bone_offset.rotation[1],  // y
+																	 bone_offset.rotation[2]); // z
+											Imath::Quatf slerped_rot = slerpShortestArc(Imath::Quatf::identity(), offset_quat, effective_weight);
+											total_rot_offset = slerped_rot * total_rot_offset; // Apply in order
+										}
+									}
+								}
+							}
+						}
+					}
+
+					// If any morph affected this bone, apply the total inverse transform
+					if (total_pos_offset.length2() > 1e-6f || std::abs(total_rot_offset.r - 1.0f) > 1e-6f)
+					{
+						// Remove position influence
+						bone_frame.position[0] -= total_pos_offset.x;
+						bone_frame.position[1] -= total_pos_offset.y;
+						bone_frame.position[2] -= total_pos_offset.z;
+
+						// Remove rotation influence
+						Imath::Quatf current_quat(bone_frame.orientation[3],  // w
+												  bone_frame.orientation[0],  // x
+												  bone_frame.orientation[1],  // y
+												  bone_frame.orientation[2]); // z
+
+						Imath::Quatf pure_quat = current_quat * total_rot_offset.inverse();
+						pure_quat.normalize();
+
+						bone_frame.orientation[0] = pure_quat.v.x;
+						bone_frame.orientation[1] = pure_quat.v.y;
+						bone_frame.orientation[2] = pure_quat.v.z;
+						bone_frame.orientation[3] = pure_quat.r;
+					}
+				}
 			}
-			else // 2 = All FK bones, bake 付与親 constraint to FK
+			else // 2: All FK bones. Bake all influences (付与親, Bone Morph) into bone animation. (For other 3D software)
 			{
-				// Keep grant parent influence
+				// Keep grant parent and bone morph influence
 				// The FK animation is already baked, do nothing
 			}
 

@@ -14,10 +14,10 @@ from mmdbridge_vmd import *
 # --- Bone Animation Settings ---
 # Export FK bone animation
 export_fk_bone_animation = True
-# FK bone animation export mode:
-# 0 = Simulated physics bones only
-# 1 = All FK bones, keep 付与親 constraint (for MMD, MMD Tools)
-# 2 = All FK bones, bake 付与親 constraint to FK
+# FK bone animation export mode
+# 0: Simulated physics bones only
+# 1: All FK bones. Exclude 付与親 and Bone Morph influences from bone animation. (For MMD / MMD Tools, which re-apply them at runtime)
+# 2: All FK bones. Bake all influences (付与親, Bone Morph) into bone animation. (For other 3D software)
 export_fk_bone_animation_mode = 1
 
 # Export IK bone animation
