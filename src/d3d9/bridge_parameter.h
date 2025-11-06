@@ -5,12 +5,12 @@
 #include <map>
 #include "d3d9.h"
 
-enum class ExportType
+enum class ExportType : uint8_t
 {
-	None,
-	Alembic,
-	PMX,
-	VMD,
+	None = 0,
+	Alembic = 1,
+	PMX = 2,
+	VMD = 3,
 };
 
 struct EncodingHookSetting
