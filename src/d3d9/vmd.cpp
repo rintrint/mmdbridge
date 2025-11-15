@@ -822,7 +822,7 @@ static bool execute_vmd_export(const int currentframe)
 					continue;
 				}
 			}
-			else // This is a FK bone
+			else // This is an FK bone
 			{
 				if (!is_simulated_physics_bone && archive.export_fk_bone_animation_mode == 0) // 0: Simulated physics bones only
 				{
