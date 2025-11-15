@@ -422,6 +422,27 @@ static void init_file_data(FileDataForVMD& data)
 			{
 				data.ik_frame_bone_map[i] = 1;
 			}
+			// fuyo
+			if (bone.bone_type == pmd::BoneType::RotationEffectable) // Type 5
+			{
+				// For Type 5, the ik_parent_bone_index field stores the grant parent's index
+				const int grant_parent_index = (bone.ik_parent_bone_index == 0xFFFF) ? -1 : bone.ik_parent_bone_index;
+				if (grant_parent_index >= 0)
+				{
+					data.fuyo_target_map[grant_parent_index] = 1;
+					data.fuyo_bone_map[i] = 1;
+				}
+			}
+			else if (bone.bone_type == pmd::BoneType::RotationMovement) // Type 9
+			{
+				// For Type 9, the tail_pos_bone_index field stores the grant parent's index
+				const int grant_parent_index = (bone.tail_pos_bone_index == 0xFFFF) ? -1 : bone.tail_pos_bone_index;
+				if (grant_parent_index >= 0)
+				{
+					data.fuyo_target_map[grant_parent_index] = 1;
+					data.fuyo_bone_map[i] = 1;
+				}
+			}
 		}
 		// morph (face)
 		const std::vector<pmd::PmdFace>& faces = data.pmd->faces;
@@ -871,8 +892,57 @@ static bool execute_vmd_export(const int currentframe)
 						}
 					}
 				}
+				else if (file_data.pmd && k < static_cast<int>(file_data.pmd->bones.size()))
+				{
+					const pmd::PmdBone& current_bone = file_data.pmd->bones[k];
+					int grant_parent_index = -1;
+					float grant_weight = 0.0f;
+					bool grant_rotation = false;
+					// pmd grant parent only supports rotation (RotationEffectable and RotationMovement)
 
-				// Remove bone morph influence
+					if (current_bone.bone_type == pmd::BoneType::RotationEffectable) // Type 5
+					{
+						grant_parent_index = (current_bone.ik_parent_bone_index == 0xFFFF) ? -1 : current_bone.ik_parent_bone_index;
+						grant_weight = 1.0f;
+						grant_rotation = true;
+					}
+					else if (current_bone.bone_type == pmd::BoneType::RotationMovement) // Type 9
+					{
+						grant_parent_index = (current_bone.tail_pos_bone_index == 0xFFFF) ? -1 : current_bone.tail_pos_bone_index;
+						// For Type 9, the ik_parent_bone_index field stores the weight
+						grant_weight = static_cast<float>(current_bone.ik_parent_bone_index) / 100.0f;
+						grant_rotation = true;
+					}
+
+					if (grant_rotation && grant_parent_index >= 0 &&
+						grant_parent_index < static_cast<int>(file_data.pmd->bones.size()))
+					{
+						// Calculate grant parent bone frame
+						vmd::VmdBoneFrame grant_parent_frame = calculate_bone_frame(i, grant_parent_index, currentframe, file_data);
+
+						// Remove the influence of rotation grant
+						Imath::Quatf current_quat(bone_frame.orientation[3],
+												  bone_frame.orientation[0],
+												  bone_frame.orientation[1],
+												  bone_frame.orientation[2]);
+						Imath::Quatf parent_quat(grant_parent_frame.orientation[3],
+												 grant_parent_frame.orientation[0],
+												 grant_parent_frame.orientation[1],
+												 grant_parent_frame.orientation[2]);
+
+						Imath::Quatf identity = Imath::Quatf::identity();
+						Imath::Quatf scaled_parent_quat = slerpShortestArc(identity, parent_quat, grant_weight);
+						Imath::Quatf pure_quat = current_quat * scaled_parent_quat.inverse();
+						pure_quat.normalize();
+
+						bone_frame.orientation[0] = pure_quat.v.x;
+						bone_frame.orientation[1] = pure_quat.v.y;
+						bone_frame.orientation[2] = pure_quat.v.z;
+						bone_frame.orientation[3] = pure_quat.r;
+					}
+				}
+
+				// Remove bone morph influence (pmd doesn't have bone morph)
 				if (file_data.pmx)
 				{
 					Imath::Vec3 total_pos_offset(0.0f, 0.0f, 0.0f);
