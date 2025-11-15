@@ -50,6 +50,16 @@ static void ShowInvalidBoneNameError()
 				MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 }
 
+static void ShowInvalidIkParentError()
+{
+	MessageBoxW(NULL,
+				L"Invalid IK parent detected.\n\n"
+				L"An FK bone was found parented to an IK bone. This is invalid and may cause errors when baking the VMD. "
+				L"Please fix the model so that no FK bone is parented to an IK bone.",
+				L"Error",
+				MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
+}
+
 class FileDataForVMD
 {
 public:
@@ -98,6 +108,7 @@ public:
 	std::vector<FileDataForVMD> data_list;
 	std::wstring output_path;
 	bool has_bone_name_error = false;
+	bool has_invalid_ik_parent_error = false;
 
 	// export settings
 	int export_fk_bone_animation_mode = 1;
@@ -110,6 +121,7 @@ public:
 		data_list.clear();
 		output_path.clear();
 		has_bone_name_error = false;
+		has_invalid_ik_parent_error = false;
 	}
 
 	~VMDArchive() = default;
@@ -309,6 +321,12 @@ static bool end_vmd_export()
 	{
 		archive.end();
 		ShowInvalidBoneNameError();
+		return false;
+	}
+	if (archive.has_invalid_ik_parent_error)
+	{
+		archive.end();
+		ShowInvalidIkParentError();
 		return false;
 	}
 
@@ -604,6 +622,42 @@ static void init_file_data(FileDataForVMD& data)
 			std::string morph_name;
 			oguna::EncodingConverter::Utf16ToCp932(morph.morph_name.c_str(), static_cast<int>(morph.morph_name.length()), &morph_name);
 			data.morph_name_map[i] = morph_name;
+		}
+	}
+
+	// Detect has_invalid_ik_parent_error
+	VMDArchive& archive = VMDArchive::instance();
+	int bone_count = 0;
+	if (data.pmd)
+	{
+		bone_count = static_cast<int>(data.pmd->bones.size());
+	}
+	else if (data.pmx)
+	{
+		bone_count = static_cast<int>(data.pmx->bones.size());
+	}
+	for (int i = 0; i < bone_count; ++i)
+	{
+		// Skip IK bone
+		if (data.ik_frame_bone_map.count(i) > 0)
+		{
+			continue;
+		}
+		// Get the parent bone of an FK bone
+		if (data.parent_index_map.find(i) == data.parent_index_map.end())
+		{
+			continue;
+		}
+		const int parent_index = data.parent_index_map.at(i);
+		if (parent_index < 0)
+		{
+			continue;
+		}
+		// Check if the parent bone is an IK bone
+		if (data.ik_frame_bone_map.count(parent_index) > 0)
+		{
+			archive.has_invalid_ik_parent_error = true;
+			break;
 		}
 	}
 }
