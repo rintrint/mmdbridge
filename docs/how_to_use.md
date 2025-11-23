@@ -1,5 +1,17 @@
 # How to Use
 
+## Choosing MMD Executable and Language
+
+MMDBridge supports multiple languages.
+
+![language_01_executable_versions](images/language_01_executable_versions.png)
+
+You can also switch to English mode.
+
+![language_02_toggle_english_mode](images/language_02_toggle_english_mode.png)
+
+## Model Validation
+
 Before you begin, make sure to **check your model using both PMXEditor and MMD Tools**. Each detects different types of issues, and skipping either may cause unexpected problems that are hard to debug.
 
 ![check_01_pmxeditor](images/check_01_pmxeditor.png)
@@ -9,6 +21,8 @@ Before you begin, make sure to **check your model using both PMXEditor and MMD T
 ![check_03_mmd_tools](images/check_03_mmd_tools.png)
 
 ![check_04_mmd_tools_validation](images/check_04_mmd_tools_validation.png)
+
+## Exporting Data
 
 Open MMD and click on MMDBridge in the top menu to open the Plugin Settings panel.
 
