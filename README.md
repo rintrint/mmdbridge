@@ -20,6 +20,10 @@ Before running, please ensure you have installed the following system components
 
 For detailed instructions, please refer to the [User Guide](docs/how_to_use.md).
 
+### Known Issues
+
+* MMDBridge and MME are currently incompatible. They cannot be used together.
+
 ---
 
 ## For Developers
