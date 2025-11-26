@@ -3094,16 +3094,16 @@ static HRESULT WINAPI drawIndexedPrimitive(
 						if (indexDesc.Format == D3DFMT_INDEX16)
 						{
 							WORD* p = (WORD*)pIndexBuf;
-							face.x = static_cast<int>((p[startIndex + i + 0]) + 1);
-							face.y = static_cast<int>((p[startIndex + i + 1]) + 1);
-							face.z = static_cast<int>((p[startIndex + i + 2]) + 1);
+							face.x = static_cast<int>(p[startIndex + i + 0] + baseVertexIndex + 1);
+							face.y = static_cast<int>(p[startIndex + i + 1] + baseVertexIndex + 1);
+							face.z = static_cast<int>(p[startIndex + i + 2] + baseVertexIndex + 1);
 						}
 						else
 						{
 							DWORD* p = (DWORD*)pIndexBuf;
-							face.x = static_cast<int>((p[startIndex + i + 0]) + 1);
-							face.y = static_cast<int>((p[startIndex + i + 1]) + 1);
-							face.z = static_cast<int>((p[startIndex + i + 2]) + 1);
+							face.x = static_cast<int>(p[startIndex + i + 0] + baseVertexIndex + 1);
+							face.y = static_cast<int>(p[startIndex + i + 1] + baseVertexIndex + 1);
+							face.z = static_cast<int>(p[startIndex + i + 2] + baseVertexIndex + 1);
 						}
 						const size_t vsize = renderedBuffer.vertecies.size();
 						if (face.x > vsize || face.y > vsize || face.z > vsize)
