@@ -915,9 +915,9 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	RenderedBuffer::NormalList& temporary_normal = archive.temporary_normal_list;
 	RenderedBuffer::UVList& temporary_uv = archive.temporary_uv_list;
 
-	temporary_vertex.resize(vertexList.size());
-	temporary_normal.resize(normalList.size());
-	temporary_uv.resize(uvList.size());
+	temporary_vertex = vertexList;
+	temporary_normal = normalList;
+	temporary_uv = uvList;
 
 	const size_t materialSize = renderedBuffer.materials.size();
 
@@ -962,9 +962,9 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 	// vertex
-	for (size_t n = 0, nsize = vertexList.size(); n < nsize; ++n)
+	for (size_t n = 0, nsize = temporary_vertex.size(); n < nsize; ++n)
 	{
-		temporary_vertex[n].z = -vertexList[n].z;
+		temporary_vertex[n].z = -temporary_vertex[n].z;
 	}
 	Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&temporary_vertex.front(), temporary_vertex.size());
 	sample.setPositions(positions);
@@ -979,11 +979,11 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	}
 
 	// UVs
-	if (!uvList.empty() && archive.is_export_uvs)
+	if (!temporary_uv.empty() && archive.is_export_uvs)
 	{
-		for (size_t n = 0, nsize = uvList.size(); n < nsize; ++n)
+		for (size_t n = 0, nsize = temporary_uv.size(); n < nsize; ++n)
 		{
-			temporary_uv[n].y = 1.0f - uvList[n].y;
+			temporary_uv[n].y = 1.0f - temporary_uv[n].y;
 		}
 		Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
 		uvSample.setScope(Alembic::AbcGeom::kVertexScope);
@@ -992,11 +992,11 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	}
 
 	// Normals
-	if (!normalList.empty() && archive.is_export_normals)
+	if (!temporary_normal.empty() && archive.is_export_normals)
 	{
-		for (size_t n = 0, nsize = normalList.size(); n < nsize; ++n)
+		for (size_t n = 0, nsize = temporary_normal.size(); n < nsize; ++n)
 		{
-			temporary_normal[n].z = -normalList[n].z;
+			temporary_normal[n].z = -temporary_normal[n].z;
 		}
 		Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
 		normalSample.setScope(Alembic::AbcGeom::kVertexScope);
