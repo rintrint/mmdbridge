@@ -106,6 +106,7 @@ public:
 	typedef std::map<int, int> QuadViToCountMap;
 	QuadViToCountMap quadvi_count_map;
 
+	float export_scale;
 	bool is_export_normals;
 	bool is_export_uvs;
 	int export_mode;
@@ -147,12 +148,13 @@ public:
 
 private:
 	AlembicArchive()
-		: archive(nullptr), timeindex(0), export_mode(0), is_use_euler_rotation_camera(false) {}
+		: archive(nullptr), timeindex(0), export_mode(0), export_scale(1.0f), is_use_euler_rotation_camera(false) {}
 };
 
 static bool start_alembic_export(
 	const std::wstring& filepath,
 	int export_mode,
+	float export_scale,
 	bool isExportNomals,
 	bool is_export_uvs,
 	bool is_use_euler_rotation_camera,
@@ -203,6 +205,7 @@ static bool start_alembic_export(
 	const double dt = 1.0 / parameter.export_fps;
 	alembic_archive.timesampling = std::make_shared<AbcA::TimeSampling>(dt, 0.0);
 	alembic_archive.archive->addTimeSampling(*alembic_archive.timesampling);
+	alembic_archive.export_scale = export_scale;
 	alembic_archive.is_export_normals = (isExportNomals != 0);
 	alembic_archive.is_export_uvs = (is_export_uvs != 0);
 	alembic_archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
@@ -620,9 +623,13 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 		preSurfaceSize = material->surface.faces.size();
 		vertexListByMaterial.resize(fiToVi.size());
 		normalListByMaterial.resize(fiToVi.size());
+
+		const float scale = archive.export_scale;
 		for (size_t n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
 		{
-			vertexListByMaterial[n].z = -vertexListByMaterial[n].z;
+			vertexListByMaterial[n].x *= scale;
+			vertexListByMaterial[n].y *= scale;
+			vertexListByMaterial[n].z *= -scale;
 		}
 
 		if (isFirstMesh && isConvertToQuad)
@@ -820,9 +827,12 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 
 		preSurfaceSize = material->surface.faces.size();
 
+		const float scale = archive.export_scale;
 		for (size_t n = 0, nsize = vertexListByMaterial.size(); n < nsize; ++n)
 		{
-			vertexListByMaterial[n].z = -vertexListByMaterial[n].z;
+			vertexListByMaterial[n].x *= scale;
+			vertexListByMaterial[n].y *= scale;
+			vertexListByMaterial[n].z *= -scale;
 		}
 
 		Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
@@ -962,9 +972,12 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 	// vertex
+	const float scale = archive.export_scale;
 	for (size_t n = 0, nsize = temporary_vertex.size(); n < nsize; ++n)
 	{
-		temporary_vertex[n].z = -temporary_vertex[n].z;
+		temporary_vertex[n].x *= scale;
+		temporary_vertex[n].y *= scale;
+		temporary_vertex[n].z *= -scale;
 	}
 	Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&temporary_vertex.front(), temporary_vertex.size());
 	sample.setPositions(positions);
@@ -1157,8 +1170,9 @@ static void export_alembic_camera(AlembicArchive& archive, const RenderedBuffer&
 			::D3DXVec3Normalize(&up, &up);
 		}
 
+		const float scale = archive.export_scale;
 		Imath::V3d trans((double)eye.x, (double)eye.y, (double)(eye.z));
-		xformSample.setTranslation(trans);
+		xformSample.setTranslation(trans * scale);
 
 		D3DXMATRIX view;
 		::D3DXMatrixLookAtLH(&view, &eye, &at, &up);
