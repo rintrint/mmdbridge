@@ -155,7 +155,7 @@ static bool start_alembic_export(
 	const std::wstring& filepath,
 	int export_mode,
 	float export_scale,
-	bool isExportNomals,
+	bool is_export_normals,
 	bool is_export_uvs,
 	bool is_use_euler_rotation_camera,
 	bool is_use_ogawa)
@@ -206,7 +206,7 @@ static bool start_alembic_export(
 	alembic_archive.timesampling = std::make_shared<AbcA::TimeSampling>(dt, 0.0);
 	alembic_archive.archive->addTimeSampling(*alembic_archive.timesampling);
 	alembic_archive.export_scale = export_scale;
-	alembic_archive.is_export_normals = (isExportNomals != 0);
+	alembic_archive.is_export_normals = (is_export_normals != 0);
 	alembic_archive.is_export_uvs = (is_export_uvs != 0);
 	alembic_archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
 	alembic_archive.export_mode = export_mode;

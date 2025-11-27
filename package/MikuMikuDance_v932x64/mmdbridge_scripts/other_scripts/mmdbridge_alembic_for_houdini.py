@@ -9,8 +9,8 @@ import time
 
 # settings
 export_scale = 0.08
-export_normals = True
-export_uvs = True
+is_export_normals = True
+is_export_uvs = True
 is_use_euler_rotation_for_camera = True
 is_use_ogawa = True
 
@@ -110,7 +110,7 @@ if framenumber == start_frame:
     messagebox("alembic export started.")
     export_mtl(mtlpath, export_mode)
     copy_textures(texture_export_dir.replace("/", "\\"))
-    start_alembic_export("", export_mode, export_scale, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
+    start_alembic_export("", export_mode, export_scale, is_export_normals, is_export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
 
 if start_frame <= framenumber <= end_frame:
     execute_alembic_export(framenumber)
