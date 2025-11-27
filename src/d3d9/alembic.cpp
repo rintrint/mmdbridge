@@ -147,7 +147,7 @@ public:
 
 private:
 	AlembicArchive()
-		: archive(nullptr), timeindex(0), export_mode(0), export_scale(1.0f), is_use_euler_rotation_for_camera(false) {}
+		: archive(nullptr), timeindex(0), export_mode(0), export_scale(1.0f), is_use_euler_rotation_for_camera(true) {}
 };
 
 static bool start_alembic_export(
