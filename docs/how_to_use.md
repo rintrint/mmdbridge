@@ -39,3 +39,7 @@ The Python script will execute when render to AVI file.
 After exporting, the files will be located in the "out" folder.
 
 ![export_05_output_location](images/export_05_output_location.png)
+
+## Advanced Settings
+
+See the Python scripts for additional settings and descriptions.
