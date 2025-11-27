@@ -69,8 +69,8 @@ public:
 		return instance;
 	}
 
-	std::unique_ptr<Alembic::Abc::OArchive> archive;
-	AbcA::uint32_t timeindex;
+	std::unique_ptr<Alembic::Abc::OArchive> archive = nullptr;
+	AbcA::uint32_t timeindex = 0;
 	AbcA::TimeSamplingPtr timesampling;
 	std::shared_ptr<std::ofstream> m_stream;
 
@@ -106,11 +106,11 @@ public:
 	typedef std::map<int, int> QuadViToCountMap;
 	QuadViToCountMap quadvi_count_map;
 
-	float export_scale;
-	bool is_export_normals;
-	bool is_export_uvs;
-	bool is_use_euler_rotation_for_camera;
-	int export_mode;
+	float export_scale = 1.0f;
+	bool is_export_normals = true;
+	bool is_export_uvs = true;
+	bool is_use_euler_rotation_for_camera = true;
+	int export_mode = 0;
 
 	RenderedBuffer::UVList temporary_uv_list;
 	RenderedBuffer::NormalList temporary_normal_list;
@@ -145,9 +145,10 @@ public:
 		m_stream = {};
 	}
 
+	~AlembicArchive() = default;
+
 private:
-	AlembicArchive()
-		: archive(nullptr), timeindex(0), export_mode(0), export_scale(1.0f), is_use_euler_rotation_for_camera(true) {}
+	AlembicArchive() = default;
 };
 
 static bool start_alembic_export(

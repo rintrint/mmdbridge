@@ -58,10 +58,11 @@ public:
 		base_vertex_list.clear();
 		morph_list.clear();
 	}
-	~PMXArchive() {}
+
+	~PMXArchive() = default;
 
 private:
-	PMXArchive() {}
+	PMXArchive() = default;
 };
 
 static bool start_pmx_export(const std::string& directory_path, const std::string& model_name)
