@@ -109,7 +109,7 @@ public:
 	float export_scale;
 	bool is_export_normals;
 	bool is_export_uvs;
-	bool is_use_euler_rotation_camera;
+	bool is_use_euler_rotation_for_camera;
 	int export_mode;
 
 	RenderedBuffer::UVList temporary_uv_list;
@@ -147,7 +147,7 @@ public:
 
 private:
 	AlembicArchive()
-		: archive(nullptr), timeindex(0), export_mode(0), export_scale(1.0f), is_use_euler_rotation_camera(false) {}
+		: archive(nullptr), timeindex(0), export_mode(0), export_scale(1.0f), is_use_euler_rotation_for_camera(false) {}
 };
 
 static bool start_alembic_export(
@@ -156,7 +156,7 @@ static bool start_alembic_export(
 	float export_scale,
 	bool is_export_normals,
 	bool is_export_uvs,
-	bool is_use_euler_rotation_camera,
+	bool is_use_euler_rotation_for_camera,
 	bool is_use_ogawa)
 {
 	BridgeParameter::mutable_instance().current_export_type = ExportType::Alembic;
@@ -207,7 +207,7 @@ static bool start_alembic_export(
 	alembic_archive.export_scale = export_scale;
 	alembic_archive.is_export_normals = (is_export_normals != 0);
 	alembic_archive.is_export_uvs = (is_export_uvs != 0);
-	alembic_archive.is_use_euler_rotation_camera = (is_use_euler_rotation_camera != 0);
+	alembic_archive.is_use_euler_rotation_for_camera = (is_use_euler_rotation_for_camera != 0);
 	alembic_archive.export_mode = export_mode;
 
 	return true;
@@ -1264,7 +1264,7 @@ static bool execute_alembic_export(int currentframe)
 
 		if (!exportedCamera && !renderedBuffer.isAccessory)
 		{
-			export_alembic_camera(archive, renderedBuffer, archive.is_use_euler_rotation_camera);
+			export_alembic_camera(archive, renderedBuffer, archive.is_use_euler_rotation_for_camera);
 			exportedCamera = true;
 		}
 	}
