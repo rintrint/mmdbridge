@@ -505,13 +505,13 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 		std::vector<Alembic::Util::int32_t> faceList;
 		std::vector<Alembic::Util::int32_t> faceCountList;
 
-		const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
 		const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
 		const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
+		const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
 
 		RenderedBuffer::VertexList vertexListByMaterial;
-		RenderedBuffer::UVList uvListByMaterial;
 		RenderedBuffer::NormalList normalListByMaterial;
+		RenderedBuffer::UVList uvListByMaterial;
 
 		const auto& material = renderedBuffer.materials.at(k);
 		const int materialSurfaceSize = static_cast<int>(material->surface.faces.size());
@@ -755,13 +755,13 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 		std::vector<Alembic::Util::int32_t> faceList;
 		std::vector<Alembic::Util::int32_t> faceCountList;
 
-		const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
 		const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
 		const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
+		const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
 
 		RenderedBuffer::VertexList vertexListByMaterial;
-		RenderedBuffer::UVList uvListByMaterial;
 		RenderedBuffer::NormalList normalListByMaterial;
+		RenderedBuffer::UVList uvListByMaterial;
 
 		const auto& material = renderedBuffer.materials.at(k);
 		const int materialSurfaceSize = static_cast<int>(material->surface.faces.size());
@@ -907,15 +907,17 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	std::vector<Alembic::Util::int32_t> faceList;
 	std::vector<Alembic::Util::int32_t> faceCountList;
 
-	const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
 	const RenderedBuffer::VertexList& vertexList = renderedBuffer.vertecies;
 	const RenderedBuffer::NormalList& normalList = renderedBuffer.normals;
-	RenderedBuffer::UVList& temporary_uv = archive.temporary_uv_list;
-	temporary_uv.resize(uvList.size());
-	RenderedBuffer::NormalList& temporary_normal = archive.temporary_normal_list;
-	temporary_normal.resize(normalList.size());
+	const RenderedBuffer::UVList& uvList = renderedBuffer.uvs;
+
 	RenderedBuffer::VertexList& temporary_vertex = archive.temporary_vertex_list;
+	RenderedBuffer::NormalList& temporary_normal = archive.temporary_normal_list;
+	RenderedBuffer::UVList& temporary_uv = archive.temporary_uv_list;
+
 	temporary_vertex.resize(vertexList.size());
+	temporary_normal.resize(normalList.size());
+	temporary_uv.resize(uvList.size());
 
 	const size_t materialSize = renderedBuffer.materials.size();
 
