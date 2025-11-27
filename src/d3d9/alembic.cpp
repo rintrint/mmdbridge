@@ -109,9 +109,8 @@ public:
 	float export_scale;
 	bool is_export_normals;
 	bool is_export_uvs;
-	int export_mode;
-
 	bool is_use_euler_rotation_camera;
+	int export_mode;
 
 	RenderedBuffer::UVList temporary_uv_list;
 	RenderedBuffer::NormalList temporary_normal_list;
