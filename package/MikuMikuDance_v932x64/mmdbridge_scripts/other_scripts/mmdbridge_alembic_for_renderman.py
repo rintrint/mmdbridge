@@ -240,8 +240,8 @@ if framenumber == start_frame:
         os.remove(ribpath)
 
     messagebox("alembic export started.")
-    copy_textures(texture_export_dir.replace("/", "\\"))
     export_mtl(mtlpath, export_mode)
+    copy_textures(texture_export_dir.replace("/", "\\"))
     start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
 
 if start_frame <= framenumber <= end_frame:

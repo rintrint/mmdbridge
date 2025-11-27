@@ -129,8 +129,8 @@ end_frame = int((mmd_end_frame + 1) * ratio) - 1
 framenumber = get_frame_number()
 if framenumber == start_frame:
     messagebox("alembic export started.")
-    export_mtl(mtlpath, export_mode)
     export_gnode(gnodepath, export_mode)
+    export_mtl(mtlpath, export_mode)
     copy_textures(texture_export_dir.replace("/", "\\"))
     start_alembic_export("", export_mode, export_normals, export_uvs, is_use_euler_rotation_for_camera, is_use_ogawa)
 
