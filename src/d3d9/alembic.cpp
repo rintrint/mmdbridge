@@ -659,7 +659,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 		Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 		// vertex
-		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&vertexListByMaterial.front(), vertexListByMaterial.size());
+		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)vertexListByMaterial.data(), vertexListByMaterial.size());
 		sample.setPositions(positions);
 
 		if (isFirstMesh)
@@ -698,7 +698,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 				}
 			}
 			Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
-			uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)&uvListByMaterial.front(), uvListByMaterial.size()));
+			uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)uvListByMaterial.data(), uvListByMaterial.size()));
 			uvSample.setScope(Alembic::AbcGeom::kFacevaryingScope);
 			sample.setUVs(uvSample);
 		}
@@ -715,7 +715,7 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 			}
 			Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
 			normalSample.setScope(Alembic::AbcGeom::kVertexScope);
-			normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)&normalListByMaterial.front(), normalListByMaterial.size()));
+			normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)normalListByMaterial.data(), normalListByMaterial.size()));
 			sample.setNormals(normalSample);
 		}
 
@@ -847,7 +847,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 		Alembic::AbcGeom::OPolyMeshSchema::Sample sample;
 
 		// vertex
-		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&vertexListByMaterial.front(), vertexListByMaterial.size());
+		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)vertexListByMaterial.data(), vertexListByMaterial.size());
 		sample.setPositions(positions);
 
 		if (isFirstMesh)
@@ -884,7 +884,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 			}
 			Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
 			uvSample.setScope(Alembic::AbcGeom::kVertexScope);
-			uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)&uvListByMaterial.front(), uvListByMaterial.size()));
+			uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)uvListByMaterial.data(), uvListByMaterial.size()));
 			sample.setUVs(uvSample);
 		}
 
@@ -897,7 +897,7 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 			}
 			Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
 			normalSample.setScope(Alembic::AbcGeom::kVertexScope);
-			normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)&normalListByMaterial.front(), normalListByMaterial.size()));
+			normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)normalListByMaterial.data(), normalListByMaterial.size()));
 			sample.setNormals(normalSample);
 		}
 
@@ -1004,7 +1004,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 		temporary_vertex[n].y *= scale;
 		temporary_vertex[n].z *= -scale;
 	}
-	Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&temporary_vertex.front(), temporary_vertex.size());
+	Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)temporary_vertex.data(), temporary_vertex.size());
 	sample.setPositions(positions);
 
 	if (isFirstMesh)
@@ -1053,7 +1053,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 		}
 		Alembic::AbcGeom::OV2fGeomParam::Sample uvSample;
 		uvSample.setScope(Alembic::AbcGeom::kVertexScope);
-		uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)&temporary_uv.front(), temporary_uv.size()));
+		uvSample.setVals(Alembic::AbcGeom::V2fArraySample((const Imath::V2f*)temporary_uv.data(), temporary_uv.size()));
 		sample.setUVs(uvSample);
 	}
 
@@ -1066,7 +1066,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 		}
 		Alembic::AbcGeom::ON3fGeomParam::Sample normalSample;
 		normalSample.setScope(Alembic::AbcGeom::kVertexScope);
-		normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)&temporary_normal.front(), temporary_normal.size()));
+		normalSample.setVals(Alembic::AbcGeom::N3fArraySample((const Alembic::AbcGeom::N3f*)temporary_normal.data(), temporary_normal.size()));
 		sample.setNormals(normalSample);
 	}
 
