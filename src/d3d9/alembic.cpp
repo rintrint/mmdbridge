@@ -185,6 +185,8 @@ static bool start_alembic_export(
 		alembic_archive.m_stream->open(output_path, std::ios::out | std::ios::binary);
 		if (!alembic_archive.m_stream->is_open())
 		{
+			std::wstring error_message = L"Failed to write abc file: " + output_path;
+			::MessageBoxW(NULL, error_message.c_str(), L"Error", MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
 			alembic_archive.end();
 			return false;
 		}
