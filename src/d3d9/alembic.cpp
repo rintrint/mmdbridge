@@ -671,10 +671,19 @@ static void export_alembic_xform_by_material_fix_vindex(AlembicArchive& archive,
 			sample.setFaceCounts(faceCounts);
 
 			// faceSet
-			Alembic::AbcGeom::OFaceSet faceSet = meshSchema.createFaceSet("mesh_" + to_string(renderedBufferIndex) + "_material_" + to_string(k));
+			std::string faceSetName = "Material_" + to_string(k);
+			Alembic::AbcGeom::OFaceSet faceSet = meshSchema.createFaceSet(faceSetName);
 			Alembic::AbcGeom::OFaceSetSchema& faceSetSchema = faceSet.getSchema();
+
+			size_t numFaces = faceCountList.size();
+			std::vector<Alembic::Util::int32_t> faceSetFaces(numFaces);
+			for (size_t i = 0; i < numFaces; ++i)
+			{
+				faceSetFaces[i] = (Alembic::Util::int32_t)i;
+			}
+
 			Alembic::AbcGeom::OFaceSetSchema::Sample faceSetSample;
-			faceSetSample.setFaces(faceList);
+			faceSetSample.setFaces(Alembic::Abc::Int32ArraySample(faceSetFaces));
 			faceSetSchema.set(faceSetSample);
 		}
 
@@ -841,13 +850,29 @@ static void export_alembic_xform_by_material_direct(AlembicArchive& archive, con
 		Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&vertexListByMaterial.front(), vertexListByMaterial.size());
 		sample.setPositions(positions);
 
-		// face index
 		if (isFirstMesh)
 		{
+			// face index
 			Alembic::Abc::Int32ArraySample faceIndices(faceList);
 			Alembic::Abc::Int32ArraySample faceCounts(faceCountList);
 			sample.setFaceIndices(faceIndices);
 			sample.setFaceCounts(faceCounts);
+
+			// faceSet
+			std::string faceSetName = "Material_" + to_string(k);
+			Alembic::AbcGeom::OFaceSet faceSet = meshSchema.createFaceSet(faceSetName);
+			Alembic::AbcGeom::OFaceSetSchema& faceSetSchema = faceSet.getSchema();
+
+			size_t numFaces = faceCountList.size();
+			std::vector<Alembic::Util::int32_t> faceSetFaces(numFaces);
+			for (size_t i = 0; i < numFaces; ++i)
+			{
+				faceSetFaces[i] = (Alembic::Util::int32_t)i;
+			}
+
+			Alembic::AbcGeom::OFaceSetSchema::Sample faceSetSample;
+			faceSetSample.setFaces(Alembic::Abc::Int32ArraySample(faceSetFaces));
+			faceSetSchema.set(faceSetSample);
 		}
 
 		// UVs
@@ -982,13 +1007,40 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	Alembic::AbcGeom::P3fArraySample positions((const Imath::V3f*)&temporary_vertex.front(), temporary_vertex.size());
 	sample.setPositions(positions);
 
-	// face index
 	if (isFirstMesh)
 	{
+		// face index
 		Alembic::Abc::Int32ArraySample faceIndices(faceList);
 		Alembic::Abc::Int32ArraySample faceCounts(faceCountList);
 		sample.setFaceIndices(faceIndices);
 		sample.setFaceCounts(faceCounts);
+
+		// faceSet
+		int currentFaceOffset = 0;
+		for (size_t k = 0; k < materialSize; ++k)
+		{
+			const auto& material = renderedBuffer.materials.at(k);
+			size_t matFaceCount = material->surface.faces.size();
+
+			if (matFaceCount == 0)
+				continue;
+
+			std::string faceSetName = "Material_" + to_string(k);
+			Alembic::AbcGeom::OFaceSet faceSet = meshSchema.createFaceSet(faceSetName);
+			Alembic::AbcGeom::OFaceSetSchema& faceSetSchema = faceSet.getSchema();
+
+			std::vector<Alembic::Util::int32_t> faceSetFaces(matFaceCount);
+			for (size_t i = 0; i < matFaceCount; ++i)
+			{
+				faceSetFaces[i] = (Alembic::Util::int32_t)(currentFaceOffset + i);
+			}
+
+			Alembic::AbcGeom::OFaceSetSchema::Sample faceSetSample;
+			faceSetSample.setFaces(Alembic::Abc::Int32ArraySample(faceSetFaces));
+			faceSetSchema.set(faceSetSample);
+
+			currentFaceOffset += (int)matFaceCount;
+		}
 	}
 
 	// UVs
