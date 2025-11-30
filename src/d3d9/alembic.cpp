@@ -1046,6 +1046,7 @@ static void export_alembic_xform_by_buffer(AlembicArchive& archive, const Render
 	// UVs
 	if (!temporary_uv.empty() && archive.is_export_uvs)
 	{
+		temporary_uv.resize(temporary_vertex.size()); // Discard ADDUV1-4
 		for (size_t n = 0, nsize = temporary_uv.size(); n < nsize; ++n)
 		{
 			temporary_uv[n].y = 1.0f - temporary_uv[n].y;
