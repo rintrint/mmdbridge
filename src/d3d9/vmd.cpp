@@ -36,6 +36,16 @@ typedef std::shared_ptr<pmd::PmdModel> PMDPtr;
 typedef std::shared_ptr<pmx::PmxModel> PMXPtr;
 typedef std::shared_ptr<vmd::VmdMotion> VMDPtr;
 
+static void ShowFrameRangeConfigError()
+{
+	MessageBoxW(NULL,
+				L"Invalid frame range settings detected.\n\n"
+				L"Please ensure that:\n"
+				L"AVI Export Start Frame <= MMDBridge Start Frame",
+				L"Error",
+				MB_OK | MB_SETFOREGROUND | MB_ICONERROR);
+}
+
 static void ShowInvalidBoneNameError()
 {
 	MessageBoxW(NULL,
@@ -98,6 +108,8 @@ public:
 	std::vector<FileDataForVMD> data_list;
 	std::wstring output_path;
 	bool has_bone_name_error = false;
+	bool is_start_vmd_export_called = false;
+	bool is_start_vmd_export_warning_shown = false;
 
 	// export settings
 	int export_fk_bone_animation_mode = 1;
@@ -110,6 +122,8 @@ public:
 		data_list.clear();
 		output_path.clear();
 		has_bone_name_error = false;
+		is_start_vmd_export_called = false;
+		is_start_vmd_export_warning_shown = false;
 	}
 
 	~VMDArchive() = default;
@@ -130,6 +144,7 @@ static bool start_vmd_export(
 	VMDArchive::instance().end();
 
 	VMDArchive& archive = VMDArchive::instance();
+	archive.is_start_vmd_export_called = true;
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	if (parameter.export_fps <= 0)
 	{
@@ -305,6 +320,14 @@ std::vector<T> PostProcessKeyframes(
 static bool end_vmd_export()
 {
 	VMDArchive& archive = VMDArchive::instance();
+
+	if (!archive.is_start_vmd_export_called)
+	{
+		archive.end();
+		ShowFrameRangeConfigError();
+		return false;
+	}
+
 	if (archive.has_bone_name_error)
 	{
 		archive.end();
@@ -744,6 +767,16 @@ static vmd::VmdFaceFrame calculate_face_frame(
 static bool execute_vmd_export(const int currentframe)
 {
 	VMDArchive& archive = VMDArchive::instance();
+
+	if (!archive.is_start_vmd_export_called)
+	{
+		if (!archive.is_start_vmd_export_warning_shown)
+		{
+			archive.is_start_vmd_export_warning_shown = true;
+			ShowFrameRangeConfigError();
+		}
+		return false;
+	}
 
 	const BridgeParameter& parameter = BridgeParameter::instance();
 	const int pmd_num = ExpGetPmdNum();
