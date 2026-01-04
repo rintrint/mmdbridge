@@ -111,8 +111,8 @@ static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			if (pCreate && pCreate->lpcs)
 			{
 				// Check if the window class is RecWindow
-				thread_local wchar_t className[256] = { 0 };
-				if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
+				thread_local wchar_t className[MAX_PATH] = { 0 };
+				if (GetClassNameW(hWnd, className, MAX_PATH) > 0 && wcscmp(className, L"RecWindow") == 0)
 				{
 					g_hRecWindow = hWnd;
 					g_isAviExporting = true;
@@ -237,8 +237,8 @@ BOOL(WINAPI* fpSetWindowTextW_Original)(HWND hWnd, LPCWSTR lpString) = nullptr;
 BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
 {
 	// Fix RecWindow title using temporary subclassing
-	thread_local wchar_t className[256] = { 0 };
-	if (GetClassNameW(hWnd, className, 256) > 0)
+	thread_local wchar_t className[MAX_PATH] = { 0 };
+	if (GetClassNameW(hWnd, className, MAX_PATH) > 0)
 	{
 		if (wcscmp(className, L"Polygon Movie Maker") == 0 || wcscmp(className, L"RecWindow") == 0)
 		{
@@ -1990,7 +1990,7 @@ static HRESULT WINAPI endScene(IDirect3DDevice9* device)
 
 static void GetFrame(HWND hWnd)
 {
-	thread_local wchar_t text[256] = { 0 };
+	thread_local wchar_t text[MAX_PATH] = { 0 };
 	::GetWindowTextW(hWnd, text, sizeof(text) / sizeof(text[0]));
 	ui_frame = _wtoi(text);
 }
@@ -2040,8 +2040,8 @@ std::wstring GetSettingsFilePath()
 
 static void LoadEncodingHookSetting(const wchar_t* key_name, const std::wstring& ini_path, std::map<std::wstring, EncodingHookSetting, std::less<>>& settings_map)
 {
-	thread_local wchar_t buffer[16] = { 0 };
-	GetPrivateProfileStringW(L"Encoding", key_name, L"0", buffer, 16, ini_path.c_str());
+	thread_local wchar_t buffer[MAX_PATH] = { 0 };
+	GetPrivateProfileStringW(L"Encoding", key_name, L"0", buffer, MAX_PATH, ini_path.c_str());
 	int raw_value = _wtoi(buffer);
 	EncodingHookSetting setting;
 
@@ -2071,7 +2071,7 @@ void LoadSettings()
 	thread_local wchar_t buffer[MAX_PATH] = { 0 };
 
 	// Localization
-	GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", buffer, 16, ini_path.c_str());
+	GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", buffer, MAX_PATH, ini_path.c_str());
 	mutable_parameter.ui_language_code = buffer;
 
 	// Encoding
@@ -2350,12 +2350,12 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						script_call_setting = 2; // 実行しない
 					}
 
-					thread_local wchar_t text1[32] = { 0 };
-					thread_local wchar_t text2[32] = { 0 };
-					thread_local wchar_t text5[32] = { 0 };
-					::GetWindowTextW(hEdit1, text1, 32);
-					::GetWindowTextW(hEdit2, text2, 32);
-					::GetWindowTextW(hEdit5, text5, 32);
+					thread_local wchar_t text1[MAX_PATH] = { 0 };
+					thread_local wchar_t text2[MAX_PATH] = { 0 };
+					thread_local wchar_t text5[MAX_PATH] = { 0 };
+					::GetWindowTextW(hEdit1, text1, MAX_PATH);
+					::GetWindowTextW(hEdit2, text2, MAX_PATH);
+					::GetWindowTextW(hEdit5, text5, MAX_PATH);
 					mutable_parameter.start_frame = _wtoi(text1);
 					mutable_parameter.end_frame = _wtoi(text2);
 					mutable_parameter.export_fps = _wtof(text5);
