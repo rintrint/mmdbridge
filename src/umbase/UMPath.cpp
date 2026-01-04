@@ -124,7 +124,7 @@ namespace umbase
 		umstring none;
 		return none;
 #else
-		WCHAR path[MAX_PATH];
+		wchar_t path[MAX_PATH];
 		GetModuleFileNameW(NULL, path, MAX_PATH);
 		return UMStringUtil::wstring_to_utf16(path);
 #endif // WITH_EMSCRIPTEN
@@ -135,11 +135,11 @@ namespace umbase
 #ifdef WITH_EMSCRIPTEN
 		return umstring("resource/") + file_name;
 #else
-		WCHAR modulePath[MAX_PATH];
+		wchar_t modulePath[MAX_PATH];
 		GetModuleFileNameW(NULL, modulePath, MAX_PATH);
 		PathRemoveFileSpecW(modulePath);
 
-		WCHAR candidatePath1[MAX_PATH];
+		wchar_t candidatePath1[MAX_PATH];
 		PathCombineW(candidatePath1, modulePath, L"../../../resource/");
 		PathCombineW(candidatePath1, candidatePath1, UMStringUtil::utf16_to_wstring(file_name).c_str());
 
@@ -148,7 +148,7 @@ namespace umbase
 			return UMStringUtil::wstring_to_utf16(candidatePath1);
 		}
 
-		WCHAR candidatePath2[MAX_PATH];
+		wchar_t candidatePath2[MAX_PATH];
 		PathCombineW(candidatePath2, modulePath, L"./resource/");
 		PathCombineW(candidatePath2, candidatePath2, UMStringUtil::utf16_to_wstring(file_name).c_str());
 

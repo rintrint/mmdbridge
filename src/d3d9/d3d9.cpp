@@ -1990,7 +1990,7 @@ static HRESULT WINAPI endScene(IDirect3DDevice9* device)
 
 static void GetFrame(HWND hWnd)
 {
-	thread_local WCHAR text[256] = { 0 };
+	thread_local wchar_t text[256] = { 0 };
 	::GetWindowTextW(hWnd, text, sizeof(text) / sizeof(text[0]));
 	ui_frame = _wtoi(text);
 }
@@ -3556,7 +3556,7 @@ bool d3d9_initialize()
 {
 	// Get MMD full path.
 	{
-		thread_local WCHAR app_full_path[MAX_PATH] = { 0 };
+		thread_local wchar_t app_full_path[MAX_PATH] = { 0 };
 		GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
 		PathRemoveFileSpecW(app_full_path);
 		PathAddBackslashW(app_full_path);
@@ -3585,7 +3585,7 @@ bool d3d9_initialize()
 	// +++++ MINHOOK LOGIC END +++++
 
 	// System path storage
-	thread_local WCHAR system_path_buffer[MAX_PATH] = { 0 };
+	thread_local wchar_t system_path_buffer[MAX_PATH] = { 0 };
 	GetSystemDirectoryW(system_path_buffer, MAX_PATH);
 	std::wstring d3d9_path(system_path_buffer);
 	replace(d3d9_path.begin(), d3d9_path.end(), L'\\', L'/');

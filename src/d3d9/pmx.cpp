@@ -99,7 +99,7 @@ static bool end_pmx_export()
 	const BridgeParameter& parameter = BridgeParameter::instance();
 
 	umstring filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".pmx");
-	WCHAR pathBuffer[MAX_PATH];
+	wchar_t pathBuffer[MAX_PATH];
 	PathCombineW(pathBuffer, archive.output_path.c_str(), umbase::UMStringUtil::utf16_to_wstring(filename).c_str());
 	std::wstring output_filepath(pathBuffer);
 
@@ -152,7 +152,7 @@ static bool end_pmx_export()
 	stream.close();
 
 	umstring vmd_filename = umbase::UMStringUtil::utf8_to_utf16(archive.model_name + ".vmd");
-	WCHAR vmdPathBuffer[MAX_PATH];
+	wchar_t vmdPathBuffer[MAX_PATH];
 	PathCombineW(vmdPathBuffer, archive.output_path.c_str(), umbase::UMStringUtil::utf16_to_wstring(vmd_filename).c_str());
 	std::wstring vmd_output_filepath = vmdPathBuffer;
 	vmd->SaveToFile(vmd_output_filepath);

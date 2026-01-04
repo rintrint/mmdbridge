@@ -397,7 +397,7 @@ static bool end_vmd_export()
 			continue;
 		}
 
-		WCHAR filename_buffer[MAX_PATH];
+		wchar_t filename_buffer[MAX_PATH];
 		wcscpy_s(filename_buffer, MAX_PATH, filename_wstring.c_str());
 		PathRenameExtensionW(filename_buffer, L".vmd");
 		std::wstring base_output_filename(filename_buffer);
@@ -407,14 +407,14 @@ static bool end_vmd_export()
 		std::wstring final_output_filename = base_output_filename;
 		if (count > 0)
 		{
-			WCHAR name_buffer[MAX_PATH];
+			wchar_t name_buffer[MAX_PATH];
 			wcscpy_s(name_buffer, MAX_PATH, base_output_filename.c_str());
 			PathRemoveExtensionW(name_buffer);
 			std::wstring name_without_ext(name_buffer);
 			final_output_filename = name_without_ext + L" (" + std::to_wstring(count + 1) + L").vmd";
 		}
 
-		WCHAR pathBuffer[MAX_PATH];
+		wchar_t pathBuffer[MAX_PATH];
 		PathCombineW(pathBuffer, archive.output_path.c_str(), final_output_filename.c_str());
 		std::wstring output_filepath = pathBuffer;
 		file_data.vmd->SaveToFile(output_filepath);

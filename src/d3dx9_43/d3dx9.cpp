@@ -2622,7 +2622,7 @@ BOOL UMCopyTexture(LPCWSTR dstDir, LPDIRECT3DTEXTURE9 tex)
 		return FALSE;
 	}
 
-	WCHAR dstPath[MAX_PATH];
+	wchar_t dstPath[MAX_PATH];
 	if (!PathCombineW(dstPath, dstDir, fileName))
 	{
 		return FALSE;
@@ -6380,10 +6380,10 @@ extern "C"
 
 BOOL init()
 {
-	WCHAR app_full_path[MAX_PATH]; // アプリフルパス
+	wchar_t app_full_path[MAX_PATH]; // アプリフルパス
 	GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
 
-	WCHAR system_path_buffer[MAX_PATH]; // システムパス保存用
+	wchar_t system_path_buffer[MAX_PATH]; // システムパス保存用
 	GetSystemDirectoryW(system_path_buffer, MAX_PATH);
 	std::wstring d3d9x_path(system_path_buffer);
 	d3d9x_path.append(L"\\d3dx9_43.dll");
