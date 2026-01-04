@@ -111,7 +111,7 @@ static LRESULT CALLBACK CbtHookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			if (pCreate && pCreate->lpcs)
 			{
 				// Check if the window class is RecWindow
-				wchar_t className[256] = { 0 };
+				thread_local wchar_t className[256] = { 0 };
 				if (GetClassNameW(hWnd, className, 256) > 0 && wcscmp(className, L"RecWindow") == 0)
 				{
 					g_hRecWindow = hWnd;
@@ -237,7 +237,7 @@ BOOL(WINAPI* fpSetWindowTextW_Original)(HWND hWnd, LPCWSTR lpString) = nullptr;
 BOOL WINAPI Detour_SetWindowTextW(HWND hWnd, LPCWSTR lpString)
 {
 	// Fix RecWindow title using temporary subclassing
-	wchar_t className[256] = { 0 };
+	thread_local wchar_t className[256] = { 0 };
 	if (GetClassNameW(hWnd, className, 256) > 0)
 	{
 		if (wcscmp(className, L"Polygon Movie Maker") == 0 || wcscmp(className, L"RecWindow") == 0)
@@ -269,7 +269,7 @@ INT_PTR WINAPI Detour_DialogBoxParamA(HINSTANCE hInst, LPCSTR lpTemplateName, HW
 		int wide_len = MultiByteToWideChar(code_page, 0, lpTemplateName, -1, NULL, 0);
 		if (wide_len > 0 && wide_len < 512)
 		{
-			wchar_t wide_template_name[512] = { 0 };
+			thread_local wchar_t wide_template_name[512] = { 0 };
 			MultiByteToWideChar(code_page, 0, lpTemplateName, -1, wide_template_name, wide_len);
 			return DialogBoxParamW(hInst, wide_template_name, hWndParent, lpDialogFunc, dwInitParam);
 		}
@@ -297,7 +297,7 @@ BOOL WINAPI Detour_SetWindowTextA(HWND hWnd, LPCSTR lpString)
 			int wide_len = MultiByteToWideChar(code_page, 0, lpString, -1, NULL, 0);
 			if (wide_len > 0 && wide_len < 4096)
 			{
-				wchar_t wide_buf[4096] = { 0 };
+				thread_local wchar_t wide_buf[4096] = { 0 };
 				MultiByteToWideChar(code_page, 0, lpString, -1, wide_buf, wide_len);
 				return SetWindowTextW(hWnd, wide_buf);
 			}
@@ -324,8 +324,8 @@ HWND WINAPI Detour_CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR l
 			(void)*(volatile char*)lpClassName;
 			if (_stricmp(lpClassName, "RecWindow") == 0)
 			{
-				wchar_t wideClassName[512] = { 0 };
-				wchar_t wideWindowName[512] = { 0 };
+				thread_local wchar_t wideClassName[512] = { 0 };
+				thread_local wchar_t wideWindowName[512] = { 0 };
 
 				int code_page = GetEncodingHookCodePage(L"CreateWindowExA");
 				MultiByteToWideChar(code_page, 0, lpClassName, -1, wideClassName, 512);
@@ -367,7 +367,7 @@ BOOL WINAPI Detour_ModifyMenuA(HMENU hMnu, UINT uPosition, UINT uFlags, UINT_PTR
 			int wide_len = MultiByteToWideChar(code_page, 0, lpNewItem, -1, NULL, 0);
 			if (wide_len > 0 && wide_len <= 512)
 			{
-				wchar_t wide_buf[512] = { 0 };
+				thread_local wchar_t wide_buf[512] = { 0 };
 				MultiByteToWideChar(code_page, 0, lpNewItem, -1, wide_buf, wide_len);
 				return ModifyMenuW(hMnu, uPosition, uFlags, uIDNewItem, wide_buf);
 			}
@@ -398,7 +398,7 @@ BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, L
 			int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 			if (wide_len > 0 && wide_len <= 512)
 			{
-				wchar_t wide_buf[512] = { 0 };
+				thread_local wchar_t wide_buf[512] = { 0 };
 				MultiByteToWideChar(code_page, 0, original_str, -1, wide_buf, wide_len);
 				miiW.dwTypeData = wide_buf;
 				miiW.cch = 0;
@@ -419,7 +419,7 @@ BOOL WINAPI Detour_SetMenuItemInfoA(HMENU hMenu, UINT uItem, BOOL fByPosition, L
 int(WINAPI* fpGetWindowTextA_Original)(HWND hWnd, LPSTR lpString, int nMaxCount) = nullptr;
 int WINAPI Detour_GetWindowTextA(HWND hWnd, LPSTR lpString, int nMaxCount)
 {
-	wchar_t wide_buf[512] = { 0 };
+	thread_local wchar_t wide_buf[512] = { 0 };
 	int wide_chars = GetWindowTextW(hWnd, wide_buf, 512);
 	if (wide_chars > 0 && wide_chars <= 510)
 	{
@@ -465,7 +465,7 @@ LRESULT WINAPI Detour_SendMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lP
 				int wide_len = MultiByteToWideChar(code_page, 0, original_str, -1, NULL, 0);
 				if (wide_len > 0 && wide_len <= 512)
 				{
-					wchar_t wide_buf[512] = { 0 };
+					thread_local wchar_t wide_buf[512] = { 0 };
 					MultiByteToWideChar(code_page, 0, original_str, -1, wide_buf, wide_len);
 					return SendMessageW(hWnd, Msg, wParam, (LPARAM)wide_buf);
 				}
@@ -488,8 +488,8 @@ int WINAPI Detour_MessageBoxA(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT u
 	__try
 	{
 		int code_page = GetEncodingHookCodePage(L"MessageBoxA");
-		wchar_t wide_caption[512] = { 0 };
-		wchar_t wide_text[4096] = { 0 };
+		thread_local wchar_t wide_caption[512] = { 0 };
+		thread_local wchar_t wide_text[4096] = { 0 };
 		bool need_fallback = false;
 
 		// title
@@ -770,7 +770,7 @@ namespace
 		if (!ifs)
 			return false;
 
-		char buf[4096] = { 0 };
+		thread_local char buf[4096] = { 0 };
 		while (ifs.getline(buf, sizeof(buf)))
 		{
 			mutable_parameter.mmdbridge_python_script.append(buf);
@@ -795,7 +795,7 @@ namespace
 		std::vector<std::pair<std::wstring, std::wstring>> found_scripts;
 
 		// Find python files.
-		WIN32_FIND_DATA find = { 0 };
+		thread_local WIN32_FIND_DATA find = { 0 };
 		HANDLE hFind = FindFirstFile(searchStr.c_str(), &find);
 		if (hFind != INVALID_HANDLE_VALUE)
 		{
@@ -1827,7 +1827,7 @@ static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstr
 		return false;
 	}
 
-	wchar_t dir[MAX_PATH] = { 0 };
+	thread_local wchar_t dir[MAX_PATH] = { 0 };
 	wcscpy_s(dir, MAX_PATH, texturePath.c_str());
 	PathRemoveFileSpecW(dir);
 
@@ -1841,7 +1841,7 @@ static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstr
 			{
 				if (!copied)
 				{
-					wchar_t path[MAX_PATH] = { 0 };
+					thread_local wchar_t path[MAX_PATH] = { 0 };
 					PathCombineW(path, dir, to_wstring(texture).c_str());
 					std::wstring wpath(path);
 					wpath += L"." + textureType;
@@ -1853,7 +1853,7 @@ static bool writeTextureToFiles(const std::wstring& texturePath, const std::wstr
 			}
 			else
 			{
-				wchar_t path[MAX_PATH] = { 0 };
+				thread_local wchar_t path[MAX_PATH] = { 0 };
 				PathCombineW(path, dir, to_wstring(texture).c_str());
 				std::wstring wpath(path);
 				wpath += L"." + textureType;
@@ -1990,7 +1990,7 @@ static HRESULT WINAPI endScene(IDirect3DDevice9* device)
 
 static void GetFrame(HWND hWnd)
 {
-	WCHAR text[256] = { 0 };
+	thread_local WCHAR text[256] = { 0 };
 	::GetWindowTextW(hWnd, text, sizeof(text) / sizeof(text[0]));
 	ui_frame = _wtoi(text);
 }
@@ -2014,11 +2014,11 @@ static BOOL CALLBACK enumChildWindowsProc(HWND hWnd, LPARAM lParam)
 // Get the full path to the settings file corresponding to the current EXE
 std::wstring GetSettingsFilePath()
 {
-	wchar_t module_path[MAX_PATH] = { 0 };
+	thread_local wchar_t module_path[MAX_PATH] = { 0 };
 	GetModuleFileNameW(hInstance, module_path, MAX_PATH);
 	PathRemoveFileSpecW(module_path);
 
-	wchar_t settings_dir[MAX_PATH] = { 0 };
+	thread_local wchar_t settings_dir[MAX_PATH] = { 0 };
 	PathCombineW(settings_dir, module_path, L"mmdbridge_settings");
 
 	if (!PathFileExistsW(settings_dir))
@@ -2027,12 +2027,12 @@ std::wstring GetSettingsFilePath()
 	}
 
 	// Get host executable filename (e.g., MikuMikuDance.exe)
-	wchar_t exe_path[MAX_PATH] = { 0 };
+	thread_local wchar_t exe_path[MAX_PATH] = { 0 };
 	GetModuleFileNameW(NULL, exe_path, MAX_PATH);
 	const wchar_t* exe_filename = PathFindFileNameW(exe_path);
 
 	// Build settings file path: settings_dir\{exe_filename}.ini
-	wchar_t final_ini_path[MAX_PATH] = { 0 };
+	thread_local wchar_t final_ini_path[MAX_PATH] = { 0 };
 	PathCombineW(final_ini_path, settings_dir, (std::wstring(exe_filename) + L".ini").c_str());
 
 	return final_ini_path;
@@ -2040,7 +2040,7 @@ std::wstring GetSettingsFilePath()
 
 static void LoadEncodingHookSetting(const wchar_t* key_name, const std::wstring& ini_path, std::map<std::wstring, EncodingHookSetting, std::less<>>& settings_map)
 {
-	wchar_t buffer[16] = { 0 };
+	thread_local wchar_t buffer[16] = { 0 };
 	GetPrivateProfileStringW(L"Encoding", key_name, L"0", buffer, 16, ini_path.c_str());
 	int raw_value = _wtoi(buffer);
 	EncodingHookSetting setting;
@@ -2068,7 +2068,7 @@ void LoadSettings()
 	const std::wstring& ini_path = BridgeParameter::instance().ini_path;
 	BridgeParameter& mutable_parameter = BridgeParameter::mutable_instance();
 
-	wchar_t buffer[MAX_PATH] = { 0 };
+	thread_local wchar_t buffer[MAX_PATH] = { 0 };
 
 	// Localization
 	GetPrivateProfileStringW(L"Localization", L"Language", L"ja-JP", buffer, 16, ini_path.c_str());
@@ -2121,7 +2121,7 @@ static void setMyMenu()
 		minfo.cbSize = sizeof(MENUITEMINFO);
 		minfo.fMask = MIIM_ID | MIIM_TYPE | MIIM_SUBMENU;
 		minfo.fType = MFT_STRING;
-		wchar_t bridgeMenuText[] = L"MMDBridge";
+		static wchar_t bridgeMenuText[] = L"MMDBridge";
 		minfo.dwTypeData = bridgeMenuText;
 		minfo.hSubMenu = hsubs;
 
@@ -2181,9 +2181,9 @@ static void ShowAboutDialog(HWND hWnd)
 
 	SetThreadUILanguage(target_lang_id);
 
-	static wchar_t titleBuffer[512] = { 0 };
-	static wchar_t formatBuffer[4096] = { 0 };
-	static wchar_t finalMessage[4096] = { 0 };
+	thread_local wchar_t titleBuffer[512] = { 0 };
+	thread_local wchar_t formatBuffer[4096] = { 0 };
+	thread_local wchar_t finalMessage[4096] = { 0 };
 
 	if (LoadStringW(hInstance, IDS_ABOUT_TITLE, titleBuffer, 512) == 0)
 	{
@@ -2230,7 +2230,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				SetThreadUILanguage(target_lang_id);
 
 				// Update "Plugin Settings" text
-				wchar_t settingsMenuText[512] = { 0 };
+				thread_local wchar_t settingsMenuText[512] = { 0 };
 				if (LoadStringW(hInstance, IDS_MENU_PLUGIN_SETTINGS, settingsMenuText, 512) == 0)
 				{
 					// Fallback
@@ -2243,7 +2243,7 @@ static LRESULT CALLBACK overrideWndProc(HWND hWnd, UINT msg, WPARAM wp, LPARAM l
 				SetMenuItemInfoW(hPopupMenu, IDS_MENU_PLUGIN_SETTINGS, FALSE, &mii_update_settings);
 
 				// Update "About MMDBridge" text
-				wchar_t versionMenuText[512] = { 0 };
+				thread_local wchar_t versionMenuText[512] = { 0 };
 				if (LoadStringW(hInstance, IDS_MENU_ABOUT, versionMenuText, 512) == 0)
 				{
 					// Fallback
@@ -2350,9 +2350,9 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 						script_call_setting = 2; // 実行しない
 					}
 
-					wchar_t text1[32] = { 0 };
-					wchar_t text2[32] = { 0 };
-					wchar_t text5[32] = { 0 };
+					thread_local wchar_t text1[32] = { 0 };
+					thread_local wchar_t text2[32] = { 0 };
+					thread_local wchar_t text5[32] = { 0 };
 					::GetWindowTextW(hEdit1, text1, 32);
 					::GetWindowTextW(hEdit2, text2, 32);
 					::GetWindowTextW(hEdit5, text5, 32);
@@ -2375,7 +2375,7 @@ static INT_PTR CALLBACK DialogProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lP
 					break;
 				case IDC_BUTTON1: // 再検索
 				{
-					wchar_t current_selection_text[MAX_PATH] = { 0 };
+					thread_local wchar_t current_selection_text[MAX_PATH] = { 0 };
 					LRESULT current_selection_index = SendMessageW(hCombo1, CB_GETCURSEL, 0, 0);
 					if (current_selection_index != CB_ERR)
 					{
@@ -3437,7 +3437,7 @@ void initialize_hooks()
 	auto create_and_enable_hook = [](HMODULE hModule, LPCSTR pszProcName, LPVOID pDetour, LPVOID* ppOriginal, const wchar_t* funcNameForLog) -> bool {
 		if (!hModule)
 		{
-			wchar_t buffer[512] = { 0 };
+			thread_local wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"Module handle is null for %s.", funcNameForLog);
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			return false;
@@ -3446,7 +3446,7 @@ void initialize_hooks()
 		LPVOID pTarget = (LPVOID)GetProcAddress(hModule, pszProcName);
 		if (!pTarget)
 		{
-			wchar_t buffer[512] = { 0 };
+			thread_local wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"GetProcAddress for %s failed.", funcNameForLog);
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			return false;
@@ -3455,7 +3455,7 @@ void initialize_hooks()
 		MH_STATUS status = MH_CreateHook(pTarget, pDetour, ppOriginal);
 		if (status != MH_OK)
 		{
-			wchar_t buffer[512] = { 0 };
+			thread_local wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"MH_CreateHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			return false;
@@ -3464,7 +3464,7 @@ void initialize_hooks()
 		status = MH_EnableHook(pTarget);
 		if (status != MH_OK)
 		{
-			wchar_t buffer[512] = { 0 };
+			thread_local wchar_t buffer[512] = { 0 };
 			swprintf_s(buffer, L"MH_EnableHook for %s failed: %hs", funcNameForLog, MH_StatusToString(status));
 			::MessageBoxW(NULL, buffer, L"MinHook Error", MB_OK | MB_SETFOREGROUND);
 			// If enabling the hook fails, remove it to clean up resources.
@@ -3556,7 +3556,7 @@ bool d3d9_initialize()
 {
 	// Get MMD full path.
 	{
-		WCHAR app_full_path[MAX_PATH] = { 0 };
+		thread_local WCHAR app_full_path[MAX_PATH] = { 0 };
 		GetModuleFileNameW(NULL, app_full_path, MAX_PATH);
 		PathRemoveFileSpecW(app_full_path);
 		PathAddBackslashW(app_full_path);
@@ -3585,7 +3585,7 @@ bool d3d9_initialize()
 	// +++++ MINHOOK LOGIC END +++++
 
 	// System path storage
-	WCHAR system_path_buffer[MAX_PATH] = { 0 };
+	thread_local WCHAR system_path_buffer[MAX_PATH] = { 0 };
 	GetSystemDirectoryW(system_path_buffer, MAX_PATH);
 	std::wstring d3d9_path(system_path_buffer);
 	replace(d3d9_path.begin(), d3d9_path.end(), L'\\', L'/');
