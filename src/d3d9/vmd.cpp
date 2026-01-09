@@ -387,6 +387,29 @@ static bool end_vmd_export()
 			file_data.vmd->bone_frames = PostProcessKeyframes(file_data.vmd->bone_frames, get_bone_name, are_bones_equal, is_bone_zero);
 		}
 
+		// Frame Offset Logic: Shift all keyframes forward to make the starting frame become 0
+		const int start_frame = BridgeParameter::instance().start_frame;
+		if (start_frame > 0)
+		{
+			// Shift bone keyframes
+			for (auto& frame : file_data.vmd->bone_frames)
+			{
+				frame.frame -= start_frame;
+			}
+
+			// Shift morph keyframes
+			for (auto& frame : file_data.vmd->face_frames)
+			{
+				frame.frame -= start_frame;
+			}
+
+			// Shift IK keyframes
+			for (auto& frame : file_data.vmd->ik_frames)
+			{
+				frame.frame -= start_frame;
+			}
+		}
+
 		const char* filepath = ExpGetPmdFilenameUtf8(i);
 		std::wstring filepath_wstring = umbase::UMStringUtil::utf16_to_wstring(umbase::UMStringUtil::utf8_to_utf16(filepath));
 		std::wstring filename_wstring = PathFindFileNameW(filepath_wstring.c_str());
