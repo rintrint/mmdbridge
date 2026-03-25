@@ -116,6 +116,7 @@ public:
 	bool export_ik_bone_animation = false;
 	bool add_turn_off_ik_keyframe = true;
 	bool export_morph_animation = true;
+	bool export_vertex_morph_animation_only = false;
 
 	void end()
 	{
@@ -136,7 +137,8 @@ static bool start_vmd_export(
 	const int export_fk_bone_animation_mode,
 	const bool export_ik_bone_animation,
 	const bool add_turn_off_ik_keyframe,
-	const bool export_morph_animation)
+	const bool export_morph_animation,
+	const bool export_vertex_morph_animation_only)
 {
 	BridgeParameter::mutable_instance().current_export_type = ExportType::VMD;
 
@@ -166,6 +168,7 @@ static bool start_vmd_export(
 	archive.export_ik_bone_animation = export_ik_bone_animation;
 	archive.add_turn_off_ik_keyframe = add_turn_off_ik_keyframe;
 	archive.export_morph_animation = export_morph_animation;
+	archive.export_vertex_morph_animation_only = export_vertex_morph_animation_only;
 
 	const int pmd_num = ExpGetPmdNum();
 	for (int i = 0; i < pmd_num; ++i)
@@ -1140,20 +1143,89 @@ static bool execute_vmd_export(const int currentframe)
 		if (archive.export_morph_animation)
 		{
 			const int morph_num = ExpGetPmdMorphNum(i);
-			for (int m = 0; m < morph_num; ++m)
+			if (archive.export_vertex_morph_animation_only && file_data.pmx)
 			{
-				const char* morph_name = ExpGetPmdMorphName(i, m);
+				// Bake all vertex morph weights, including contributions from group morphs.
+				// Key: vertex morph index, Value: accumulated weight
+				std::map<int, float> vertex_morph_weights;
 
-				// Validate morph name mapping
-				auto it = file_data.morph_name_map.find(m);
-				if (it == file_data.morph_name_map.end() || it->second != morph_name)
+				for (int m = 0; m < morph_num; ++m)
 				{
-					continue;
+					// Validate morph name mapping
+					const char* morph_name = ExpGetPmdMorphName(i, m);
+					auto it = file_data.morph_name_map.find(m);
+					if (it == file_data.morph_name_map.end() || it->second != morph_name)
+					{
+						continue;
+					}
+
+					const pmx::PmxMorph& morph = file_data.pmx->morphs[m];
+					const float morph_weight = ExpGetPmdMorphValue(i, m);
+
+					if (morph.morph_type == pmx::MorphType::Vertex)
+					{
+						// Accumulate direct vertex morph contribution
+						vertex_morph_weights[m] += morph_weight;
+					}
+					else if (morph.morph_type == pmx::MorphType::Group)
+					{
+						// Expand group morph: accumulate each vertex morph child
+						for (const auto& group_offset : morph.group_offsets)
+						{
+							const int child_index = group_offset.morph_index;
+							if (child_index < 0 || child_index >= morph_num)
+							{
+								continue;
+							}
+
+							const pmx::PmxMorph& child_morph = file_data.pmx->morphs[child_index];
+							if (child_morph.morph_type != pmx::MorphType::Vertex)
+							{
+								continue;
+							}
+
+							// Validate child morph name mapping
+							const char* child_morph_name = ExpGetPmdMorphName(i, child_index);
+							auto child_it = file_data.morph_name_map.find(child_index);
+							if (child_it == file_data.morph_name_map.end() || child_it->second != child_morph_name)
+							{
+								continue;
+							}
+
+							const float effective_weight = morph_weight * group_offset.morph_weight;
+							vertex_morph_weights[child_index] += effective_weight;
+						}
+					}
 				}
 
-				// Use helper function to calculate face frame
-				vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
-				file_data.vmd->face_frames.push_back(face_frame);
+				// Emit one face frame per vertex morph with the accumulated weight
+				for (const auto& [morph_index, accumulated_weight] : vertex_morph_weights)
+				{
+					vmd::VmdFaceFrame face_frame;
+					face_frame.frame = static_cast<uint32_t>(currentframe);
+					face_frame.face_name = file_data.morph_name_map.at(morph_index);
+					face_frame.weight = accumulated_weight;
+					file_data.vmd->face_frames.push_back(face_frame);
+				}
+			}
+			else
+			{
+				// Default path: export all morphs as-is
+				for (int m = 0; m < morph_num; ++m)
+				{
+					const char* morph_name = ExpGetPmdMorphName(i, m);
+
+					// Validate morph name mapping
+					auto it = file_data.morph_name_map.find(m);
+					if (it == file_data.morph_name_map.end() || it->second != morph_name)
+					{
+						continue;
+					}
+
+					// Use helper function to calculate face frame
+					vmd::VmdFaceFrame face_frame = calculate_face_frame(i, m, currentframe, file_data);
+					file_data.vmd->face_frames.push_back(face_frame);
+				}
 			}
 		}
 	}
@@ -1169,7 +1241,8 @@ PYBIND11_MODULE(mmdbridge_vmd, m)
 		  py::arg("export_fk_bone_animation_mode"),
 		  py::arg("export_ik_bone_animation"),
 		  py::arg("add_turn_off_ik_keyframe"),
-		  py::arg("export_morph_animation"));
+		  py::arg("export_morph_animation"),
+		  py::arg("export_vertex_morph_animation_only"));
 	m.def("end_vmd_export", end_vmd_export);
 	m.def("execute_vmd_export", execute_vmd_export);
 }

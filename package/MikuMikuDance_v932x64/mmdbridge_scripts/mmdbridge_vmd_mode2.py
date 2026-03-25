@@ -30,6 +30,8 @@ add_turn_off_ik_keyframe = True
 # --- Morph Animation Settings ---
 # Export morph animation
 export_morph_animation = True
+# Export only vertex morphs. Group morphs will also be baked into their child vertex morph.
+export_vertex_morph_animation_only = True
 
 
 # --- General Settings ---
@@ -100,6 +102,7 @@ if is_anything_to_export:
             export_ik_bone_animation=export_ik_bone_animation,
             add_turn_off_ik_keyframe=add_turn_off_ik_keyframe,
             export_morph_animation=export_morph_animation,
+            export_vertex_morph_animation_only=export_vertex_morph_animation_only,
         )
 
     if start_frame <= framenumber <= end_frame:
