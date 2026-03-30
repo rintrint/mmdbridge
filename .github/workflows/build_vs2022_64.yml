@@ -39,7 +39,7 @@ jobs:
 
     steps:
       - name: Add MSBuild to PATH
-        uses: microsoft/setup-msbuild@v1
+        uses: microsoft/setup-msbuild@v3
 
       - name: Check MSBuild.exe
         run: MSBuild.exe -version | Out-File -FilePath $env:GITHUB_WORKSPACE\MSBuild_version
@@ -82,7 +82,7 @@ jobs:
         shell: bash
 
       - name: Checkout MMDBridge
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Add MMD_DIR to ENV
         run: |
@@ -138,7 +138,7 @@ jobs:
           7z a -t7z -mx5 MikuMikuDance_v932x64.7z "$GITHUB_WORKSPACE/MikuMikuDance_v932x64/"
 
       - name: Upload
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: MMDBridge_artifact_${{github.run_number}}
           path: |
