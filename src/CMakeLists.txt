@@ -46,7 +46,7 @@ target_link_libraries(d3d9
 # Auto-install after build for seamless debugging workflow
 add_custom_command(TARGET d3d9 POST_BUILD
     COMMENT "Auto-install after build..."
-    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --config $<CONFIG> 2>nul || echo Install failed - MMD may be running
+    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR} --config $<CONFIG> || echo Install failed - MMD may be running
 )
 install(TARGETS d3d9
     RUNTIME DESTINATION ${MMD_DIR}
