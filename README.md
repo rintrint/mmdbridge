@@ -56,7 +56,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 ## Contributors
 
-[MMDBridge is open source and anyone can participate in development.](https://github.com/rintrint/mmdbridge/graphs/contributors)
+MMDBridge is open source and welcomes contributions. See the [list of contributors](https://github.com/rintrint/mmdbridge/graphs/contributors).
 
 ## Acknowledgements
 
